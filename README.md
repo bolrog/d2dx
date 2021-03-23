@@ -19,6 +19,11 @@ D2GX is a Glide-wrapper for Diablo II on modern PC:s
   
   Note that in some cases you may have to also download and install the Visual C++ runtime library from Microsoft: https://aka.ms/vs/16/release/vc_redist.x86.exe
 
+  The wrapper should work with PlugY, just make sure you have -3dfx in the ini file:
+  ```
+  [LAUNCHING]
+  Param=-3dfx
+  ```
 ## Usage
 ### To run the game in windowed mode
 - Game.exe -3dfx -w
