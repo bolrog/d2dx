@@ -18,15 +18,14 @@ D2GX is a Glide-wrapper for Diablo II on modern PC:s
   Copy the included "glide3x.dll" into your Diablo II folder.
 
 ## Usage
-  To run the game in windowed mode:
-	Game.exe -3dfx -w
+### To run the game in windowed mode
+- Game.exe -3dfx -w
 
-  To run the game in default fullscreen mode (800x600 scaled to desktop resolution):
-	Game.exe -3dfx
+### To run the game in default fullscreen mode (800x600 scaled to desktop resolution):
+- Game.exe -3dfx
 
-  To run the game in enhanced fullscreen mode (800x540 scaled to 1920x1080):
-	Game.exe -3dfx -gx1080
+### To run the game in experimental fullscreen mode (800x540 scaled to 1920x1080):
+- Game.exe -3dfx -gx1080
 
-  To get rid of the "GX" logo on the title screen, add -gxskiplogo 
-  to the command line.
+To get rid of the "GX" logo on the title screen, add -gxskiplogo to the command line.
 
