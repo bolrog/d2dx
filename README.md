@@ -16,6 +16,8 @@ D2GX is a Glide-wrapper for Diablo II on modern PC:s
 
 ## Installation
   Copy the included "glide3x.dll" into your Diablo II folder.
+  
+  Note that in some cases you may have to also download and install the Visual C++ runtime library from Microsoft: https://aka.ms/vs/16/release/vc_redist.x86.exe
 
 ## Usage
 ### To run the game in windowed mode
@@ -28,4 +30,3 @@ D2GX is a Glide-wrapper for Diablo II on modern PC:s
 - Game.exe -3dfx -gx1080
 
 To get rid of the "GX" logo on the title screen, add -gxskiplogo to the command line.
-
