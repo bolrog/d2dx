@@ -4,12 +4,13 @@ D2GX is a Glide-wrapper for Diablo II on modern PC:s
 
 ## Features
   - Game is rendered with DirectX 11.
-  - Behaves nicely in windowed mode.  
+  - Behaves nicely in windowed mode.
   - Enhanced fullscreen modes.
+  - Fixes startup glitches in older versions of the game.
   - More graphical enhancements (tba).
 
 ## Requirements
-  - Diablo + LOD 1.14d (other versions untested).
+  - Diablo 2: LoD 1.13c / 1.14d (other versions untested).
   - Windows 7 and above.
   - Integrated graphics or discrete GPU with DirectX 11 support (feature level 10.0 required).
 
