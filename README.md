@@ -1,7 +1,7 @@
 # d2gx
 D2GX is a Glide-wrapper for Diablo II on modern PC:s
 
-Version 0.9.324
+Version 0.91.324
 
 ## Features
   - High performance DirectX 11 renderer.
