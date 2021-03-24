@@ -1,19 +1,26 @@
 # d2gx
 D2GX is a Glide-wrapper for Diablo II on modern PC:s
 
-Version 0.9.230323c
+Version 0.9.324
 
 ## Features
-  - Game is rendered with DirectX 11.
+  - High performance DirectX 11 renderer.
   - Behaves nicely in windowed mode.
-  - Enhanced fullscreen modes.
+  - Modernized fullscreen mode with high quality scaling.
   - Fixes startup glitches in older versions of the game.
   - More graphical enhancements (tba).
 
 ## Requirements
-  - Diablo 2: LoD 1.13c / 1.14d (other versions untested).
+  - Diablo 2: LoD 1.13c, 1.13d, or 1.14d (other versions untested).
   - Windows 7 and above.
+  - A CPU with SSE2 support.
   - Integrated graphics or discrete GPU with DirectX 11 support (feature level 10.0 required).
+
+## Compatibility
+So far it has been tested as working with:
+  - D2 LoD 1.13c, 1.13d, 1.14d
+  - PlugY
+  - D2ModMaker
 
 ## Installation
   Copy the included "glide3x.dll" into your Diablo II folder.
@@ -32,14 +39,19 @@ Version 0.9.230323c
 ### To run the game in default fullscreen mode (800x600 scaled to desktop resolution):
 - Game.exe -3dfx
 
-### To run the game in experimental fullscreen mode (800x540 scaled to 1920x1080):
+### To run the game in experimental fullscreen mode (800x540 "integer scaled" to 1920x1080):
 - Game.exe -3dfx -gx1080
 
 To get rid of the "GX" logo on the title screen, add -gxskiplogo to the command line.
 
 ## Release history
 
-### 0.9.230323c
+### 0.91.324
+  - Fix crash when hosting TCP/IP game.
+  - Speed up texture cache lookup.
+  - Changed to a slightly less insane version numbering scheme.
+
+### 0.9.210323c
   - Fix crash occurring after playing a while.
 
 ### 0.9.210323b:
