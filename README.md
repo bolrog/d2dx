@@ -59,8 +59,6 @@ Note that in-game resolution should be set to 800x600. Support for 640x480 has n
   - Add experimental window scaling support.
   - More performance improvements.
 
-### 0.91.324b
-
 ### 0.91.324
   - Fix crash when hosting TCP/IP game.
   - Speed up texture cache lookup.
