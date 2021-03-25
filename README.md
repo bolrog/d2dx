@@ -1,7 +1,7 @@
 # d2gx
 D2GX is a Glide-wrapper for Diablo II on modern PC:s
 
-Version 0.91.324
+Version 0.91.325
 
 ## Features
   - High performance DirectX 11 renderer.
@@ -44,7 +44,22 @@ So far it has been tested as working with:
 
 To get rid of the "GX" logo on the title screen, add -gxskiplogo to the command line.
 
+To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line. Note that if the Window doesn't fit on the desktop, the scale factor will be lowered.
+
+Note that in-game resolution should be set to 800x600. Support for 640x480 has not been added yet.
+
 ## Release history
+
+### 0.91.325
+  - Fix mode switching flicker on startup in fullscreen modes.
+  - Fix mouse cursor being "teleported" when leaving the window in windowed mode.
+  - Fix mouse speed not being consistent with the desktop.
+  - Fix game looking fuzzy on high DPI displays.
+  - Improve frame time consistency/latency.
+  - Add experimental window scaling support.
+  - More performance improvements.
+
+### 0.91.324b
 
 ### 0.91.324
   - Fix crash when hosting TCP/IP game.
