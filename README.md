@@ -1,5 +1,7 @@
-# d2gx
-D2GX is a Glide-wrapper for Diablo II on modern PC:s
+# d2dx
+D2DX is a Glide-wrapper for Diablo II on modern PC:s
+
+(The project was renamed from "d2gx" due to a name clash with another Diablo 2 mod project.)
 
 Version 0.91.327
 
