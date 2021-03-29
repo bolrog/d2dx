@@ -1,7 +1,7 @@
 # d2dx
 D2DX is a Glide-wrapper for Diablo II on modern PC:s
 
-Version 0.98.329
+Version 0.99.329
 
 ## Features
   - High performance DirectX 11 renderer.
@@ -46,17 +46,17 @@ To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line.
 
 ## Troubleshooting
 
-### It looks terrible in 640x480
-  Support for this mode has not been added yet. Use 800x600.
-
 ### I get a message box saying "Diablo II is unable to proceed. Unsupported graphics mode."
   You are running the download version of Diablo II from blizzard.com. Upgrade to 1.14d.
 
 ## Release history
 
+### 0.99.329
+  - Add support for 640x480 mode, and polish behavior around in-game resolution switching.
+
 ### 0.98.329
-  - Added support for LoD 1.09d, 1.10 and 1.12.
-  - Added warning dialog on startup when using an unsupported game version.
+  - Add support for LoD 1.09d, 1.10 and 1.12.
+  - Add warning dialog on startup when using an unsupported game version.
 
 ### 0.91.328
   - Fix mouse pointer "jumping" when opening inventory and clicking items in fullscreen or scaled-window modes.
