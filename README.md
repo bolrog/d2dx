@@ -1,24 +1,25 @@
 # d2dx
 D2DX is a Glide-wrapper for Diablo II on modern PC:s
 
-Version 0.91.328
+Version 0.98.329
 
 ## Features
   - High performance DirectX 11 renderer.
-  - Behaves nicely in windowed mode.
-  - Modernized fullscreen mode with high quality scaling.
-  - Fixes startup glitches in older versions of the game.
-  - More graphical enhancements (tba).
+  - High image quality with proper gamma and scaling.
+  - Makes the game behave nicely in Windows 10, in both windowed and fullscreen modes.
 
 ## Requirements
-  - Diablo 2: LoD 1.13c, 1.13d, or 1.14d (other versions untested).
-  - Windows 7 and above.
+  - Diablo 2: LoD (see Compatibility section below).
+  - Windows 7 and above (10 recommended).
   - A CPU with SSE2 support.
   - Integrated graphics or discrete GPU with DirectX 11 support (feature level 10.0 required).
 
 ## Compatibility
-So far it has been tested as working with:
-  - D2 LoD 1.13c, 1.13d, 1.14d
+Game versions supported:
+  - 1.09d, 1.10, 1.12, 1.13c, 1.13d and 1.14d.
+  - Other versions will display a warning at startup and exhibit glitches, because various fixes that D2DX applies can't be used.
+
+D2DX has been tested working with the following mods:
   - PlugY
   - D2ModMaker
 
@@ -39,9 +40,6 @@ So far it has been tested as working with:
 ### To run the game in default fullscreen mode (800x600 scaled to desktop resolution):
 - Game.exe -3dfx
 
-### To run the game in experimental fullscreen mode (800x540 "integer scaled" to 1920x1080):
-- Game.exe -3dfx -gx1080
-
 To get rid of the "DX" logo on the title screen, add -gxskiplogo to the command line.
 
 To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line. Note that if the Window doesn't fit on the desktop, the scale factor will be lowered.
@@ -55,6 +53,10 @@ To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line.
   You are running the download version of Diablo II from blizzard.com. Upgrade to 1.14d.
 
 ## Release history
+
+### 0.98.329
+  - Added support for LoD 1.09d, 1.10 and 1.12.
+  - Added warning dialog on startup when using an unsupported game version.
 
 ### 0.91.328
   - Fix mouse pointer "jumping" when opening inventory and clicking items in fullscreen or scaled-window modes.
