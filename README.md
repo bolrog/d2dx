@@ -37,7 +37,7 @@ D2DX has been tested working with the following mods:
 ### To run the game in windowed mode
 - Game.exe -3dfx -w
 
-### To run the game in default fullscreen mode (800x600 scaled to desktop resolution):
+### To run the game in default fullscreen mode (in-game resolution scaled to desktop resolution):
 - Game.exe -3dfx
 
 To get rid of the "DX" logo on the title screen, add -gxskiplogo to the command line.
