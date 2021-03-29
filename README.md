@@ -1,7 +1,7 @@
 # d2dx
 D2DX is a Glide-wrapper for Diablo II on modern PC:s
 
-Version 0.99.329
+Version 0.99.329b
 
 ## Features
   - High performance DirectX 11 renderer.
@@ -20,6 +20,7 @@ Game versions supported:
   - Other versions will display a warning at startup and exhibit glitches, because various fixes that D2DX applies can't be used.
 
 D2DX has been tested working with the following mods:
+  - MedianXL (1024x768)
   - PlugY
   - D2ModMaker
 
@@ -50,6 +51,11 @@ To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line.
   You are running the download version of Diablo II from blizzard.com. Upgrade to 1.14d.
 
 ## Release history
+
+### 0.99.329b
+  - Add support for 1024x768, tested with MedianXL which now seems to work.
+  - Fix window being re-centered by the game even if user moved it.
+  - Fix occasional crash introduced in 0.99.329.
 
 ### 0.99.329
   - Add support for 640x480 mode, and polish behavior around in-game resolution switching.
