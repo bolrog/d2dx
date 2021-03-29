@@ -46,7 +46,13 @@ To get rid of the "DX" logo on the title screen, add -gxskiplogo to the command 
 
 To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line. Note that if the Window doesn't fit on the desktop, the scale factor will be lowered.
 
-Note that in-game resolution should be set to 800x600. Support for 640x480 has not been added yet.
+## Troubleshooting
+
+### It looks terrible in 640x480
+  Support for this mode has not been added yet. Use 800x600.
+
+### I get a message box saying "Diablo II is unable to proceed. Unsupported graphics mode."
+  You are running the download version of Diablo II from blizzard.com. Upgrade to 1.14d.
 
 ## Release history
 
