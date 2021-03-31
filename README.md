@@ -1,23 +1,35 @@
 # d2dx
-D2DX is a Glide-wrapper for Diablo II on modern PC:s
+D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
 Version 0.99.329b
 
-## Features
-  - High performance DirectX 11 renderer.
-  - High image quality with proper gamma and scaling.
-  - Makes the game behave nicely in Windows 10, in both windowed and fullscreen modes.
+## Mission statement
+  - Preserve the classic Diablo 2/LoD experience as much as possible.
+  - Turn the game into a well behaved DirectX 11 title on Windows 8/10.
+  - Allow integer scaling to modern resolutions, including widescreen.
+
+## Implemented
+  - High performance DirectX 11 renderer (Glide wrapper).
+  - Proper gamma/contrast support.
+  - Improved fullscreen mode: instant ALT-TAB and low latency.
+  - Improved windowed mode.
+  - Fixed various glitches in the supported game versions.
+
+## Upcoming
+  - Seamless windowed/fullscreen switching. 
+  - Better scaling.
+  - Widescreen support.
 
 ## Requirements
   - Diablo 2: LoD (see Compatibility section below).
-  - Windows 7 and above (10 recommended).
+  - Windows 8 and above (10 recommended).
   - A CPU with SSE2 support.
   - Integrated graphics or discrete GPU with DirectX 11 support (feature level 10.0 required).
 
 ## Compatibility
 Game versions supported:
   - 1.09d, 1.10, 1.12, 1.13c, 1.13d and 1.14d.
-  - Other versions will display a warning at startup and exhibit glitches, because various fixes that D2DX applies can't be used.
+  - Other versions will display a warning at startup and exhibit glitches.
 
 D2DX has been tested working with the following mods:
   - MedianXL (1024x768)
