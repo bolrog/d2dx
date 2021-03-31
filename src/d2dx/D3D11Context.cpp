@@ -207,7 +207,7 @@ D3D11Context::D3D11Context(
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 
-	CreateAtlases();
+	CreateTextureCaches();
 	CreateVertexAndIndexBuffers();
 	CreateGammaTexture();
 	CreatePaletteTexture();
@@ -327,7 +327,7 @@ void D3D11Context::Draw(const Batch& batch)
 
 	SetBlendState(batch.GetAlphaBlend());
 
-	TextureCache* atlas = GetAtlasForTextureSize(batch);
+	TextureCache* atlas = GetTextureCache(batch);
 	ID3D11ShaderResourceView* srvs[2] = { atlas->GetSrv(batch.GetAtlasIndex()), _paletteTextureSrv.Get() };
 	SetPSShaderResourceViews(srvs);
 
@@ -403,9 +403,9 @@ void D3D11Context::Present()
 		_deviceContext1->DiscardView(_backbufferRtv.Get());
 	}
 
-	for (int32_t i = 0; i < ARRAYSIZE(_atlases); ++i)
+	for (int32_t i = 0; i < ARRAYSIZE(_textureCaches); ++i)
 	{
-		_atlases[i]->OnNewFrame();
+		_textureCaches[i]->OnNewFrame();
 	}
 
 	_deviceContext->OMSetRenderTargets(1, _renderTargetTextureRtv.GetAddressOf(), NULL);
@@ -704,7 +704,7 @@ TextureCacheLocation D3D11Context::UpdateTexture(Batch& batch, const uint8_t* tm
 	assert(batch.IsValid() && "Batch has no texture set.");
 	const uint32_t contentKey = batch.GetHash() ^ batch.GetPaletteIndex();
 
-	TextureCache* atlas = GetAtlasForTextureSize(batch);
+	TextureCache* atlas = GetTextureCache(batch);
 	TextureCacheLocation textureCacheLocation = atlas->FindTexture(contentKey, -1);
 
 	if (textureCacheLocation.ArrayIndex < 0)
@@ -803,20 +803,20 @@ LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-void D3D11Context::CreateAtlases()
+void D3D11Context::CreateTextureCaches()
 {
 	static const uint32_t capacities[6] = { 2048, 2048, 2048, 2048, 2048, 1024 };
 
 	uint32_t totalSize = 0;
-	for (int32_t i = 0; i < ARRAYSIZE(_atlases); ++i)
+	for (int32_t i = 0; i < ARRAYSIZE(_textureCaches); ++i)
 	{
 		int32_t width = 1U << (i + 3);
 
-		_atlases[i] = make_unique<TextureCache>(width, width, capacities[i], _device.Get(), _simd, _textureProcessor);
+		_textureCaches[i] = make_unique<TextureCache>(width, width, capacities[i], _device.Get(), _simd, _textureProcessor);
 
-		DEBUG_PRINT("Creating texture atlas for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _atlases[i]->GetMemoryFootprint() / 1024);
+		DEBUG_PRINT("Creating texture atlas for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
 
-		totalSize += _atlases[i]->GetMemoryFootprint();
+		totalSize += _textureCaches[i]->GetMemoryFootprint();
 	}
 
 	ALWAYS_PRINT("Total texture cache is %u kB.", totalSize / 1024);
@@ -873,110 +873,15 @@ void D3D11Context::SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt)
 
 #define MAX_DIMS 6
 
-TextureCache* D3D11Context::GetAtlasForTextureSize(const Batch& batch) const
+TextureCache* D3D11Context::GetTextureCache(const Batch& batch) const
 {
-	//uint32_t log2w;
-	//uint32_t log2h;
-	//BitScanForward((DWORD*)&log2w, (DWORD)batch.GetWidth());
-	//BitScanForward((DWORD*)&log2h, (DWORD)batch.GetHeight());
-
-	//log2w = max(4, log2w);
-	//log2h = max(4, log2h);
-
-	//uint32_t partition = 0;// batch.GetHash() >> 30;
-
-	//switch (log2w)
-	//{
-	//case 8:
-	//	switch (log2h)
-	//	{
-	//	case 8:
-	//		return _atlases[0 + 15 * partition].get();
-	//	case 7:
-	//		return _atlases[1 + 15 * partition].get();
-	//	case 6:
-	//		return _atlases[2 + 15 * partition].get();
-	//	case 5:
-	//		return _atlases[3 + 15 * partition].get();
-	//	case 4:
-	//		return _atlases[4 + 15 * partition].get();
-	//	default:
-	//		return nullptr;
-	//	}
-	//	break;
-	//case 7:
-	//	switch (log2h)
-	//	{
-	//	case 7:
-	//		return _atlases[5 + 15 * partition].get();
-	//	case 6:
-	//		return _atlases[6 + 15 * partition].get();
-	//	case 5:
-	//		return _atlases[7 + 15 * partition].get();
-	//	case 4:
-	//		return _atlases[8 + 15 * partition].get();
-	//	default:
-	//		return nullptr;
-	//	}
-	//	break;
-	//case 6:
-	//	switch (log2h)
-	//	{
-	//	case 6:
-	//		return _atlases[9 + 15 * partition].get();
-	//	case 5:
-	//		return _atlases[10 + 15 * partition].get();
-	//	case 4:
-	//		return _atlases[11 + 15 * partition].get();
-	//	default:
-	//		return nullptr;
-	//	}
-	//	break;
-	//case 5:
-	//	switch (log2h)
-	//	{
-	//	case 5:
-	//		return _atlases[12 + 15 * partition].get();
-	//	case 4:
-	//		return _atlases[13 + 15 * partition].get();
-	//	default:
-	//		return nullptr;
-	//	}
-	//	break;
-	//case 4:
-	//	return _atlases[14 + 15 * partition].get();
-	//default:
-	//	return nullptr;
-	//}
-
-	/*
-	256x256 4
-	256x128 4
-	256x64  4
-	256x32  4
-	256x16  4
-	128x128 3
-	128x64  3
-	128x32  3
-	128x16  3
-	64x64   2
-	64x32   2
-	64x16   2
-	32x32   1
-	32x16   1
-	16x16	0
-	*/
-
-	//if (width == 256 && height == 128)
-	//	return _atlases[6].get();
-
-	int32_t longest = max(batch.GetWidth(), batch.GetHeight());
-	assert(longest >= 8);
+	const int32_t width = batch.GetWidth();
+	assert(width >= 8);
 	uint32_t log2w;
-	BitScanForward((DWORD*)&log2w, (DWORD)longest);
+	BitScanForward((DWORD*)&log2w, (DWORD)width);
 	log2w -= 3;
 	assert(log2w <= 5);
-	return _atlases[log2w].get();
+	return _textureCaches[log2w].get();
 }
 
 void D3D11Context::AdjustWindowPlacement(HWND hWnd, bool centerOnCurrentPosition)

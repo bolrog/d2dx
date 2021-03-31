@@ -51,7 +51,7 @@ namespace d2dx
 
 		const Options& GetOptions() const;
 
-		TextureCache* GetAtlasForTextureSize(const Batch& batch) const;
+		TextureCache* GetTextureCache(const Batch& batch) const;
 
 		void SetGameSize(int32_t width, int32_t height);
 		int32_t GetGameWidth() const;
@@ -73,7 +73,7 @@ namespace d2dx
 		void CreateVideoTextures();
 		void CreateRenderTarget();
 		void CreateSamplerStates();
-		void CreateAtlases();
+		void CreateTextureCaches();
 		void UpdateViewport(int32_t width, int32_t height);
 		void SetBlendState(AlphaBlend alphaBlend);
 		void UpdateConstants();
@@ -149,7 +149,7 @@ namespace d2dx
 		float _gameHeight;
 
 		Options& _options;
-		std::unique_ptr<TextureCache> _atlases[6];
+		std::unique_ptr<TextureCache> _textureCaches[6];
 		uint32_t _atlasUsageStats[15];
 
 		struct
