@@ -1,4 +1,4 @@
-# d2dx
+# D2DX
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
 Version 0.99.329b
