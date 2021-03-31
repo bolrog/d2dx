@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <FxCompile Include="GammaPS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GammaVS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PixelShader.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VideoPS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TextureCache.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="D3D11Context.cpp" />
+    <ClCompile Include="GameHelper.cpp" />
+    <ClCompile Include="Simd.cpp" />
+    <ClCompile Include="SimdSse2.cpp" />
+    <ClCompile Include="Glide3x.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="D2DXContext.cpp" />
+    <ClCompile Include="TextureCachePolicyBitPmru.cpp" />
+    <ClCompile Include="TextureProcessor.cpp" />
+    <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
+      <Filter>thirdparty\fnv</Filter>
+    </ClCompile>
+    <ClCompile Include="D2DXIntegrationImpl.cpp" />
+    <ClCompile Include="D2DXDetours.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dx_raw.h" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="TextureCache.h" />
+    <ClInclude Include="D3D11Context.h" />
+    <ClInclude Include="Batch.h" />
+    <ClInclude Include="GameHelper.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Simd.h" />
+    <ClInclude Include="SimdSse2.h" />
+    <ClInclude Include="TextureCachePolicy.h" />
+    <ClInclude Include="TextureCachePolicyBitPmru.h" />
+    <ClInclude Include="Types.h" />
+    <ClInclude Include="Vertex.h" />
+    <ClInclude Include="GlideHelpers.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="D2DXContext.h" />
+    <ClInclude Include="TextureProcessor.h" />
+    <ClInclude Include="Utils.h" />
+    <ClInclude Include="..\..\thirdparty\glide3\3DFX.H">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\glide3\FXDLL.H">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\glide3\FXGLOB.H">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\glide3\FXOS.H">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\glide3\glide.h">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\glide3\glidesys.h">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\glide3\glideutl.h">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\glide3\sst1init.h">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\glide3\SST1VID.H">
+      <Filter>thirdparty\glide3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\fnv\fnv.h">
+      <Filter>thirdparty\fnv</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\detours\detours.h">
+      <Filter>thirdparty\detours</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\detours\detver.h">
+      <Filter>thirdparty\detours</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\detours\syelog.h">
+      <Filter>thirdparty\detours</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DXDetours.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="d2dx.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="thirdparty">
+      <UniqueIdentifier>{e20ee881-3fee-44a0-a9bb-5a1470f78f87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty\glide3">
+      <UniqueIdentifier>{0a7e3803-d4b3-4b24-91b0-cf20ed4e0a2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{ea41e1d5-aaf5-453a-893d-fba10779dbf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty\fnv">
+      <UniqueIdentifier>{4d5ef0d8-cbd3-4202-95c7-7c0fea1882af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty\detours">
+      <UniqueIdentifier>{8240f153-200d-47ad-b776-7f45ed2a1d3b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Constants.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

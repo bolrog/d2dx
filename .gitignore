@@ -1,0 +1,7 @@
+/src/.vs/d2dx/v16/.suo
+/src/.vs/
+**.aps
+**.res
+**/Debug/
+**/Release/
+*_cso.h

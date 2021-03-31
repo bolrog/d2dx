@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="d2dx">
+      <UniqueIdentifier>{0657af1f-16df-48e5-8bb7-323129c7f9a9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestTextureCache.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="TestSimd.cpp" />
+    <ClCompile Include="..\d2dx\GameHelper.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\glide3x.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\Simd.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\SimdSse2.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\TextureCache.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\TextureCachePolicyBitPmru.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\TextureProcessor.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\Utils.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+</Project>
