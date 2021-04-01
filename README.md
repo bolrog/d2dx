@@ -69,7 +69,7 @@ D2DX has been tested working with the following mods:
 
   - For a 1920x1080 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
   - For a 2560×1440 monitor, this is 853x480 (in fullscreen: 3x integer scaling).
-  - For a 3840x2160 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
+  - For a 3840x2160 monitor, this is 960x540 (in fullscreen: 4x integer scaling).
 
 ### Miscellaneous
 - To get rid of the "DX" logo on the title screen, add -gxskiplogo to the command line.
