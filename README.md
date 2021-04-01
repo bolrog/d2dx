@@ -2,7 +2,7 @@
 
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
-Version 0.99.401b
+Version 0.99.401c
 
 ## Mission statement
   - Preserve the classic Diablo 2/LoD experience as much as possible.
@@ -47,7 +47,7 @@ D2DX has been tested working with the following mods:
   [LAUNCHING]
   Param=-3dfx
   ```
-  If you wish to use the widescreen modes, also copy the included "D2DX_SlashDiabloHD.dll" into your Diablo II folder.
+  If you wish to use the widescreen modes, also copy the included "D2DX_SlashDiabloHD.dll" and "SlashDiabloHD.mpq" into your Diablo II folder.
 
 ## Usage
 ### Windowed mode
@@ -63,7 +63,7 @@ D2DX has been tested working with the following mods:
 ### Experimental widescreen (windowed and fullscreen) modes 
   PLEASE NOTE: This only works with 1.12, 1.13c and 1.13d at this time.
 
-  Ensure the "D2DX_SlashDiabloHD.dll" file is in your Diablo II folder, and run the game as above.
+  Ensure the "D2DX_SlashDiabloHD.dll" and "SlashDiabloHD.mpq" files are in your Diablo II folder, and run the game as above.
   When it is present, D2DX will enable a new in-game resolution close to the normal ones - but with the aspect ratio of your monitor.
   The goal of this is to achieve integer scaling which eliminates scaling artifacts when displaying the game on modern PCs.
 
@@ -91,12 +91,13 @@ This project uses the following third party libraries:
 
 ## Release history
 
-### 0.99.401b
+### 0.99.401c
   - Add experimental support for widescreen modes using a fork of SlashDiablo-HD by Mir Drualga and Bartosz Jankowski.
   - Remove the use of "AA bilinear" filtering, in favor of point filtering. This is part of a work in progress and will be tweaked further.
   - Cut VRAM footprint by 75% and reduce performance overhead.
   - Source code is now in the git.
   - Updated: fix occasional glitches due to the wrong texture cache policy being used.
+  - Updated again: forgot to include SlashDiabloHD.mpq, which is required. 
 
 ### 0.99.329b
   - Add support for 1024x768, tested with MedianXL which now seems to work.
