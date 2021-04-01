@@ -20,7 +20,7 @@
 
 namespace d2dx
 {
-	class TextureProcessor
+	class TextureProcessor final
 	{
 	public:
 		TextureProcessor();
@@ -41,17 +41,43 @@ namespace d2dx
 			_Out_writes_all_(dstPitch * srcHeight) uint8_t* __restrict dstPixels,
 			uint32_t dstPitch);
 
-		void ConvertToRGBA(int32_t width, int32_t height, const uint8_t* __restrict srcPixels, const uint32_t* __restrict palette, uint32_t* __restrict dstPixels);
-		void ConvertChromaKeyedToRGBA(int32_t width, int32_t height, const uint8_t* __restrict srcPixels, const uint32_t* __restrict palette, uint32_t* __restrict dstPixels, uint32_t dstPitch, bool isStFlipped);
+		void ConvertToRGBA(
+			int32_t width,
+			int32_t height,
+			_In_reads_(width * height) const uint8_t* __restrict srcPixels,
+			_In_reads_(256) const uint32_t* __restrict palette,
+			_Out_writes_all_(width * height) uint32_t* __restrict dstPixels);
+		
+		void ConvertChromaKeyedToRGBA(
+			int32_t width,
+			int32_t height,
+			_In_reads_(width* height) const uint8_t* __restrict srcPixels,
+			_In_reads_(256) const uint32_t* __restrict palette,
+			_Out_writes_all_(dstPitch * height) uint32_t* __restrict dstPixels,
+			uint32_t dstPitch,
+			bool isStFlipped);
 
-		void Dilate(int32_t width, int32_t height, uint32_t* __restrict pixels);
-		void DilateFloorTile(int32_t width, int32_t height, const uint32_t* __restrict srcPixels, uint32_t* __restrict dstPixels);
+		void Dilate(
+			int32_t width,
+			int32_t height,
+			_Inout_updates_all_(width * height) uint32_t* __restrict pixels);
+		
+		void DilateFloorTile(
+			int32_t width,
+			int32_t height,
+			_In_reads_(width * height) const uint32_t* __restrict srcPixels,
+			_Out_writes_all_(width * height) uint32_t* __restrict dstPixels);
 
-		void CopyPixels(int32_t width, int32_t height, const uint32_t* __restrict srcPixels, uint32_t* __restrict dstPixels);
-		void CopyAlpha(int32_t width, int32_t height, const uint32_t* __restrict srcPixels, uint32_t* __restrict dstPixels);
-
-	private:
-		Buffer<uint8_t> _tempAlphaBuf{ 256 * 256 };
-		Buffer<uint8_t> _tempAlphaBuf2x{ 4 * 256 * 256 };
+		void CopyPixels(
+			int32_t width,
+			int32_t height,
+			_In_reads_(width * height) const uint32_t* __restrict srcPixels,
+			_Out_writes_all_(width * height) uint32_t* __restrict dstPixels);
+		
+		void CopyAlpha(
+			int32_t width,
+			int32_t height,
+			_In_reads_(width * height) const uint32_t* __restrict srcPixels,
+			_Inout_updates_all_(width * height) uint32_t* __restrict dstPixels);
 	};
 }

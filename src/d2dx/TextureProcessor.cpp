@@ -20,9 +20,7 @@
 
 using namespace d2dx;
 
-TextureProcessor::TextureProcessor() :
-	_tempAlphaBuf(256*256),
-	_tempAlphaBuf2x(256*256*4)
+TextureProcessor::TextureProcessor()
 {
 }
 
@@ -37,9 +35,9 @@ void TextureProcessor::Transpose(
 	const uint8_t* __restrict srcPixels,
 	uint8_t* __restrict dstPixels)
 {
-	for (uint32_t y = 0; y < height; ++y)
+	for (int32_t y = 0; y < height; ++y)
 	{
-		for (uint32_t x = 0; x < width; ++x)
+		for (int32_t x = 0; x < width; ++x)
 		{
 			*dstPixels++ = srcPixels[y + x * height];
 		}
@@ -61,9 +59,9 @@ void TextureProcessor::CopyPixels(
 	assert(srcSkip >= 0);
 	assert(dstSkip >= 0);
 
-	for (uint32_t y = 0; y < srcHeight; ++y)
+	for (int32_t y = 0; y < srcHeight; ++y)
 	{
-		for (uint32_t x = 0; x < srcWidth; ++x)
+		for (int32_t x = 0; x < srcWidth; ++x)
 		{
 			*dstPixels++ = *srcPixels++;
 		}
@@ -72,6 +70,7 @@ void TextureProcessor::CopyPixels(
 	}
 }
 
+_Use_decl_annotations_
 void TextureProcessor::ConvertToRGBA(int32_t width, int32_t height, const uint8_t* __restrict srcPixels, const uint32_t* __restrict palette, uint32_t* __restrict dstPixels)
 {
 	assert(width <= 256 && height <= 256);
@@ -83,7 +82,15 @@ void TextureProcessor::ConvertToRGBA(int32_t width, int32_t height, const uint8_
 	}
 }
 
-void TextureProcessor::ConvertChromaKeyedToRGBA(int32_t width, int32_t height, const uint8_t* __restrict srcPixels, const uint32_t* __restrict palette, uint32_t* __restrict dstPixels, uint32_t dstPitch, bool isStFlipped)
+_Use_decl_annotations_
+void TextureProcessor::ConvertChromaKeyedToRGBA(
+	int32_t width,
+	int32_t height,
+	const uint8_t* __restrict srcPixels,
+	const uint32_t* __restrict palette,
+	uint32_t* __restrict dstPixels,
+	uint32_t dstPitch,
+	bool isStFlipped)
 {
 	assert(width <= 256 && height <= 256);
 
@@ -117,10 +124,13 @@ void TextureProcessor::ConvertChromaKeyedToRGBA(int32_t width, int32_t height, c
 	}
 }
 
-void TextureProcessor::DilateFloorTile(int32_t width, int32_t height, const uint32_t* __restrict srcPixels, uint32_t* __restrict dstPixels)
+_Use_decl_annotations_
+void TextureProcessor::DilateFloorTile(
+	int32_t width,
+	int32_t height,
+	const uint32_t* __restrict srcPixels,
+	uint32_t* __restrict dstPixels)
 {
-	assert(width <= 256 && height <= 256);
-
 	static const int32_t padx[] = { 79, 77, 75, 73, 71, 69, 67, 65, 63, 61, 59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1 };
 
 	for (int32_t y = 0; y < 40; ++y)
@@ -170,9 +180,12 @@ void TextureProcessor::DilateFloorTile(int32_t width, int32_t height, const uint
 	}
 }
 
-void TextureProcessor::Dilate(int32_t width, int32_t height, uint32_t* __restrict pixels)
+_Use_decl_annotations_
+void TextureProcessor::Dilate(
+	int32_t width,
+	int32_t height,
+	uint32_t* __restrict pixels)
 {
-	assert(width <= 256 && height <= 256);
 	const uint32_t pixelCount = (uint32_t)(width * height);
 
 	for (int32_t y = 0; y < (height - 1); ++y)
@@ -276,17 +289,24 @@ void TextureProcessor::Dilate(int32_t width, int32_t height, uint32_t* __restric
 	}
 }
 
-void TextureProcessor::CopyPixels(int32_t width, int32_t height, const uint32_t* __restrict srcPixels, uint32_t* __restrict dstPixels)
+_Use_decl_annotations_
+void TextureProcessor::CopyPixels(
+	int32_t width,
+	int32_t height,
+	const uint32_t* __restrict srcPixels,
+	uint32_t* __restrict dstPixels)
 {
-	assert(width <= 256 && height <= 256);
 	const uint32_t pixelCount = (uint32_t)(width * height);
-
 	memcpy(dstPixels, srcPixels, pixelCount * sizeof(uint32_t));
 }
 
-void TextureProcessor::CopyAlpha(int32_t width, int32_t height, const uint32_t* __restrict srcPixels, uint32_t* __restrict dstPixels)
+_Use_decl_annotations_
+void TextureProcessor::CopyAlpha(
+	int32_t width,
+	int32_t height,
+	const uint32_t* __restrict srcPixels,
+	uint32_t* __restrict dstPixels)
 {
-	assert(width <= 256 && height <= 256);
 	const uint32_t pixelCount = (uint32_t)(width * height);
 
 	for (uint32_t i = 0; i < pixelCount; ++i)
