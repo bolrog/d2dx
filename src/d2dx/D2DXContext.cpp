@@ -43,37 +43,16 @@ D2DXContext::D2DXContext() :
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
-	bool gx1080 = strstr(commandLine, "-gx1080") != nullptr;
 	_options.skipLogo = strstr(commandLine, "-gxskiplogo") != nullptr;
 
-	bool gxmaximize = strstr(commandLine, "-gxmaximize") != nullptr;
 	bool gxscale2 = strstr(commandLine, "-gxscale2") != nullptr;
 	bool gxscale3 = strstr(commandLine, "-gxscale3") != nullptr;
 	_options.defaultZoomLevel =
-		gxmaximize ? 0 :
 		gxscale3 ? 3 :
 		gxscale2 ? 2 :
 		1;
 
-	if (gx1080)
-	{
-		_options.screenMode = ScreenMode::Fullscreen1920x1080;
-
-		if (windowed)
-		{
-			MessageBoxA(NULL, "Can't combine -gx1080 with -w.", "D2DX", MB_OK);
-			PostQuitMessage(1);
-			return;
-		}
-	}
-	else if (windowed)
-	{
-		_options.screenMode = ScreenMode::Windowed;
-	}
-	else
-	{
-		_options.screenMode = ScreenMode::FullscreenDefault;
-	}
+	_options.screenMode = windowed ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
 }
 
 D2DXContext::~D2DXContext()
@@ -181,8 +160,12 @@ void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
 	}
 	else
 	{
-		_d3d11Context->SetWindowSize(windowWidth * _options.defaultZoomLevel, windowHeight * _options.defaultZoomLevel);
-		_d3d11Context->SetGameSize(width, height);
+		if (width > windowWidth || height > windowHeight)
+		{
+			windowWidth = width;
+			windowHeight = height;
+		}
+		_d3d11Context->SetSizes(width, height, windowWidth * _options.defaultZoomLevel, windowHeight * _options.defaultZoomLevel);
 	}
 
 	_frames[0]._batchCount = 0;
@@ -400,25 +383,6 @@ void D2DXContext::ClassifyBatches()
 	}
 }
 
-void D2DXContext::AdjustBatchesIn1080p()
-{
-	const int32_t batchCount = (int32_t)_frames[_currentFrameIndex]._batchCount;
-
-	for (int32_t i = 0; i < batchCount; ++i)
-	{
-		Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
-		Batch& batch = _frames[_currentFrameIndex]._batches.items[i];
-
-		if (batch.GetCategory() == BatchCategory::TopUI)
-		{
-			for (uint32_t j = 0; j < batch.GetVertexCount(); ++j)
-			{
-				vertices[batch.GetStartVertex() + j].SetY(vertices[batch.GetStartVertex() + j].GetY() + 50);
-			}
-		}
-	}
-}
-
 void D2DXContext::DrawBatches()
 {
 	const int32_t batchCount = (int32_t)_frames[_currentFrameIndex]._batchCount;
@@ -478,11 +442,6 @@ void D2DXContext::OnBufferSwap()
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
 	ClassifyBatches();
-
-	if (_options.screenMode == ScreenMode::Fullscreen1920x1080)
-	{
-		AdjustBatchesIn1080p();
-	}
 
 	_d3d11Context->BulkWriteVertices(_frames[_currentFrameIndex]._vertices.items, _frames[_currentFrameIndex]._vertexCount);
 

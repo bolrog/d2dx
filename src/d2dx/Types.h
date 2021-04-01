@@ -28,7 +28,6 @@ namespace d2dx
 	{
 		Windowed = 0,
 		FullscreenDefault = 1,
-		Fullscreen1920x1080 = 2,
 	};
 
 	struct Options

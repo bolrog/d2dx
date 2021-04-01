@@ -53,13 +53,13 @@ namespace d2dx
 
 		TextureCache* GetTextureCache(const Batch& batch) const;
 
-		void SetGameSize(int32_t width, int32_t height);
+		void SetSizes(int32_t gameWidth, int32_t gameHeight, int32_t renderWidth, int32_t renderHeight);
 		int32_t GetGameWidth() const;
 		int32_t GetGameHeight() const;
-
-		void SetWindowSize(int32_t width, int32_t height);
 		int32_t GetWindowWidth() const;
 		int32_t GetWindowHeight() const;
+		int32_t GetRenderWidth() const;
+		int32_t GetRenderHeight() const;
 
 		void ToggleFullscreen();
 
@@ -85,6 +85,21 @@ namespace d2dx
 		void SetBlendState(ID3D11BlendState* blendState);
 		void SetPSShaderResourceViews(ID3D11ShaderResourceView* srvs[2]);
 		void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt);
+
+		struct Metrics
+		{
+			int32_t _desktopWidth;
+			int32_t _desktopHeight;
+			int32_t _desktopClientMaxHeight;
+			int32_t _windowWidth;
+			int32_t _windowHeight;
+			int32_t _renderWidth;
+			int32_t _renderHeight;
+			int32_t _gameWidth;
+			int32_t _gameHeight;
+		};
+
+		Metrics _metrics;
 
 		struct Constants
 		{
@@ -139,14 +154,6 @@ namespace d2dx
 
 		HWND _hWnd;
 		bool _isFullscreen;
-		int32_t _desktopWidth;
-		int32_t _desktopHeight;
-		int32_t _windowWidth;
-		int32_t _windowHeight;
-		int32_t _renderWidth;
-		int32_t _renderHeight;
-		float _gameWidth;
-		float _gameHeight;
 
 		Options& _options;
 		std::unique_ptr<TextureCache> _textureCaches[6];

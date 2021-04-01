@@ -48,37 +48,40 @@ static LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 
 D3D11Context::D3D11Context(
 	HWND hWnd,
-	int32_t windowWidth,
-	int32_t windowHeight,
+	int32_t renderWidth,
+	int32_t renderHeight,
 	int32_t gameWidth,
 	int32_t gameHeight,
 	Options& options,
 	shared_ptr<Simd> simd,
 	shared_ptr<TextureProcessor> textureProcessor) :
-	_hWnd(hWnd),
-	_vbWriteIndex(0),
-	_vbCapacity(0),
-	_options(options),
+	_hWnd{ hWnd },
+	_vbWriteIndex{ 0 },
+	_vbCapacity{ 0 },
+	_options{ options },
 	_constants{ 0 },
-	_windowWidth(windowWidth),
-	_windowHeight(windowHeight),
-	_gameWidth{ (float)gameWidth },
-	_gameHeight{ (float)gameHeight },
-	_frameLatencyWaitableObject(nullptr),
-	_simd(simd),
-	_textureProcessor(textureProcessor),
-	_isFullscreen(options.screenMode != ScreenMode::Windowed)
+	_frameLatencyWaitableObject{ nullptr },
+	_simd{ simd },
+	_textureProcessor{ textureProcessor },
+	_isFullscreen{ options.screenMode != ScreenMode::Windowed }
 {
 	memset(&_shadowState, 0, sizeof(_shadowState));
+
+	_metrics._desktopWidth = GetSystemMetrics(SM_CXSCREEN);
+	_metrics._desktopHeight = GetSystemMetrics(SM_CYSCREEN);
+	_metrics._desktopClientMaxHeight = GetSystemMetrics(SM_CYFULLSCREEN);
+
+	_metrics._renderWidth = renderWidth;
+	_metrics._renderHeight = renderHeight;
+	_metrics._windowWidth = renderWidth;
+	_metrics._windowHeight = renderHeight;
+	_metrics._gameWidth = gameWidth;
+	_metrics._gameHeight = gameHeight;
 
 #ifndef NDEBUG
 	ShowCursor_Real(TRUE);
 #endif
 
-	AdjustWindowPlacement(hWnd, false);
-
-	_desktopWidth = GetSystemMetrics(SM_CXSCREEN);
-	_desktopHeight = GetSystemMetrics(SM_CYSCREEN);
 	RECT clientRect;
 	GetClientRect(hWnd, &clientRect);
 
@@ -90,21 +93,10 @@ D3D11Context::D3D11Context(
 	_featureLevel = D3D_FEATURE_LEVEL_11_0;
 	D3D_FEATURE_LEVEL requestFeatureLevel = D3D_FEATURE_LEVEL_11_0;
 
-	if (options.screenMode == ScreenMode::Windowed)
-	{
-		_renderWidth = clientRect.right - clientRect.left;
-		_renderHeight = clientRect.bottom - clientRect.top;
-	}
-	else
-	{
-		_renderWidth = _desktopWidth;
-		_renderHeight = _desktopHeight;
-	}
-
-	ALWAYS_PRINT("Desktop size %i x %i", _desktopWidth, _desktopHeight);
-	ALWAYS_PRINT("Game size %f x %f", _gameWidth, _gameHeight);
-	ALWAYS_PRINT("Render size %i x %i", _renderWidth, _renderHeight);
-	ALWAYS_PRINT("Window size %i x %i", clientRect.right - clientRect.left, clientRect.bottom - clientRect.top);
+	ALWAYS_PRINT("Desktop size %ix%i", _metrics._desktopWidth, _metrics._desktopHeight);
+	ALWAYS_PRINT("Game size %ix%i", _metrics._gameWidth, _metrics._gameHeight);
+	ALWAYS_PRINT("Render size %ix%i", _metrics._renderWidth, _metrics._renderHeight);
+	ALWAYS_PRINT("Window size %ix%i", clientRect.right - clientRect.left, clientRect.bottom - clientRect.top);
 
 	_dxgiAllowTearingFlagSupported = IsAllowTearingFlagSupported();
 
@@ -122,8 +114,8 @@ D3D11Context::D3D11Context(
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 	swapChainDesc.BufferCount = 2;
-	swapChainDesc.BufferDesc.Width = _desktopWidth;
-	swapChainDesc.BufferDesc.Height = _desktopHeight;
+	swapChainDesc.BufferDesc.Width = _metrics._desktopWidth;
+	swapChainDesc.BufferDesc.Height = _metrics._desktopHeight;
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -217,12 +209,12 @@ D3D11Context::D3D11Context(
 	CreateConstantBuffers();
 	CreateRenderTarget();
 
-	UpdateViewport(_renderWidth, _renderHeight);
-
 	_deviceContext->VSSetConstantBuffers(0, 1, _cb.GetAddressOf());
 	_deviceContext->PSSetConstantBuffers(0, 1, _cb.GetAddressOf());
 
 	CreateRasterizerState();
+
+	AdjustWindowPlacement(hWnd, false);
 }
 
 D3D11Context::~D3D11Context()
@@ -356,7 +348,7 @@ void D3D11Context::Present()
 	_deviceContext->RSSetState(_rasterizerStateNoScissor.Get());
 
 	_deviceContext->OMSetRenderTargets(1, _backbufferRtv.GetAddressOf(), NULL);
-	UpdateViewport(_renderWidth, _renderHeight);
+	UpdateViewport(_metrics._renderWidth, _metrics._renderHeight);
 
 	ID3D11ShaderResourceView* srvs[2] = { _renderTargetTextureSrv.Get(), _gammaTextureSrv.Get() };
 	SetPSShaderResourceViews(srvs);
@@ -369,7 +361,7 @@ void D3D11Context::Present()
 	SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto startVertexLocation = _vbWriteIndex;
-	const uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_renderWidth, _renderHeight);
+	const uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_metrics._renderWidth, _metrics._renderHeight);
 
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
@@ -409,7 +401,7 @@ void D3D11Context::Present()
 	}
 
 	_deviceContext->OMSetRenderTargets(1, _renderTargetTextureRtv.GetAddressOf(), NULL);
-	UpdateViewport(_renderWidth, _renderHeight);
+	UpdateViewport(_metrics._renderWidth, _metrics._renderHeight);
 
 	float color[] = { .0f, .0f, .0f, 1.0f };
 	_deviceContext->ClearRenderTargetView(_renderTargetTextureRtv.Get(), color);
@@ -442,8 +434,8 @@ void D3D11Context::CreateRenderTarget()
 
 	CD3D11_TEXTURE2D_DESC desc{
 		renderTargetFormat,
-		(UINT)_desktopWidth,
-		(UINT)_desktopHeight,
+		(UINT)_metrics._desktopWidth,
+		(UINT)_metrics._desktopHeight,
 		1U,
 		1U,
 		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
@@ -534,7 +526,7 @@ void D3D11Context::WriteToScreen(const uint32_t* pixels, int32_t width, int32_t 
 	SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	uint32_t startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_renderWidth, _renderHeight);
+	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_metrics._renderWidth, _metrics._renderHeight);
 
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
@@ -609,29 +601,22 @@ void D3D11Context::SetBlendState(AlphaBlend alphaBlend)
 
 void D3D11Context::UpdateConstants()
 {
-	_constants.screenSize[0] = (float)_renderWidth;
-	_constants.screenSize[1] = (float)_renderHeight;
+	_constants.screenSize[0] = (float)_metrics._renderWidth;
+	_constants.screenSize[1] = (float)_metrics._renderHeight;
 
-	if (_options.screenMode == ScreenMode::Fullscreen1920x1080)
+	if (_options.screenMode == ScreenMode::FullscreenDefault)
 	{
-		_constants.vertexOffset[0] = (1920 - 1600) / 2;
-		_constants.vertexOffset[1] = -104;
-		_constants.vertexScale[0] = 2.0f;
-		_constants.vertexScale[1] = 2.0f;
-	}
-	else if (_options.screenMode == ScreenMode::FullscreenDefault)
-	{
-		float scale = (float)_renderHeight / _gameHeight;
+		float scale = (float)_metrics._renderHeight / _metrics._gameHeight;
 
-		const uint32_t scaledWidth = (uint32_t)(scale * _gameWidth);
-		_constants.vertexOffset[0] = (float)(_desktopWidth / 2 - scaledWidth / 2);
+		const uint32_t scaledWidth = (uint32_t)(scale * _metrics._gameWidth);
+		_constants.vertexOffset[0] = (float)(_metrics._desktopWidth / 2 - scaledWidth / 2);
 		_constants.vertexOffset[1] = 0.0f;
 		_constants.vertexScale[0] = scale;
 		_constants.vertexScale[1] = scale;
 	}
 	else
 	{
-		float scale = (float)_renderHeight / _gameHeight;
+		float scale = (float)_metrics._renderHeight / _metrics._gameHeight;
 		_constants.vertexOffset[0] = 0.0f;
 		_constants.vertexOffset[1] = 0.0f;
 		_constants.vertexScale[0] = scale;
@@ -761,6 +746,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 		if (wParam == VK_RETURN && (HIWORD(lParam) & KF_ALTDOWN))
 		{
 			d3d11Context->ToggleFullscreen();
+			return 0;
 		}
 	}
 	else if (uMsg == WM_DESTROY)
@@ -780,13 +766,8 @@ LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 		uint32_t x = LOWORD(lParam);
 		uint32_t y = HIWORD(lParam);
 
-		if (d3d11Context->GetOptions().screenMode == ScreenMode::Fullscreen1920x1080 && y < 54)
-		{
-			y = 54;
-		}
-
-		x = (uint32_t)(x * ((double)d3d11Context->GetGameWidth() / d3d11Context->GetWindowWidth()));
-		y = (uint32_t)(y * ((double)d3d11Context->GetGameHeight() / d3d11Context->GetWindowHeight()));
+		x = (uint32_t)(x * ((double)d3d11Context->GetGameWidth() / d3d11Context->GetRenderWidth()));
+		y = (uint32_t)(y * ((double)d3d11Context->GetGameHeight() / d3d11Context->GetRenderHeight()));
 
 		g_d2dxContext->OnMousePosChanged(x, y);
 
@@ -880,107 +861,139 @@ TextureCache* D3D11Context::GetTextureCache(const Batch& batch) const
 
 void D3D11Context::AdjustWindowPlacement(HWND hWnd, bool centerOnCurrentPosition)
 {
-	if (_options.screenMode != ScreenMode::Windowed)
-	{
-		return;
-	}
-
-	const int32_t desktopWidth = GetSystemMetrics(SM_CXSCREEN);
-	const int32_t desktopHeight = GetSystemMetrics(SM_CYSCREEN);
-	const int32_t desktopClientMaxHeight = GetSystemMetrics(SM_CYFULLSCREEN);
-
-	RECT rect;
-	GetWindowRect(hWnd, &rect);
-
-	RECT clientRect;
-	GetClientRect(hWnd, &clientRect);
-
-	if (_windowHeight > desktopClientMaxHeight)
-	{
-		_windowWidth *= (int32_t)((float)desktopClientMaxHeight / _windowHeight);
-		_windowHeight = desktopClientMaxHeight;
-	}
-
-	const int32_t newWidth = ((rect.right - rect.left) - (clientRect.right - clientRect.left)) + _windowWidth;
-	const int32_t newHeight = ((rect.bottom - rect.top) - (clientRect.bottom - clientRect.top)) + _windowHeight;
-
-	const int32_t centerX = centerOnCurrentPosition ? (rect.left + rect.right) / 2 : desktopWidth / 2;
-	const int32_t centerY = centerOnCurrentPosition ? (rect.top + rect.bottom) / 2 : desktopHeight / 2;
-	const int32_t newX = centerX - newWidth / 2;
-	const int32_t newY = centerY - newHeight / 2;
-
-	SetWindowPos_Real(hWnd, HWND_TOP, newX, newY, newWidth, newHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING);
-
-	GetWindowRect(hWnd, &rect);
-	assert(newWidth == (rect.right - rect.left));
-	assert(newHeight == (rect.bottom - rect.top));
-
-	char newWindowText[256];
-	sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]", (int32_t)_gameWidth, (int32_t)_gameHeight, (int)((_windowHeight / _gameHeight) * 100.0f));
-	SetWindowTextA(hWnd, newWindowText);
-}
-
-void D3D11Context::SetGameSize(int32_t width, int32_t height)
-{
-	_gameWidth = (float)width;
-	_gameHeight = (float)height;
-	ALWAYS_PRINT("Game size %f x %f", _gameWidth, _gameHeight);
+	const int32_t desktopCenterX = _metrics._desktopWidth / 2;
+	const int32_t desktopCenterY = _metrics._desktopHeight / 2;
 
 	if (_options.screenMode == ScreenMode::Windowed)
 	{
-		AdjustWindowPlacement(_hWnd, true);
-		_renderWidth = _windowWidth;
-		_renderHeight = _windowHeight;
-		ALWAYS_PRINT("Render size %i x %i", _renderWidth, _renderHeight);
+		RECT oldWindowRect;
+		RECT oldWindowClientRect;
+		GetWindowRect(hWnd, &oldWindowRect);
+		GetClientRect(hWnd, &oldWindowClientRect);
+		const int32_t oldWindowWidth = oldWindowRect.right - oldWindowRect.left;
+		const int32_t oldWindowHeight = oldWindowRect.bottom - oldWindowRect.top;
+		const int32_t oldWindowClientWidth = oldWindowClientRect.right - oldWindowClientRect.left;
+		const int32_t oldWindowClientHeight = oldWindowClientRect.bottom - oldWindowClientRect.top;
+		const int32_t oldWindowCenterX = (oldWindowRect.left + oldWindowRect.right) / 2;
+		const int32_t oldWindowCenterY = (oldWindowRect.top + oldWindowRect.bottom) / 2;
+
+		_metrics._windowWidth = _metrics._renderWidth;
+		_metrics._windowHeight = _metrics._renderHeight;
+
+		if (_metrics._windowHeight > _metrics._desktopClientMaxHeight)
+		{
+			_metrics._windowWidth *= (int32_t)((float)_metrics._desktopClientMaxHeight / _metrics._windowHeight);
+			_metrics._windowHeight = _metrics._desktopClientMaxHeight;
+			_metrics._renderWidth = _metrics._windowWidth;
+			_metrics._renderHeight = _metrics._windowHeight;
+		}
+
+		const int32_t newWindowWidth = (oldWindowWidth - oldWindowClientWidth) + _metrics._windowWidth;
+		const int32_t newWindowHeight = (oldWindowHeight - oldWindowClientHeight) + _metrics._windowHeight;
+		const int32_t newWindowCenterX = centerOnCurrentPosition ? oldWindowCenterX : desktopCenterX;
+		const int32_t newWindowCenterY = centerOnCurrentPosition ? oldWindowCenterY : desktopCenterY;
+		const int32_t newWindowX = newWindowCenterX - newWindowWidth / 2;
+		const int32_t newWindowY = newWindowCenterY - newWindowHeight / 2;
+
+		SetWindowLongPtr(hWnd, GWL_STYLE, WS_VISIBLE | WS_OVERLAPPEDWINDOW);
+		SetWindowPos_Real(hWnd, HWND_TOP, newWindowX, newWindowY, newWindowWidth, newWindowHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
+
+#ifndef NDEBUG
+		RECT newWindowRect;
+		GetWindowRect(hWnd, &newWindowRect);
+		assert(newWindowWidth == (newWindowRect.right - newWindowRect.left));
+		assert(newWindowHeight == (newWindowRect.bottom - newWindowRect.top));
+#endif
 	}
+	else if (_options.screenMode == ScreenMode::FullscreenDefault)
+	{
+		SetWindowLongPtr(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+		SetWindowPos_Real(hWnd, HWND_TOP, 0, 0, _metrics._desktopWidth, _metrics._desktopHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
+
+		_metrics._renderWidth = _metrics._desktopWidth;
+		_metrics._renderHeight = _metrics._desktopHeight;
+	}
+
+	char newWindowText[256];
+	sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
+		_metrics._gameWidth, _metrics._gameHeight, (int)(((float)_metrics._renderHeight / _metrics._gameHeight) * 100.0f));
+	SetWindowTextA(hWnd, newWindowText);
+
+	ALWAYS_PRINT("Game size %ix%i", _metrics._gameWidth, _metrics._gameHeight);
+	ALWAYS_PRINT("Render size %ix%i", _metrics._renderWidth, _metrics._renderHeight);
 
 	UpdateConstants();
 
 	if (_swapChain2)
 	{
-		_swapChain2->SetSourceSize(_renderWidth, _renderHeight);
+		_swapChain2->SetSourceSize(_metrics._renderWidth, _metrics._renderHeight);
 	}
 
 	D3D11_RECT scissorRect;
 	scissorRect.left = (LONG)_constants.vertexOffset[0];
-	scissorRect.right = _renderWidth - (LONG)_constants.vertexOffset[0];
+	scissorRect.right = _metrics._renderWidth - (LONG)_constants.vertexOffset[0];
 	scissorRect.top = 0;
-	scissorRect.bottom = _renderHeight;
+	scissorRect.bottom = _metrics._renderHeight;
 	_deviceContext->RSSetScissorRects(1, &scissorRect);
 
-	UpdateViewport(_renderWidth, _renderHeight);
+	UpdateViewport(_metrics._renderWidth, _metrics._renderHeight);
+
+	Present();
 }
 
-void D3D11Context::SetWindowSize(int32_t width, int32_t height)
+void D3D11Context::SetSizes(int32_t gameWidth, int32_t gameHeight, int32_t renderWidth, int32_t renderHeight)
 {
-	_windowWidth = width;
-	_windowHeight = height;
-	ALWAYS_PRINT("Window size %i x %i", _windowWidth, _windowHeight);
+	_metrics._gameWidth = gameWidth;
+	_metrics._gameHeight = gameHeight;
+	
+	if (renderWidth > 0 && renderHeight > 0)
+	{
+		_metrics._renderWidth = renderWidth;
+		_metrics._renderHeight = renderHeight;
+	}
+
+	if (_metrics._gameWidth > _metrics._renderWidth || _metrics._gameHeight > _metrics._renderHeight)
+	{
+		_metrics._renderWidth = _metrics._gameWidth;
+		_metrics._renderHeight = _metrics._gameHeight;
+	}
+
+	AdjustWindowPlacement(_hWnd, true);
 }
 
 int32_t D3D11Context::GetGameWidth() const
 {
-	return (int32_t)_gameWidth;
+	return _metrics._gameWidth;
 }
 
 int32_t D3D11Context::GetGameHeight() const
 {
-	return (int32_t)_gameHeight;
+	return _metrics._gameHeight;
 }
 
 int32_t D3D11Context::GetWindowWidth() const
 {
-	return _windowWidth;
+	return _metrics._windowWidth;
 }
 
 int32_t D3D11Context::GetWindowHeight() const
 {
-	return _windowHeight;
+	return _metrics._windowHeight;
+}
+
+int32_t D3D11Context::GetRenderWidth() const
+{
+	return _metrics._renderWidth;
+}
+
+int32_t D3D11Context::GetRenderHeight() const
+{
+	return _metrics._renderHeight;
 }
 
 bool D3D11Context::IsAllowTearingFlagSupported() const
 {
-	ComPtr<IDXGIFactory4> dxgiFactory4;	
+	ComPtr<IDXGIFactory4> dxgiFactory4;
 
 	if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory4))))
 	{
@@ -1009,11 +1022,13 @@ void D3D11Context::ToggleFullscreen()
 	if (_isFullscreen)
 	{
 		_options.screenMode = ScreenMode::Windowed;
-		AdjustWindowPlacement(_hWnd, false);
+		SetSizes(_metrics._gameWidth, _metrics._gameHeight, _metrics._windowWidth, _metrics._windowHeight);
+		_isFullscreen = false;
 	}
 	else
 	{
 		_options.screenMode = ScreenMode::FullscreenDefault;
-		AdjustWindowPlacement(_hWnd, false);
+		SetSizes(_metrics._gameWidth, _metrics._gameHeight, _metrics._desktopWidth, _metrics._desktopHeight);
+		_isFullscreen = true;
 	}
 }
