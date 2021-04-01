@@ -29,8 +29,9 @@ Version 0.99.402
 
 ## Compatibility
 Game versions supported:
-  - 1.09d, 1.10, 1.12, 1.13c, 1.13d and 1.14d.
-  - Other versions will display a warning at startup and exhibit glitches.
+  - All features: 1.12, 1.13c and 1.13d.
+  - No widescreen: 1.09d, 1.10 and 1.14d.
+  - Other versions are unsupported, will display a warning at startup and exhibit glitches.
 
 D2DX has been tested working with the following mods:
   - MedianXL (1024x768)
