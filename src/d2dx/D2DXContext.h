@@ -103,10 +103,9 @@ namespace d2dx
 		MajorGameState _majorGameState;
 
 		Buffer<uint32_t> _paletteKeys;
-		Buffer<uint32_t> _palettes;
 
 		float _gamma[3];
-		uint32_t* _gammaTable;
+		Buffer<uint32_t> _gammaTable;
 
 		uint32_t _constantColor;
 

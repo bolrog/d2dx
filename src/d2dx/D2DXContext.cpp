@@ -37,13 +37,9 @@ D2DXContext::D2DXContext() :
 	_sideTmuMemory(D2DX_SIDE_TMU_MEMORY_SIZE),
 	_constantColor(0xFFFFFFFF),
 	_paletteKeys(D2DX_MAX_PALETTES),
-	_palettes(256 * D2DX_MAX_PALETTES)
+	_gammaTable(256)
 {
 	memset(_paletteKeys.items, 0, sizeof(uint32_t) * _paletteKeys.capacity);
-	memset(_palettes.items, 0, sizeof(uint32_t) * _palettes.capacity);
-	_paletteKeys.items[0] = 0xFFFFFFFF;
-
-	_gammaTable = new uint32_t[256];
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
@@ -82,8 +78,6 @@ D2DXContext::D2DXContext() :
 
 D2DXContext::~D2DXContext()
 {
-	delete[] _gammaTable;
-	_gammaTable = nullptr;
 }
 
 const char* D2DXContext::OnGetString(uint32_t pname)
@@ -490,12 +484,7 @@ void D2DXContext::OnBufferSwap()
 		AdjustBatchesIn1080p();
 	}
 
-	const int32_t batchCount = (int32_t)_frames[_currentFrameIndex]._batchCount;
-	Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
-
-	int32_t hudParts = 0;
-
-	_d3d11Context->BulkWriteVertices(vertices, _frames[_currentFrameIndex]._vertexCount);
+	_d3d11Context->BulkWriteVertices(_frames[_currentFrameIndex]._vertices.items, _frames[_currentFrameIndex]._vertexCount);
 
 	DrawBatches();
 
@@ -589,7 +578,7 @@ void D2DXContext::OnDrawLine(const void* v1, const void* v2, uint32_t gameContex
 	batch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
 	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 
-	TextureCacheLocation textureCacheLocation = _d3d11Context->UpdateTexture(_scratchBatch, _tmuMemory.items, &_palettes.items[256 * _scratchBatch.GetPaletteIndex()]);
+	TextureCacheLocation textureCacheLocation = _d3d11Context->UpdateTexture(_scratchBatch, _tmuMemory.items);
 
 	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, textureCacheLocation);
 	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, textureCacheLocation);
@@ -677,7 +666,7 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 	batch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
 	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 
-	auto textureCacheLocation = _d3d11Context->UpdateTexture(batch, _tmuMemory.items, &_palettes.items[256 * batch.GetPaletteIndex()]);
+	auto textureCacheLocation = _d3d11Context->UpdateTexture(batch, _tmuMemory.items);
 
 	switch (mode)
 	{
@@ -746,7 +735,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 	batch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
 	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 
-	auto textureCacheLocation = _d3d11Context->UpdateTexture(batch, _tmuMemory.items, &_palettes.items[256 * batch.GetPaletteIndex()]);
+	auto textureCacheLocation = _d3d11Context->UpdateTexture(batch, _tmuMemory.items);
 
 	switch (mode)
 	{
@@ -811,38 +800,41 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 
 void D2DXContext::OnTexDownloadTable(GrTexTable_t type, void* data)
 {
-	if (type == GR_TEXTABLE_PALETTE)
-	{
-		uint32_t hash = fnv_32a_buf(data, 1024, FNV1_32A_INIT);
-		assert(hash != 0);
-
-		for (uint32_t i = 0; i < _paletteKeys.capacity; ++i)
-		{
-			if (_paletteKeys.items[i] == hash)
-			{
-				_scratchBatch.SetPaletteIndex(i);
-				return;
-			}
-		}
-
-		for (uint32_t i = 0; i < _paletteKeys.capacity; ++i)
-		{
-			if (_paletteKeys.items[i] == 0)
-			{
-				_paletteKeys.items[i] = hash;
-				memcpy(&_palettes.items[256 * i], data, 1024);
-				_scratchBatch.SetPaletteIndex(i);
-				_d3d11Context->SetPalette(i, (const uint32_t*)data);
-				return;
-			}
-		}
-
-		assert(false && "Too many palettes.");
-	}
-	else
+	if (type != GR_TEXTABLE_PALETTE)
 	{
 		assert(false && "Unhandled table type.");
 	}
+
+	uint32_t hash = fnv_32a_buf(data, 1024, FNV1_32A_INIT);
+	assert(hash != 0);
+
+	for (uint32_t i = 0; i < _paletteKeys.capacity; ++i)
+	{
+		if (_paletteKeys.items[i] == 0)
+		{
+			break;
+		}
+
+		if (_paletteKeys.items[i] == hash)
+		{
+			_scratchBatch.SetPaletteIndex(i);
+			return;
+		}
+	}
+
+	for (uint32_t i = 0; i < _paletteKeys.capacity; ++i)
+	{
+		if (_paletteKeys.items[i] == 0)
+		{
+			_paletteKeys.items[i] = hash;
+			_scratchBatch.SetPaletteIndex(i);
+			_d3d11Context->SetPalette(i, (const uint32_t*)data);
+			return;
+		}
+	}
+
+	assert(false && "Too many palettes.");
+	ALWAYS_PRINT("Too many palettes.");
 }
 
 void D2DXContext::OnChromakeyMode(GrChromakeyMode_t mode)
@@ -854,10 +846,10 @@ void D2DXContext::OnLoadGammaTable(uint32_t nentries, uint32_t* red, uint32_t* g
 {
 	for (int32_t i = 0; i < (int32_t)min(nentries, 256); ++i)
 	{
-		_gammaTable[i] = ((blue[i] & 0xFF) << 16) | ((green[i] & 0xFF) << 8) | (red[i] & 0xFF);
+		_gammaTable.items[i] = ((blue[i] & 0xFF) << 16) | ((green[i] & 0xFF) << 8) | (red[i] & 0xFF);
 	}
 
-	_d3d11Context->LoadGammaTable(_gammaTable);
+	_d3d11Context->LoadGammaTable(_gammaTable.items);
 }
 
 void D2DXContext::OnLfbUnlock(const uint32_t* lfbPtr, uint32_t strideInBytes)
@@ -868,115 +860,6 @@ void D2DXContext::OnLfbUnlock(const uint32_t* lfbPtr, uint32_t strideInBytes)
 void D2DXContext::OnGammaCorrectionRGB(float red, float green, float blue)
 {
 	_d3d11Context->SetGamma(red, green, blue);
-}
-
-void D2DXContext::CorrelateBatches()
-{
-	uint32_t correlatedBatchCount = 0;
-
-	Batch* cfBatches = _frames[_currentFrameIndex]._batches.items;
-	Batch* pfBatches = _frames[1 - _currentFrameIndex]._batches.items;
-
-	const int32_t cfBatchCount = _frames[_currentFrameIndex]._batchCount;
-	const int32_t pfBatchCount = _frames[1 - _currentFrameIndex]._batchCount;
-
-	for (int32_t cfBatchIndex = 0; cfBatchIndex < cfBatchCount; ++cfBatchIndex)
-	{
-		Batch& cfBatch = cfBatches[cfBatchIndex];
-
-		if (cfBatch.GetCategory() == BatchCategory::InGamePanel ||
-			cfBatch.GetCategory() == BatchCategory::TopUI ||
-			cfBatch.GetCategory() == BatchCategory::UiElement)
-		{
-			continue;
-		}
-
-		const Vertex* cfVertices = _frames[_currentFrameIndex]._vertices.items;
-		const Vertex* pfVertices = _frames[1 - _currentFrameIndex]._vertices.items;
-
-		const int32_t cfX0 = (int32_t)cfVertices[cfBatch.GetStartVertex() + 0].GetX();
-		const int32_t cfY0 = (int32_t)cfVertices[cfBatch.GetStartVertex() + 0].GetY();
-		const int32_t cfS0 = cfVertices[cfBatch.GetStartVertex() + 0].GetS();
-		const int32_t cfT0 = cfVertices[cfBatch.GetStartVertex() + 0].GetT();
-
-		const int32_t cfX1 = (int32_t)cfVertices[cfBatch.GetStartVertex() + 1].GetX();
-		const int32_t cfY1 = (int32_t)cfVertices[cfBatch.GetStartVertex() + 1].GetY();
-		const int32_t cfS1 = cfVertices[cfBatch.GetStartVertex() + 1].GetS();
-		const int32_t cfT1 = cfVertices[cfBatch.GetStartVertex() + 1].GetT();
-
-		int32_t pfCandidateBatchIndices[] = {
-			cfBatchIndex,
-			cfBatchIndex - 1, cfBatchIndex + 1,
-			cfBatchIndex - 2, cfBatchIndex + 2,
-			cfBatchIndex - 3, cfBatchIndex + 3,
-			cfBatchIndex - 4, cfBatchIndex + 4,
-			cfBatchIndex - 5, cfBatchIndex + 5,
-			cfBatchIndex - 6, cfBatchIndex + 6,
-			cfBatchIndex - 7, cfBatchIndex + 7,
-			cfBatchIndex - 8, cfBatchIndex + 8,
-			cfBatchIndex - 9, cfBatchIndex + 9,
-		};
-
-		bool found = false;
-
-		for (int32_t candidate = 0; candidate < ARRAYSIZE(pfCandidateBatchIndices); ++candidate)
-		{
-			const int32_t pfCandidateBatchIndex = pfCandidateBatchIndices[candidate];
-
-			if (pfCandidateBatchIndex < 0 || pfCandidateBatchIndex >= pfBatchCount)
-				continue;
-
-			const Batch& pfBatch = pfBatches[pfCandidateBatchIndex];
-
-			const int32_t pfX0 = (int32_t)pfVertices[pfBatch.GetStartVertex() + 0].GetX();
-			const int32_t pfY0 = (int32_t)pfVertices[pfBatch.GetStartVertex() + 0].GetY();
-			const int32_t pfS0 = pfVertices[pfBatch.GetStartVertex() + 0].GetS();
-			const int32_t pfT0 = pfVertices[pfBatch.GetStartVertex() + 0].GetT();
-
-			const int32_t pfX1 = (int32_t)pfVertices[pfBatch.GetStartVertex() + 1].GetX();
-			const int32_t pfY1 = (int32_t)pfVertices[pfBatch.GetStartVertex() + 1].GetY();
-			const int32_t pfS1 = pfVertices[pfBatch.GetStartVertex() + 1].GetS();
-			const int32_t pfT1 = pfVertices[pfBatch.GetStartVertex() + 1].GetT();
-
-			if (cfBatch.GetCategory() == pfBatch.GetCategory() &&
-				cfBatch.GetAlphaBlend() == pfBatch.GetAlphaBlend() &&
-				cfBatch.GetRgbCombine() == pfBatch.GetRgbCombine() &&
-				cfBatch.GetAlphaCombine() == pfBatch.GetAlphaCombine() &&
-				cfBatch.GetVertexCount() == pfBatch.GetVertexCount() &&
-				cfBatch.GetPrimitiveType() == pfBatch.GetPrimitiveType())
-			{
-#define XY_THRESHOLD 64
-				if (abs(cfX0 - pfX0) < XY_THRESHOLD && abs(cfY0 - pfY0) < XY_THRESHOLD)
-				{
-					//					cfBatch.previousFrameCorrelatedIndex = pfCandidateBatchIndex;
-					found = true;
-					break;
-				}
-			}
-		}
-
-		if (found)
-		{
-			++correlatedBatchCount;
-		}
-		else
-		{
-			ColorizeBatch(cfBatch, 0xFFFF0000);
-		}
-	}
-
-	ALWAYS_PRINT("Correlated %u of %i batches.", correlatedBatchCount, cfBatchCount);
-}
-
-void D2DXContext::ColorizeBatch(Batch& batch, uint32_t color)
-{
-	Vertex* cfVertices = _frames[_currentFrameIndex]._vertices.items;
-	const int32_t batchVertexCount = batch.GetVertexCount();
-
-	for (int32_t vertexIndex = 0; vertexIndex < batchVertexCount; ++vertexIndex)
-	{
-		cfVertices[batch.GetStartVertex() + vertexIndex].SetColor(color);
-	}
 }
 
 void D2DXContext::PrepareLogoTextureBatch()
@@ -1032,7 +915,7 @@ void D2DXContext::InsertLogoOnTitleScreen()
 
 	PrepareLogoTextureBatch();
 
-	auto textureCacheLocation = _d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items, nullptr);
+	auto textureCacheLocation = _d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items);
 	_logoTextureBatch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
 
 	const float x = (float)(_d3d11Context->GetGameWidth() - 90 - 16);

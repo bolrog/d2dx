@@ -54,8 +54,7 @@ namespace d2dx
 		TextureCacheLocation InsertTexture(
 			uint32_t contentKey,
 			Batch& batch,
-			const uint8_t* tmuData,
-			const uint32_t* palette);
+			const uint8_t* tmuData);
 
 		uint32_t GetCapacity() const;
 
@@ -68,8 +67,6 @@ namespace d2dx
 		uint32_t GetMemoryFootprint() const;
 
 	private:
-		void ConvertTexture(const Batch& batch, const uint8_t* tmuData, const uint32_t* palette);
-
 		int32_t _atlasWidth;
 		int32_t _atlasHeight;
 		int32_t _atlasArraySize;

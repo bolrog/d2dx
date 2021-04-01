@@ -145,18 +145,9 @@ TextureCacheLocation TextureCache::FindTexture(uint32_t contentKey, int32_t last
 #endif
 }
 
-TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, Batch& batch, const uint8_t* tmuData, const uint32_t* palette)
+TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, Batch& batch, const uint8_t* tmuData)
 {
 	assert(batch.IsValid() && batch.GetWidth() > 0 && batch.GetHeight() > 0);
-
-	//auto time = timeStart();
-
-//	ConvertTexture(batch, tmuData, palette);
-
-	/*auto elapsed = timeEndMs(time);
-	static char ss[256];
-	sprintf(ss, "ConvertTexture took %f ms.\n", elapsed);
-	OutputDebugStringA(ss);*/
 
 	bool evicted = false;
 	int32_t replacementIndex = _policy->Insert(contentKey, evicted);
