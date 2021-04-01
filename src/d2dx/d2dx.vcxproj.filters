@@ -37,7 +37,6 @@
     <ClCompile Include="D2DXDetours.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dx_raw.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="D3D11Context.h" />
@@ -95,6 +94,7 @@
       <Filter>thirdparty\detours</Filter>
     </ClInclude>
     <ClInclude Include="D2DXDetours.h" />
+    <ClInclude Include="dx256_bmp.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

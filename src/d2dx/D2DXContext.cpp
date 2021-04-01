@@ -20,7 +20,7 @@
 #include "GlideHelpers.h"
 #include "Simd.h"
 #include "Utils.h"
-#include "dx_raw.h"
+#include "dx256_bmp.h"
 
 using namespace d2dx;
 using namespace DirectX::PackedVector;
@@ -872,7 +872,12 @@ void D2DXContext::PrepareLogoTextureBatch()
 		return;
 	}
 
-	uint32_t hash = fnv_32a_buf((void*)dx_raw, sizeof(uint32_t) * 81 * 40, FNV1_32A_INIT);
+	const uint8_t* srcPixels = dx_logo256 + 0x436;
+	const uint32_t* palette = (const uint32_t*)(dx_logo256 + 0x36);
+
+	_d3d11Context->SetPalette(15, palette);
+
+	uint32_t hash = fnv_32a_buf((void*)srcPixels, sizeof(uint8_t) * 81 * 40, FNV1_32A_INIT);
 
 	uint8_t* data = _sideTmuMemory.items;
 
@@ -880,31 +885,23 @@ void D2DXContext::PrepareLogoTextureBatch()
 	_logoTextureBatch.SetTextureHash(hash);
 	_logoTextureBatch.SetTextureSize(128, 128);
 	_logoTextureBatch.SetTextureCategory(TextureCategory::TitleScreen);
-	_logoTextureBatch.SetIsRgba(true);
+	_logoTextureBatch.SetIsRgba(false);
 	_logoTextureBatch.SetPrimitiveType(PrimitiveType::Triangles);
 	_logoTextureBatch.SetAlphaBlend(AlphaBlend::SrcAlphaInvSrcAlpha);
 	_logoTextureBatch.SetIsChromaKeyEnabled(true);
 	_logoTextureBatch.SetRgbCombine(RgbCombine::ColorMultipliedByTexture);
 	_logoTextureBatch.SetAlphaCombine(AlphaCombine::One);
 	_logoTextureBatch.SetCategory(BatchCategory::UiElement);
+	_logoTextureBatch.SetPaletteIndex(15);
 	_logoTextureBatch.SetVertexCount(6);
 
 	memset(data, 0, _logoTextureBatch.GetTextureMemSize());
 
-	const uint32_t* pSrc32 = (const uint32_t*)dx_raw;
-	uint32_t* pDst32 = (uint32_t*)data;
-
-	for (int32_t y = 0; y < 40; ++y)
+	for (int32_t y = 0; y < 41; ++y)
 	{
-		for (int32_t x = 0; x < 81; ++x)
+		for (int32_t x = 0; x < 80; ++x)
 		{
-			uint32_t c = *pSrc32++;
-			uint32_t r = (c & 0x00FF0000) >> 16;
-			uint32_t b = c & 0x000000FF;
-			c &= 0xFF00FF00;
-			c |= r;
-			c |= b << 16;
-			pDst32[x + y * 128] = c;
+			data[x + (40-y) * 128] = *srcPixels++;
 		}
 	}
 }
@@ -925,10 +922,10 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	const float y = (float)(_d3d11Context->GetGameHeight() - 50 - 16);
 	const uint32_t color = 0xFFFFa090;
 
-	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 0);
-	Vertex vertex1(x + 80, y, 80, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 0);
-	Vertex vertex2(x + 80, y + 41, 80, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 0);
-	Vertex vertex3(x, y + 41, 0, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 0);
+	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 15);
+	Vertex vertex1(x + 80, y, 80, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 15);
+	Vertex vertex2(x + 80, y + 41, 80, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 15);
+	Vertex vertex3(x, y + 41, 0, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 15);
 
 	assert((_frames[_currentFrameIndex]._vertexCount + 6) < _frames[_currentFrameIndex]._vertices.capacity);
 	int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;

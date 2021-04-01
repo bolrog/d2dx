@@ -125,8 +125,8 @@
     <ClInclude Include="..\..\thirdparty\glide3\sst1init.h" />
     <ClInclude Include="..\..\thirdparty\glide3\SST1VID.H" />
     <ClInclude Include="D2DXDetours.h" />
-    <ClInclude Include="dx_raw.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="dx256_bmp.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="D3D11Context.h" />
     <ClInclude Include="Batch.h" />
