@@ -33,8 +33,64 @@
     <ClCompile Include="..\d2dx\Utils.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
+    <ClCompile Include="..\d2dx\D2DXContext.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\D2DXDetours.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\D2DXIntegrationImpl.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\D3D11Context.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
+      <Filter>d2dx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="..\d2dx\Batch.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\Buffer.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\D2DXContext.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\D2DXDetours.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\D3D11Context.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\dx256_bmp.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\GameHelper.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\TextureCache.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\TextureCachePolicy.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\TextureCachePolicyBitPmru.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\TextureProcessor.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\Types.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\Utils.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\Vertex.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

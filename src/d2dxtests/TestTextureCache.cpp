@@ -18,10 +18,10 @@
 #include <array>
 #include "CppUnitTest.h"
 
-#include "../d2gex/Batch.h"
-#include "../d2gex/Simd.h"
-#include "../d2gex/Types.h"
-#include "../d2gex/TextureCache.h"
+#include "../d2dx/Batch.h"
+#include "../d2dx/Simd.h"
+#include "../d2dx/Types.h"
+#include "../d2dx/TextureCache.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace d2dx;
@@ -58,7 +58,6 @@ namespace d2dxtests
 			auto simd = Simd::Create();
 			auto textureProcessor = std::make_shared<TextureProcessor>();
 			std::array<uint32_t, 2 * 256 * 128> tmuData;
-			std::array<uint32_t, 1024> palette;
 
 			Batch batch;
 			batch.SetTextureStartAddress(0);
@@ -69,7 +68,7 @@ namespace d2dxtests
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), palette.data());
+				textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
 			}
 
 			for (uint32_t i = 0; i < 64; ++i)
@@ -85,7 +84,6 @@ namespace d2dxtests
 			auto simd = Simd::Create();
 			auto textureProcessor = std::make_shared<TextureProcessor>();
 			std::array<uint32_t, 2 * 256 * 128> tmuData;
-			std::array<uint32_t, 1024> palette;
 
 			Batch batch;
 			batch.SetTextureStartAddress(0);
@@ -96,7 +94,7 @@ namespace d2dxtests
 			for (uint32_t i = 0; i < 65; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), palette.data());
+				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
 
 				if (i == 64)
 				{
@@ -133,7 +131,6 @@ namespace d2dxtests
 			auto simd = Simd::Create();
 			auto textureProcessor = std::make_shared<TextureProcessor>();
 			std::array<uint32_t, 2 * 256 * 128> tmuData;
-			std::array<uint32_t, 1024> palette;
 
 			Batch batch;
 			batch.SetTextureStartAddress(0);
@@ -152,7 +149,7 @@ namespace d2dxtests
 					Assert::AreEqual(0, textureCache.FindTexture(0xFF000000, -1).ArrayIndex);
 				}
 
-				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), palette.data());
+				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
 
 				if (i == 64)
 				{

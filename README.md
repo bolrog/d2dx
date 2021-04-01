@@ -2,7 +2,7 @@
 
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
-Version 0.99.401
+Version 0.99.401b
 
 ## Mission statement
   - Preserve the classic Diablo 2/LoD experience as much as possible.
@@ -91,11 +91,12 @@ This project uses the following third party libraries:
 
 ## Release history
 
-### 0.99.401
+### 0.99.401b
   - Add experimental support for widescreen modes using a fork of SlashDiablo-HD by Mir Drualga and Bartosz Jankowski.
   - Remove the use of "AA bilinear" filtering, in favor of point filtering. This is part of a work in progress and will be tweaked further.
   - Cut VRAM footprint by 75% and reduce performance overhead.
   - Source code is now in the git.
+  - Updated: fix occasional glitches due to the wrong texture cache policy being used.
 
 ### 0.99.329b
   - Add support for 1024x768, tested with MedianXL which now seems to work.

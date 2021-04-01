@@ -20,8 +20,6 @@
 #include "TextureCache.h"
 #include "TextureCachePolicyBitPmru.h"
 
-#define USE_BIT_MRU 1
-
 using namespace d2dx;
 using namespace std;
 
@@ -36,7 +34,7 @@ TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, ID3
 	_textureProcessor(textureProcessor),
 	_policy(make_unique<TextureCachePolicyBitPmru>(capacity, simd))
 {
-#ifndef GX_UNITTEST
+#ifndef D2DX_UNITTEST
 
 #ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
 	_atlasWidth = _width;
@@ -157,7 +155,7 @@ TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, Batch& bat
 		DEBUG_PRINT("Evicted %ix%i texture %i from cache.", batch.GetWidth(), batch.GetHeight(), replacementIndex);
 	}
 
-#ifndef GX_UNITTEST
+#ifndef D2DX_UNITTEST
 	CD3D11_BOX box;
 #ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
 	box.left = 0;
@@ -203,7 +201,11 @@ TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, Batch& bat
 	return { tileX * _width, tileY * _height, arrayIndex };
 #endif
 #else
+#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
+	return { 0, 0, replacementIndex };
+#else
 	return { 0,0,0 };
+#endif
 #endif
 }
 

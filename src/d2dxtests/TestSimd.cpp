@@ -17,7 +17,7 @@
 #include "pch.h"
 #include <array>
 #include "CppUnitTest.h"
-#include "../d2gex/Simd.h"
+#include "../d2dx/Simd.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace d2dx;

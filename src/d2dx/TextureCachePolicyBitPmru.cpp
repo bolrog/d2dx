@@ -54,10 +54,8 @@ int32_t TextureCachePolicyBitPmru::Find(uint32_t contentKey, int32_t lastIndex)
 
 	if (findIndex >= 0)
 	{
-#if USE_BIT_MRU
 		_usedInFrameBits.items[findIndex >> 5] |= 1 << (findIndex & 31);
 		_mruBits.items[findIndex >> 5] |= 1 << (findIndex & 31);
-#endif
 		return findIndex;
 	}
 
