@@ -2,7 +2,7 @@
 
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
-Version 0.99.401c
+Version 0.99.402
 
 ## Mission statement
   - Preserve the classic Diablo 2/LoD experience as much as possible.
@@ -11,14 +11,14 @@ Version 0.99.401c
 
 ## Implemented
   - High performance DirectX 11 renderer (Glide wrapper).
-  - Proper gamma/contrast support.
+  - Proper gamma/contrast.
   - Improved fullscreen mode: instant ALT-TAB and low latency.
   - Improved windowed mode.
-  - Widescreen support (in vanilla D2/LoD, via bundled version of SlashDiablo-HD).
-  - Fixed various glitches in the supported game versions.
+  - Widescreen support (in vanilla D2/LoD).
+  - Seamless windowed/fullscreen switching with (ALT-Enter).
+  - Fixes various glitches in the supported game versions.
 
 ## Upcoming
-  - Seamless windowed/fullscreen switching. 
   - Better scaling.
 
 ## Requirements
@@ -50,22 +50,18 @@ D2DX has been tested working with the following mods:
   If you wish to use the widescreen modes, also copy the included "D2DX_SlashDiabloHD.dll" and "SlashDiabloHD.mpq" into your Diablo II folder.
 
 ## Usage
-### Windowed mode
-  ```
-  Game.exe -3dfx -w
-  ```
-
-### Default fullscreen mode (note that this may cause aliasing artifacts due to non-integer scaling):
+### To start the game with D2DX enabled
   ```
   Game.exe -3dfx
   ```
+Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
 
 ### Experimental widescreen (windowed and fullscreen) modes 
   PLEASE NOTE: This only works with 1.12, 1.13c and 1.13d at this time.
 
-  Ensure the "D2DX_SlashDiabloHD.dll" and "SlashDiabloHD.mpq" files are in your Diablo II folder, and run the game as above.
-  When it is present, D2DX will enable a new in-game resolution close to the normal ones - but with the aspect ratio of your monitor.
-  The goal of this is to achieve integer scaling which eliminates scaling artifacts when displaying the game on modern PCs.
+  Ensure the "D2DX_SlashDiabloHD.dll" and "SlashDiabloHD.mpq" files are in your Diablo II folder.
+  When it is present, D2DX will enable a new in-game resolution, close to the normal ones but having the aspect ratio of your monitor.
+  The goal of this is to achieve proper fullscreen scaling without artifacts when displaying the game on modern PCs.
 
   - For a 1920x1080 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
   - For a 2560×1440 monitor, this is 853x480 (in fullscreen: 3x integer scaling).
@@ -78,10 +74,10 @@ D2DX has been tested working with the following mods:
 ## Troubleshooting
 
 ### I get a message box saying "Diablo II is unable to proceed. Unsupported graphics mode."
-  You are running the download version of Diablo II from blizzard.com. Upgrade to 1.14d.
+  You are running the download version of Diablo II from blizzard.com. This can be modified to work with D2DX (Wiki page about this to come).
 
 ### It's ugly/slow/buggy.
-  Let me know! I'd like to keep improving D2DX (within the scope of the project).
+  Let me know by filing an issue! I'd like to keep improving D2DX (within the scope of the project).
 
 ## Acknowledgements
 This project uses the following third party libraries:
@@ -90,6 +86,9 @@ This project uses the following third party libraries:
 - SlashDiablo-HD by Mir Drualga and Bartosz Jankowski
 
 ## Release history
+
+### 0.99.402
+  - Add seamless alt-enter switching between windowed and fullscreen modes.
 
 ### 0.99.401c
   - Add experimental support for widescreen modes using a fork of SlashDiablo-HD by Mir Drualga and Bartosz Jankowski.
