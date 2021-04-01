@@ -1,0 +1,3 @@
+[submodule "thirdparty\\SlashDiablo-HD"]
+	path = thirdparty\\SlashDiablo-HD
+	url = https://github.com/bolrog/SlashDiablo-HD.git

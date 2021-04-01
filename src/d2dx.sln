@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "d2dx", "d2dx\d2dx.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "d2dxtests", "d2dxtests\d2dxtests.vcxproj", "{64214704-FE00-4DB6-BEFA-1E622F7262A1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SlashDiabloHD", "..\thirdparty\SlashDiablo-HD\vc\SlashDiabloHD.vcxproj", "{E1A40089-D269-4C75-8815-FFC971085E7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -21,6 +23,10 @@ Global
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Debug|x86.Build.0 = Debug|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release|x86.ActiveCfg = Release|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release|x86.Build.0 = Release|Win32
+		{E1A40089-D269-4C75-8815-FFC971085E7C}.Debug|x86.ActiveCfg = Debug|Win32
+		{E1A40089-D269-4C75-8815-FFC971085E7C}.Debug|x86.Build.0 = Debug|Win32
+		{E1A40089-D269-4C75-8815-FFC971085E7C}.Release|x86.ActiveCfg = Release|Win32
+		{E1A40089-D269-4C75-8815-FFC971085E7C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

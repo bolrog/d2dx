@@ -39,7 +39,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         printf("DLL_PROCESS_ATTACH\n");        
         SetProcessDPIAware();
         AttachDetours();
-        //LoadLibraryA("SlashDiabloHD.dll");
+        LoadLibraryA("D2DX_SlashDiabloHD.dll");
         break;
     }
     case DLL_THREAD_ATTACH:

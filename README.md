@@ -2,7 +2,7 @@
 
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
-Version 0.99.329b
+Version 0.99.401
 
 ## Mission statement
   - Preserve the classic Diablo 2/LoD experience as much as possible.
@@ -14,12 +14,12 @@ Version 0.99.329b
   - Proper gamma/contrast support.
   - Improved fullscreen mode: instant ALT-TAB and low latency.
   - Improved windowed mode.
+  - Widescreen support (in vanilla D2/LoD, via bundled version of SlashDiablo-HD).
   - Fixed various glitches in the supported game versions.
 
 ## Upcoming
   - Seamless windowed/fullscreen switching. 
   - Better scaling.
-  - Widescreen support.
 
 ## Requirements
   - Diablo 2: LoD (see Compatibility section below).
@@ -47,23 +47,55 @@ D2DX has been tested working with the following mods:
   [LAUNCHING]
   Param=-3dfx
   ```
+  If you wish to use the widescreen modes, also copy the included "D2DX_SlashDiabloHD.dll" into your Diablo II folder.
+
 ## Usage
-### To run the game in windowed mode
-- Game.exe -3dfx -w
+### Windowed mode
+  ```
+  Game.exe -3dfx -w
+  ```
 
-### To run the game in default fullscreen mode (in-game resolution scaled to desktop resolution):
-- Game.exe -3dfx
+### Default fullscreen mode (note that this may cause aliasing artifacts due to non-integer scaling):
+  ```
+  Game.exe -3dfx
+  ```
 
-To get rid of the "DX" logo on the title screen, add -gxskiplogo to the command line.
+### Experimental widescreen (windowed and fullscreen) modes 
+  PLEASE NOTE: This only works with 1.12, 1.13c and 1.13d at this time.
 
-To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line. Note that if the Window doesn't fit on the desktop, the scale factor will be lowered.
+  Ensure the "D2DX_SlashDiabloHD.dll" file is in your Diablo II folder, and run the game as above.
+  When it is present, D2DX will enable a new in-game resolution close to the normal ones - but with the aspect ratio of your monitor.
+  The goal of this is to achieve integer scaling which eliminates scaling artifacts when displaying the game on modern PCs.
+
+  - For a 1920x1080 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
+  - For a 2560×1440 monitor, this is 853x480 (in fullscreen: 3x integer scaling).
+  - For a 3840x2160 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
+
+### Miscellaneous
+- To get rid of the "DX" logo on the title screen, add -gxskiplogo to the command line.
+- To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line. Note that if the Window doesn't fit on the desktop, the scale factor will be lowered.
 
 ## Troubleshooting
 
 ### I get a message box saying "Diablo II is unable to proceed. Unsupported graphics mode."
   You are running the download version of Diablo II from blizzard.com. Upgrade to 1.14d.
 
+### It's ugly/slow/buggy.
+  Let me know! I'd like to keep improving D2DX (within the scope of the project).
+
+## Acknowledgements
+This project uses the following third party libraries:
+- FNV1a hash reference implementation, which is in the public domain
+- Detours by Microsoft
+- SlashDiablo-HD by Mir Drualga and Bartosz Jankowski
+
 ## Release history
+
+### 0.99.401
+  - Add experimental support for widescreen modes using a fork of SlashDiablo-HD by Mir Drualga and Bartosz Jankowski.
+  - Remove the use of "AA bilinear" filtering, in favor of point filtering. This is part of a work in progress and will be tweaked further.
+  - Cut VRAM footprint by 75% and reduce performance overhead.
+  - Source code is now in the git.
 
 ### 0.99.329b
   - Add support for 1024x768, tested with MedianXL which now seems to work.
