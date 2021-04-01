@@ -511,7 +511,7 @@ void D2DXContext::OnColorCombine(GrCombineFunction_t function, GrCombineFactor_t
 	}
 	else
 	{
-		assert(false && "Unhandled");
+		assert(false && "Unhandled color combine.");
 	}
 
 	_scratchBatch.SetRgbCombine(rgbCombine);
@@ -531,7 +531,7 @@ void D2DXContext::OnAlphaCombine(GrCombineFunction_t function, GrCombineFactor_t
 	}
 	else
 	{
-		assert(false && "Unhandled");
+		assert(false && "Unhandled alpha combine.");
 	}
 
 	_scratchBatch.SetAlphaCombine(alphaCombine);
@@ -715,6 +715,7 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 	}
 	default:
 		assert(false && "Unhandled primitive type.");
+		return;
 	}
 
 	assert(_frames[_currentFrameIndex]._batchCount < _frames[_currentFrameIndex]._batches.capacity);
@@ -792,6 +793,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 	}
 	default:
 		assert(false && "Unhandled primitive type.");
+		return;
 	}
 
 	assert(_frames[_currentFrameIndex]._batchCount < _frames[_currentFrameIndex]._batches.capacity);
@@ -803,6 +805,7 @@ void D2DXContext::OnTexDownloadTable(GrTexTable_t type, void* data)
 	if (type != GR_TEXTABLE_PALETTE)
 	{
 		assert(false && "Unhandled table type.");
+		return;
 	}
 
 	uint32_t hash = fnv_32a_buf(data, 1024, FNV1_32A_INIT);

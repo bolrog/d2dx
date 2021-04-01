@@ -29,16 +29,16 @@ namespace d2dx
 		void Transpose(
 			int32_t width,
 			int32_t height,
-			const uint8_t* __restrict srcPixels,
-			uint8_t* __restrict dstPixels
+			_In_reads_(width * height) const uint8_t* __restrict srcPixels,
+			_Out_writes_all_(width * height) uint8_t* __restrict dstPixels
 		);
 
 		void CopyPixels(
 			int32_t srcWidth,
 			int32_t srcHeight,
-			const uint8_t* __restrict srcPixels,
+			_In_reads_(srcPitch * srcHeight) const uint8_t* __restrict srcPixels,
 			uint32_t srcPitch,
-			uint8_t* __restrict dstPixels,
+			_Out_writes_all_(dstPitch * srcHeight) uint8_t* __restrict dstPixels,
 			uint32_t dstPitch);
 
 		void ConvertToRGBA(int32_t width, int32_t height, const uint8_t* __restrict srcPixels, const uint32_t* __restrict palette, uint32_t* __restrict dstPixels);

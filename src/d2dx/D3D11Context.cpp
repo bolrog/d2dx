@@ -718,13 +718,7 @@ TextureCacheLocation D3D11Context::UpdateTexture(Batch& batch, const uint8_t* tm
 
 void D3D11Context::UpdateViewport(int32_t width, int32_t height)
 {
-	D3D11_VIEWPORT viewport;
-	viewport.Width = (float)width;
-	viewport.Height = (float)height;
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
+	CD3D11_VIEWPORT viewport{ 0.0f, 0.0f, (float)width, (float)height };
 	_deviceContext->RSSetViewports(1, &viewport);
 }
 

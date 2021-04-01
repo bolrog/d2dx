@@ -23,6 +23,6 @@ namespace d2dx
 	class SimdSse2 final : public Simd
 	{
 	public:
-		virtual int32_t IndexOfUInt32(const uint32_t* __restrict items, uint32_t itemsCount, uint32_t item) override;
+		virtual int32_t IndexOfUInt32(_In_reads_(itemsCount) const uint32_t* __restrict items, uint32_t itemsCount, uint32_t item) override;
 	};
 }

@@ -30,14 +30,13 @@ TextureProcessor::~TextureProcessor()
 {
 }
 
+_Use_decl_annotations_
 void TextureProcessor::Transpose(
 	int32_t width,
 	int32_t height,
 	const uint8_t* __restrict srcPixels,
-	uint8_t* __restrict dstPixels
-)
+	uint8_t* __restrict dstPixels)
 {
-	uint32_t i = 0;
 	for (uint32_t y = 0; y < height; ++y)
 	{
 		for (uint32_t x = 0; x < width; ++x)
@@ -47,25 +46,24 @@ void TextureProcessor::Transpose(
 	}
 }
 
+_Use_decl_annotations_
 void TextureProcessor::CopyPixels(
-	int32_t width,
-	int32_t height,
+	int32_t srcWidth,
+	int32_t srcHeight,
 	const uint8_t* __restrict srcPixels,
 	uint32_t srcPitch,
 	uint8_t* __restrict dstPixels,
 	uint32_t dstPitch)
 {
-	assert(width <= 256 && height <= 256);
-
-	const int32_t srcSkip = srcPitch - width;
-	const int32_t dstSkip = dstPitch - width;
+	const int32_t srcSkip = srcPitch - srcWidth;
+	const int32_t dstSkip = dstPitch - srcWidth;
 
 	assert(srcSkip >= 0);
 	assert(dstSkip >= 0);
 
-	for (uint32_t y = 0; y < height; ++y)
+	for (uint32_t y = 0; y < srcHeight; ++y)
 	{
-		for (uint32_t x = 0; x < width; ++x)
+		for (uint32_t x = 0; x < srcWidth; ++x)
 		{
 			*dstPixels++ = *srcPixels++;
 		}
