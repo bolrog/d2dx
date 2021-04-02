@@ -83,10 +83,6 @@ namespace d2dx
 
 	private:
 		void CheckMajorGameState();
-		void ClassifyBatches();
-		void AdjustBatchesIn1080p();
-		void CorrelateBatches();
-		void ColorizeBatch(Batch& batch, uint32_t color);
 		void PrepareLogoTextureBatch();
 		void InsertLogoOnTitleScreen();
 		void DrawBatches();

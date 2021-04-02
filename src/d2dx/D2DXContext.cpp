@@ -278,120 +278,6 @@ void D2DXContext::CheckMajorGameState()
 	}
 }
 
-void D2DXContext::ClassifyBatches()
-{
-	const int32_t batchCount = (int32_t)_frames[_currentFrameIndex]._batchCount;
-	bool hasDrawnWorld = false;
-
-	int32_t mousePointerBatch = -1;
-
-	for (int32_t i = 0; i < batchCount; ++i)
-	{
-		const Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
-		Batch& batch = _frames[_currentFrameIndex]._batches.items[i];
-
-		const auto& v0 = vertices[batch.GetStartVertex() + 0];
-		const auto& v1 = vertices[batch.GetStartVertex() + 1];
-
-		const int32_t y0 = (int32_t)v0.GetY();
-		const int32_t s0 = v0.GetS();
-		const int32_t t0 = v0.GetT();
-		const auto colorCombine = v0.GetRgbCombine();
-		const auto alphaCombine = v0.GetAlphaCombine();
-		const uint32_t color = v0.GetColor();
-		const int32_t y1 = (int32_t)v1.GetY();
-		const int32_t s1 = v1.GetS();
-		const int32_t t1 = v1.GetT();
-
-		auto gameAddress = (GameAddress)batch.GetGameAddress();
-
-		if (_majorGameState == MajorGameState::Menus)
-		{
-		}
-		else if (_majorGameState == MajorGameState::InGame)
-		{
-			if (y0 < 40 && s0 == 0x0000 && t0 == 0x0000 &&
-				y1 < 40 && s1 == 0x0000 && t1 == 0x0010 &&
-				colorCombine == RgbCombine::ColorMultipliedByTexture &&
-				alphaCombine == AlphaCombine::One)
-			{
-				// Monster text
-				batch.SetCategory(BatchCategory::TopUI);
-			}
-			else if (
-				y0 == 18 && s0 == 0x0000 && t0 == 0x0000 &&
-				y1 == 34 && s1 == 0x0000 && t1 == 0x0000 &&
-				colorCombine == RgbCombine::ConstantColor &&
-				alphaCombine == AlphaCombine::Texture)
-			{
-				// Monster health
-				batch.SetCategory(BatchCategory::TopUI);
-			}
-			else if (
-				y0 == 0xFFFC && s0 == 0x0000 && t0 == 0x0000 &&
-				y1 == 0x003C && s1 == 0x0000 && t1 == 0x0040)
-			{
-				// Hireling portrait
-				batch.SetCategory(BatchCategory::TopUI);
-			}
-			else if (y0 == 14 && s0 == 0x0000 && t0 == 0x0000 &&
-				y1 == 19 && s1 == 0x0000 && t1 == 0x0000 &&
-				colorCombine == RgbCombine::ConstantColor &&
-				alphaCombine == AlphaCombine::Texture)
-			{
-				// Hireling health bar
-				batch.SetCategory(BatchCategory::TopUI);
-			}
-			else if (y0 == 56 && s0 == 0x0000 && t0 == 0x0000 &&
-				y1 == 72 && s1 == 0x0000 && t1 == 0x0010 &&
-				colorCombine == RgbCombine::ColorMultipliedByTexture &&
-				alphaCombine == AlphaCombine::One)
-			{
-				// Hireling name
-				batch.SetCategory(BatchCategory::TopUI);
-			}
-			else if (
-				batch.GetTextureCategory() == TextureCategory::LoadingScreen ||
-				batch.GetTextureCategory() == TextureCategory::FlamingLogo)
-			{
-				batch.SetCategory(BatchCategory::UiElement);
-			}
-			else if (batch.GetTextureCategory() == TextureCategory::MousePointer)
-			{
-				batch.SetCategory(BatchCategory::UiElement);
-			}
-			else if (batch.GetTextureCategory() == TextureCategory::InGamePanel)
-			{
-				batch.SetCategory(BatchCategory::InGamePanel);
-			}
-			else if (gameAddress == GameAddress::DrawShadow)
-			{
-				batch.SetCategory(BatchCategory::World);
-			}
-			else if (gameAddress == GameAddress::DrawFloor)
-			{
-				batch.SetCategory(BatchCategory::World);
-				batch.SetTextureCategory(TextureCategory::Floor);
-			}
-			else
-			{
-				switch (gameAddress)
-				{
-				case GameAddress::DrawWall1:
-				case GameAddress::DrawWall2:
-					batch.SetCategory(BatchCategory::World);
-					batch.SetTextureCategory(TextureCategory::Wall);
-					break;
-				default:
-					break;
-				}
-
-				hasDrawnWorld = true;
-			}
-		}
-	}
-}
-
 void D2DXContext::DrawBatches()
 {
 	const int32_t batchCount = (int32_t)_frames[_currentFrameIndex]._batchCount;
@@ -450,7 +336,6 @@ void D2DXContext::OnBufferSwap()
 {
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
-	ClassifyBatches();
 
 	_d3d11Context->BulkWriteVertices(_frames[_currentFrameIndex]._vertices.items, _frames[_currentFrameIndex]._vertexCount);
 
@@ -861,7 +746,6 @@ void D2DXContext::PrepareLogoTextureBatch()
 	_logoTextureBatch.SetIsChromaKeyEnabled(true);
 	_logoTextureBatch.SetRgbCombine(RgbCombine::ColorMultipliedByTexture);
 	_logoTextureBatch.SetAlphaCombine(AlphaCombine::One);
-	_logoTextureBatch.SetCategory(BatchCategory::UiElement);
 	_logoTextureBatch.SetPaletteIndex(15);
 	_logoTextureBatch.SetVertexCount(6);
 

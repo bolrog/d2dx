@@ -46,16 +46,6 @@ namespace d2dx
 		TitleScreen = 4,
 	};
 
-	enum class BatchCategory
-	{
-		Unknown = 0,
-		World = 1,
-		UiElement = 2,
-		InGamePanel = 3,
-		TopUI = 4,
-		Count = 5
-	};
-
 	enum class PrimitiveType
 	{
 		Points = 0,
