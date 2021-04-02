@@ -31,6 +31,10 @@ int32_t SimdSse2::IndexOfUInt32(const uint32_t* items, uint32_t itemsCount, uint
 	int32_t findIndex = -1;
 	uint32_t i = 0;
 	uint64_t res = 0;
+
+	/* Note: don't tweak this loop. It manages to fit within the XMM registers on x86
+	   and any change could cause temporaries to spill onto the stack. */
+
 	for (; i < itemsCount; i += 64)
 	{
 		const __m128i ck0 = _mm_load_si128((const __m128i*) & items[i + 0]);
