@@ -207,10 +207,19 @@ void D2DXContext::OnTexSource(uint32_t tmu, uint32_t startAddress, int32_t width
 {
 	assert(tmu == 0 && (startAddress & 255) == 0);
 
-	const uint32_t memRequired = width * height;
+	uint8_t* pixels = _tmuMemory.items + startAddress;
+	const uint32_t pixelsSize = width * height;
 
-	uint32_t hash = fnv_32a_buf(_tmuMemory.items + startAddress, memRequired, FNV1_32A_INIT);
+	uint32_t hash = fnv_32a_buf(pixels, pixelsSize, FNV1_32A_INIT);
 
+	/* Patch the '5' to not look like '6'. */
+	if (hash == 0x8a12f6bb)
+	{
+		pixels[1 + 10 * 16] = 181;
+		pixels[2 + 10 * 16] = 181;
+		pixels[1 + 11 * 16] = 29;
+	}
+	hash = fnv_32a_buf(pixels, pixelsSize, FNV1_32A_INIT);
 	bool isStFlipped = height > width;
 	if (isStFlipped)
 	{

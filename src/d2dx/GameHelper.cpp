@@ -300,14 +300,7 @@ static const uint32_t flamingLogoHashes[] = {
 };
 
 static const uint32_t mousePointerHashes[] = {
-	0xfe34f8b7,	0x5cac0e94,	0x4b661cd1,
-
-	3432412206,
-	2611936918,
-	2932294163,
-	1166565234,
-	77145516,
-	1264983249,
+	0xfe34f8b7,	0x5cac0e94,	0x4b661cd1,	3432412206,	2611936918,	2932294163,	1166565234,	77145516, 1264983249,
 	4264884407
 };
 
@@ -355,7 +348,7 @@ static const uint32_t fontHashes[] = {
 	0x2bb13649, 0x1c37c7af, 0x1b09d728, 0x0e107166, 0x01ea580e, 0x2ec3b8ce, 0x2c13208e, 0x9cca88da, 0x9ef9292c,
 	0x13d447f4, 0x39b8cc8d, 0x035f2ee3, 0x57bdbc1b, 0x63ecc03a, 0x97ae8499, 0x877de3e8, 0x5376a8fd, 0xac2fa415,
 	0xad00702c, 0xae8a3926, 0xcbce092d, 0xd456f540, 0xd0f2af58, 0xdcd00ab8, 0xdc6d8f42, 0xe42e180a, 0xee4e139f,
-	0xe7836ebb, 0xe7015e8c, 0xfbd9771a, 0xfdce42e3,
+	0xe7836ebb, 0xe7015e8c, 0xfbd9771a, 0xfdce42e3, 0x4f75b1f9
 };
 
 static const uint32_t characterDialogHashes[] = {
