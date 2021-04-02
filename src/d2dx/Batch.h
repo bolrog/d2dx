@@ -26,15 +26,14 @@ namespace d2dx
 	public:
 		Batch() :
 			_textureStartAddress(0),
-			_atlasIndexHigh(0),
+			_startVertexHigh_atlasIndex(0),
 			_textureHash(0),
-			_atlasIndexLow(0),
 			_textureHeight_textureWidth_alphaBlend(0),
 			_vertexCount(0),
 			_isChromaKeyEnabled_gameAddress_paletteIndex(0),
 			_textureCategory_primitiveType_combiners(0),
 			_startVertexLow(0),
-			_isRgba_startVertexHigh(0)
+			_unused(0)
 		{
 		}
 
@@ -109,17 +108,6 @@ namespace d2dx
 			_textureCategory_primitiveType_combiners |= ((uint8_t)alphaCombine << 1) & 0x02;
 		}
 
-		inline bool IsRgba() const
-		{
-			return (_isRgba_startVertexHigh & 0x10) != 0;
-		}
-
-		inline void SetIsRgba(bool isRgba)
-		{
-			_isRgba_startVertexHigh &= ~0x10;
-			_isRgba_startVertexHigh |= isRgba ? 0x10 : 0;
-		}
-
 		inline int32_t GetWidth() const
 		{
 			return 1 << (((_textureHeight_textureWidth_alphaBlend >> 2) & 7) + 1);
@@ -156,15 +144,15 @@ namespace d2dx
 
 		inline int32_t GetStartVertex() const
 		{
-			return _startVertexLow | ((_isRgba_startVertexHigh & 0x0F) << 16);
+			return _startVertexLow | ((_startVertexHigh_atlasIndex & 0xF000) << 4);
 		}
 
 		inline void SetStartVertex(int32_t startVertex)
 		{
 			assert(startVertex <= 0xFFFFF);
 			_startVertexLow = startVertex & 0xFFFF;
-			_isRgba_startVertexHigh &= ~0x0F;
-			_isRgba_startVertexHigh |= (startVertex >> 16) & 0x0F;
+			_startVertexHigh_atlasIndex &= ~0xF000;
+			_startVertexHigh_atlasIndex |= (startVertex >> 4) & 0xF000;
 		}
 
 		inline uint32_t GetVertexCount() const
@@ -196,22 +184,16 @@ namespace d2dx
 			_textureHash = textureHash;
 		}
 
-		inline uint32_t GetTextureMemSize() const
-		{
-			return (GetWidth() * GetHeight()) * (IsRgba() ? 4 : 1);
-		}
-
 		inline uint32_t GetAtlasIndex() const
 		{
-			return (uint32_t)(_atlasIndexLow | (_atlasIndexHigh << 8));
+			return (uint32_t)(_startVertexHigh_atlasIndex & 0x0FFF);
 		}
 
 		inline void SetAtlasIndex(uint32_t atlasIndex)
 		{
 			assert(atlasIndex < 4096);
-
-			_atlasIndexLow = atlasIndex & 0xFF;
-			_atlasIndexHigh = atlasIndex >> 8;
+			_startVertexHigh_atlasIndex &= ~0x0FFF;
+			_startVertexHigh_atlasIndex = (uint16_t)(atlasIndex & 0x0FFF);
 		}
 
 		inline TextureCategory GetTextureCategory() const
@@ -255,12 +237,11 @@ namespace d2dx
 		uint16_t _startVertexLow;
 		uint16_t _vertexCount;
 		uint16_t _textureStartAddress;							// byte address / 256
+		uint16_t _startVertexHigh_atlasIndex;					// VVVVAAAA AAAAAAAA
 		uint8_t _textureHeight_textureWidth_alphaBlend;			// HHHWWWBB
-		uint8_t _atlasIndexHigh;								// 0000AAAA
-		uint8_t _atlasIndexLow;									// AAAAAAAA
-		uint8_t _isChromaKeyEnabled_gameAddress_paletteIndex;
-		uint8_t _textureCategory_primitiveType_combiners;		// TTT0PPCC
-		uint8_t _isRgba_startVertexHigh;
+		uint8_t _isChromaKeyEnabled_gameAddress_paletteIndex;	// CGGGPPPP
+		uint8_t _textureCategory_primitiveType_combiners;		// TTT.PPCC
+		uint8_t _unused;										// ........
 	};
 
 	static_assert(sizeof(Batch) == 16, "sizeof(Batch)");

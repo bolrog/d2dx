@@ -730,7 +730,6 @@ void D2DXContext::PrepareLogoTextureBatch()
 	_logoTextureBatch.SetTextureHash(hash);
 	_logoTextureBatch.SetTextureSize(128, 128);
 	_logoTextureBatch.SetTextureCategory(TextureCategory::TitleScreen);
-	_logoTextureBatch.SetIsRgba(false);
 	_logoTextureBatch.SetPrimitiveType(PrimitiveType::Triangles);
 	_logoTextureBatch.SetAlphaBlend(AlphaBlend::SrcAlphaInvSrcAlpha);
 	_logoTextureBatch.SetIsChromaKeyEnabled(true);
@@ -739,7 +738,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 	_logoTextureBatch.SetPaletteIndex(15);
 	_logoTextureBatch.SetVertexCount(6);
 
-	memset(data, 0, _logoTextureBatch.GetTextureMemSize());
+	memset(data, 0, _logoTextureBatch.GetWidth() * _logoTextureBatch.GetHeight());
 
 	for (int32_t y = 0; y < 41; ++y)
 	{
