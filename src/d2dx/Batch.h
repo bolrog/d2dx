@@ -156,7 +156,7 @@ namespace d2dx
 
 		inline int32_t GetStartVertex() const
 		{
-			return _startVertexLow | ((_isRgba_startVertexHigh & 0x0F) << 8);
+			return _startVertexLow | ((_isRgba_startVertexHigh & 0x0F) << 16);
 		}
 
 		inline void SetStartVertex(int32_t startVertex)
