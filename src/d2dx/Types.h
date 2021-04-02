@@ -80,17 +80,14 @@ namespace d2dx
 	enum class TextureCategory
 	{
 		Unknown = 0,
-		InGamePanel = 1,
-		MousePointer = 2,
-		Font = 3,
-		Item = 4,
-		LoadingScreen = 5,
-		FlamingLogo = 6,
-		Floor = 7,
-		TitleScreen = 8,
-		FoldoutNeedingFix = 9,
-		Wall = 10,
-		Count = 11
+		MousePointer = 1,
+		Font = 2,
+		LoadingScreen = 3,
+		Floor = 4,
+		TitleScreen = 5,
+		Wall = 6,
+		UserInterface = 7,
+		Count = 8
 	};
 
 	enum class GameVersion

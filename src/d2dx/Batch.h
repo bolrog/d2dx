@@ -28,11 +28,11 @@ namespace d2dx
 			_textureStartAddress(0),
 			_atlasIndexHigh(0),
 			_textureHash(0),
-			_textureCategory_atlasIndexLow(0),
+			_atlasIndexLow(0),
 			_textureHeight_textureWidth_alphaBlend(0),
 			_vertexCount(0),
 			_isChromaKeyEnabled_gameAddress_paletteIndex(0),
-			_primitiveType_combiners(0),
+			_textureCategory_primitiveType_combiners(0),
 			_startVertexLow(0),
 			_isRgba_startVertexHigh(0)
 		{
@@ -75,38 +75,38 @@ namespace d2dx
 
 		inline PrimitiveType GetPrimitiveType() const
 		{
-			return (PrimitiveType)((_primitiveType_combiners >> 2) & 0x03);
+			return (PrimitiveType)((_textureCategory_primitiveType_combiners >> 2) & 0x03);
 		}
 
 		inline void SetPrimitiveType(PrimitiveType primitiveType)
 		{
 			assert((int32_t)primitiveType < 4);
-			_primitiveType_combiners &= ~0x0C;
-			_primitiveType_combiners |= ((uint8_t)primitiveType << 2) & 0x0C;
+			_textureCategory_primitiveType_combiners &= ~0x0C;
+			_textureCategory_primitiveType_combiners |= ((uint8_t)primitiveType << 2) & 0x0C;
 		}
 
 		inline RgbCombine GetRgbCombine() const
 		{
-			return (RgbCombine)(_primitiveType_combiners & 0x01);
+			return (RgbCombine)(_textureCategory_primitiveType_combiners & 0x01);
 		}
 
 		inline void SetRgbCombine(RgbCombine rgbCombine)
 		{
 			assert((int32_t)rgbCombine >= 0 && (int32_t)rgbCombine < 2);
-			_primitiveType_combiners &= ~0x01;
-			_primitiveType_combiners |= (uint8_t)rgbCombine & 0x01;
+			_textureCategory_primitiveType_combiners &= ~0x01;
+			_textureCategory_primitiveType_combiners |= (uint8_t)rgbCombine & 0x01;
 		}
 
 		inline AlphaCombine GetAlphaCombine() const
 		{
-			return (AlphaCombine)((_primitiveType_combiners >> 1) & 0x01);
+			return (AlphaCombine)((_textureCategory_primitiveType_combiners >> 1) & 0x01);
 		}
 
 		inline void SetAlphaCombine(AlphaCombine alphaCombine)
 		{
 			assert((int32_t)alphaCombine >= 0 && (int32_t)alphaCombine < 2);
-			_primitiveType_combiners &= ~0x02;
-			_primitiveType_combiners |= ((uint8_t)alphaCombine << 1) & 0x02;
+			_textureCategory_primitiveType_combiners &= ~0x02;
+			_textureCategory_primitiveType_combiners |= ((uint8_t)alphaCombine << 1) & 0x02;
 		}
 
 		inline bool IsRgba() const
@@ -203,28 +203,27 @@ namespace d2dx
 
 		inline uint32_t GetAtlasIndex() const
 		{
-			return (uint32_t)(_textureCategory_atlasIndexLow & 0x0F) | (_atlasIndexHigh << 4);
+			return (uint32_t)(_atlasIndexLow | (_atlasIndexHigh << 8));
 		}
 
 		inline void SetAtlasIndex(uint32_t atlasIndex)
 		{
 			assert(atlasIndex < 4096);
 
-			_textureCategory_atlasIndexLow &= ~0x0F;
-			_textureCategory_atlasIndexLow |= atlasIndex & 0x0F;
-
-			_atlasIndexHigh = atlasIndex >> 4;
+			_atlasIndexLow = atlasIndex & 0xFF;
+			_atlasIndexHigh = atlasIndex >> 8;
 		}
 
 		inline TextureCategory GetTextureCategory() const
 		{
-			return (TextureCategory)(_textureCategory_atlasIndexLow >> 4U);
+			return (TextureCategory)(_textureCategory_primitiveType_combiners >> 5U);
 		}
 
 		inline void SetTextureCategory(TextureCategory category)
 		{
-			_textureCategory_atlasIndexLow &= 0x0F;
-			_textureCategory_atlasIndexLow |= (uint32_t)category << 4U;
+			assert((uint32_t)category < 8);
+			_textureCategory_primitiveType_combiners &= ~0xE0;
+			_textureCategory_primitiveType_combiners |= ((uint32_t)category << 5U) & 0xE0;
 		}
 
 		inline int32_t GetTextureStartAddress() const
@@ -248,13 +247,13 @@ namespace d2dx
 
 		inline bool IsStFlipped() const
 		{
-			return (_primitiveType_combiners & 0x10) != 0;
+			return (_textureCategory_primitiveType_combiners & 0x10) != 0;
 		}
 
 		inline void SetIsStFlipped(bool isStFlipped)
 		{
-			_primitiveType_combiners &= ~0x10;
-			_primitiveType_combiners |= isStFlipped ? 0x10 : 0;
+			_textureCategory_primitiveType_combiners &= ~0x10;
+			_textureCategory_primitiveType_combiners |= isStFlipped ? 0x10 : 0;
 		}
 
 		inline bool IsValid() const
@@ -269,9 +268,9 @@ namespace d2dx
 		uint16_t _textureStartAddress;
 		uint8_t _textureHeight_textureWidth_alphaBlend;			// HHHWWWBB
 		uint8_t _atlasIndexHigh;								// AAAAAAAA
-		uint8_t _textureCategory_atlasIndexLow;					// TTTTAAAA
+		uint8_t _atlasIndexLow;									// 0000AAAA
 		uint8_t _isChromaKeyEnabled_gameAddress_paletteIndex;
-		uint8_t _primitiveType_combiners;						// xxxFPPCC
+		uint8_t _textureCategory_primitiveType_combiners;		// TTTFPPCC
 		uint8_t _isRgba_startVertexHigh;
 	};
 
