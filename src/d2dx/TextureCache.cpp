@@ -23,27 +23,25 @@
 using namespace d2dx;
 using namespace std;
 
-TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, ID3D11Device* device, shared_ptr<Simd> simd, shared_ptr<TextureProcessor> textureProcessor) :
+TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, uint32_t texturesPerAtlas, ID3D11Device* device, shared_ptr<Simd> simd, shared_ptr<TextureProcessor> textureProcessor) :
 	_width{ width },
 	_height{ height },
 	_capacity{ capacity },
+	_texturesPerAtlas{ texturesPerAtlas },
+	_atlasCount{ (int32_t)max(1, capacity / texturesPerAtlas) },
 	_textureProcessor(textureProcessor),
 	_policy(make_unique<TextureCachePolicyBitPmru>(capacity, simd))
-{
-#ifndef D2DX_UNITTEST
+{ 
+	assert(_atlasCount <= 4);
 
-	_atlasWidth = _width;
-	_atlasHeight = _height;
-	_tileCountX = 1;
-	_tileCountY = 1;
-	_atlasArraySize = capacity;
+#ifndef D2DX_UNITTEST
 
 	CD3D11_TEXTURE2D_DESC desc
 	{
 		DXGI_FORMAT_R8_UINT,
 		(UINT)width,
 		(UINT)height,
-		512U,
+		_texturesPerAtlas,
 		1U,
 		D3D11_BIND_SHADER_RESOURCE,
 		D3D11_USAGE_DEFAULT
@@ -65,15 +63,23 @@ TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, ID3
 
 uint32_t TextureCache::GetMemoryFootprint() const
 {
-	return _atlasWidth * _atlasHeight * _atlasArraySize * sizeof(uint8_t);
+	return _width * _height * _texturesPerAtlas * _atlasCount;
 }
 
-int32_t TextureCache::FindTexture(uint32_t contentKey, int32_t lastIndex)
+TextureCacheLocation TextureCache::FindTexture(uint32_t contentKey, int32_t lastIndex)
 {
-	return _policy->Find(contentKey, lastIndex);
+	const int32_t index = _policy->Find(contentKey, lastIndex);
+
+	if (index < 0)
+	{
+		return { -1, -1 };
+	}
+
+	return { (int16_t)(index / _texturesPerAtlas), (int16_t)(index & (_texturesPerAtlas - 1)) };
 }
 
-int32_t TextureCache::InsertTexture(uint32_t contentKey, const Batch& batch, const uint8_t* tmuData)
+_Use_decl_annotations_
+TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, const Batch& batch, const uint8_t* tmuData)
 {
 	assert(batch.IsValid() && batch.GetWidth() > 0 && batch.GetHeight() > 0);
 
@@ -91,18 +97,15 @@ int32_t TextureCache::InsertTexture(uint32_t contentKey, const Batch& batch, con
 	box.top = 0;
 	box.right = batch.GetWidth();
 	box.bottom = batch.GetHeight();
-	assert(replacementIndex < _atlasArraySize);
 	box.front = 0;
 	box.back = 1;
 
 	const uint8_t* pData = tmuData + batch.GetTextureStartAddress();
 
-	_deviceContext->UpdateSubresource(_textures[replacementIndex / 512].Get(), replacementIndex & 511, &box, pData, batch.GetWidth(), 0);
-
-	return replacementIndex;
-#else
-	return replacementIndex;
+	_deviceContext->UpdateSubresource(_textures[replacementIndex / _texturesPerAtlas].Get(), replacementIndex & (_texturesPerAtlas - 1), &box, pData, batch.GetWidth(), 0);
 #endif
+
+	return { (int16_t)(replacementIndex / _texturesPerAtlas), (int16_t)(replacementIndex & (_texturesPerAtlas - 1)) };
 }
 
 uint32_t TextureCache::GetCapacity() const
@@ -110,18 +113,20 @@ uint32_t TextureCache::GetCapacity() const
 	return _capacity;
 }
 
-ID3D11Texture2D* TextureCache::GetTexture(uint32_t atlasIndex) const
+uint32_t TextureCache::GetTexturesPerAtlas() const
 {
-	return _textures[atlasIndex / 512].Get();
+	return _texturesPerAtlas;
 }
 
-ID3D11ShaderResourceView* TextureCache::GetSrv(uint32_t atlasIndex) const
+ID3D11Texture2D* TextureCache::GetTexture(uint32_t atlasIndex) const
 {
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
-	return _srvs[atlasIndex / 512].Get();
-#else
-	return _srv.Get();
-#endif
+	return _textures[atlasIndex / _texturesPerAtlas].Get();
+}
+
+ID3D11ShaderResourceView* TextureCache::GetSrv(uint32_t textureAtlas) const
+{
+	assert(textureAtlas >= 0 && textureAtlas < _atlasCount);
+	return _srvs[textureAtlas].Get();
 }
 
 void TextureCache::OnNewFrame()

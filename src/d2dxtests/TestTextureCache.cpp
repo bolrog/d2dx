@@ -39,7 +39,7 @@ namespace d2dxtests
 			{
 				for (int32_t w = 3; w <= 8; ++w)
 				{
-					TextureCache textureCache(1 << w, 1 << h, 1024, NULL, simd, textureProcessor);
+					TextureCache textureCache(1 << w, 1 << h, 1024, 512, NULL, simd, textureProcessor);
 				}
 			}
 		}
@@ -48,9 +48,10 @@ namespace d2dxtests
 		{
 			auto simd = Simd::Create();
 			auto textureProcessor = std::make_shared<TextureProcessor>();
-			TextureCache textureCache(256, 128, 2048, NULL, simd, textureProcessor);
-			auto atlasIndex = textureCache.FindTexture(0x12345678, -1);
-			Assert::AreEqual(-1, atlasIndex);
+			TextureCache textureCache(256, 128, 2048, 512, NULL, simd, textureProcessor);
+			auto tcl = textureCache.FindTexture(0x12345678, -1);
+			Assert::AreEqual((int16_t)-1, tcl._textureAtlas);
+			Assert::AreEqual((int16_t)-1, tcl._textureIndex);
 		}
 
 		TEST_METHOD(InsertAndFindTextures)
@@ -63,7 +64,7 @@ namespace d2dxtests
 			batch.SetTextureStartAddress(0);
 			batch.SetTextureSize(256, 128);
 
-			TextureCache textureCache(256, 128, 64, NULL, simd, textureProcessor);
+			TextureCache textureCache(256, 128, 64, 512, NULL, simd, textureProcessor);
 
 			for (uint32_t i = 0; i < 64; ++i)
 			{
@@ -74,8 +75,9 @@ namespace d2dxtests
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto atlasIndex = textureCache.FindTexture(hash, -1);
-				Assert::AreEqual((int32_t)i, atlasIndex);
+				auto tcl = textureCache.FindTexture(hash, -1);
+				Assert::AreEqual((int16_t)0, tcl._textureAtlas);
+				Assert::AreEqual((int16_t)i, tcl._textureIndex);
 			}
 		}
 
@@ -89,40 +91,45 @@ namespace d2dxtests
 			batch.SetTextureStartAddress(0);
 			batch.SetTextureSize(256, 128);
 
-			TextureCache textureCache(256, 128, 64, NULL, simd, textureProcessor);
+			TextureCache textureCache(256, 128, 64, 512, NULL, simd, textureProcessor);
 
 			for (uint32_t i = 0; i < 65; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto atlasIndex = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
+				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
 
 				if (i == 64)
 				{
-					Assert::AreEqual(0, atlasIndex);
+					Assert::AreEqual((int16_t)0, tcl._textureAtlas);
+					Assert::AreEqual((int16_t)0, tcl._textureIndex);
 				}
 				else
 				{
-					Assert::AreEqual((int32_t)i, atlasIndex);
+					Assert::AreEqual((int16_t)0, tcl._textureAtlas);
+					Assert::AreEqual((int16_t)i, tcl._textureIndex);
 				}
 			}
 
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto atlasIndex = textureCache.FindTexture(hash, -1);
+				auto tcl = textureCache.FindTexture(hash, -1);
 				
-				int32_t expectedTextureIndex = i;
+				int16_t expectedTextureAtlas = 0;
+				int16_t expectedTextureIndex = i;
 
 				if (i == 0)
 				{
+					expectedTextureAtlas = -1;
 					expectedTextureIndex = -1;
 				}
 				else if (i == 64)
 				{
 					expectedTextureIndex = 0;
 				}
-
-				Assert::AreEqual(expectedTextureIndex, atlasIndex);
+				
+				Assert::AreEqual(expectedTextureAtlas, tcl._textureAtlas);
+				Assert::AreEqual(expectedTextureIndex, tcl._textureIndex);
 			}
 		}
 
@@ -136,7 +143,7 @@ namespace d2dxtests
 			batch.SetTextureStartAddress(0);
 			batch.SetTextureSize(256, 128);
 
-			TextureCache textureCache(256, 128, 64, NULL, simd, textureProcessor);
+			TextureCache textureCache(256, 128, 64, 512, NULL, simd, textureProcessor);
 
 			for (uint32_t i = 0; i < 65; ++i)
 			{
@@ -146,30 +153,36 @@ namespace d2dxtests
 				{
 					// Simulate new frame and use of texture in slot 0
 					textureCache.OnNewFrame();
-					Assert::AreEqual(0, textureCache.FindTexture(0xFF000000, -1));
+					auto tcl = textureCache.FindTexture(0xFF000000, -1);
+					Assert::AreEqual((int16_t)0, tcl._textureAtlas);
+					Assert::AreEqual((int16_t)0, tcl._textureIndex);
 				}
 
-				auto atlasIndex = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
+				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
 
 				if (i == 64)
 				{
-					Assert::AreEqual(1, atlasIndex);
+					Assert::AreEqual((int16_t)0, tcl._textureAtlas);
+					Assert::AreEqual((int16_t)1, tcl._textureIndex);
 				}
 				else
 				{
-					Assert::AreEqual((int32_t)i, atlasIndex);
+					Assert::AreEqual((int16_t)0, tcl._textureAtlas);
+					Assert::AreEqual((int16_t)i, tcl._textureIndex);
 				}
 			}
 
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto atlasIndex = textureCache.FindTexture(hash, -1);
+				auto tcl = textureCache.FindTexture(hash, -1);
 
-				int32_t expectedTextureIndex = i;
+				int16_t expectedTextureAtlas = 0;
+				int16_t expectedTextureIndex = i;
 
 				if (i == 1)
 				{
+					expectedTextureAtlas = -1;
 					expectedTextureIndex = -1;
 				}
 				else if (i == 64)
@@ -177,7 +190,8 @@ namespace d2dxtests
 					expectedTextureIndex = 1;
 				}
 
-				Assert::AreEqual(expectedTextureIndex, atlasIndex);
+				Assert::AreEqual(expectedTextureAtlas, tcl._textureAtlas);
+				Assert::AreEqual(expectedTextureIndex, tcl._textureIndex);
 			}
 		}
 	};

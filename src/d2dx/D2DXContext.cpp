@@ -296,7 +296,7 @@ void D2DXContext::DrawBatches()
 		else
 		{
 			if (_d3d11Context->GetTextureCache(batch) != _d3d11Context->GetTextureCache(mergedBatch) ||
-				(batch.GetAtlasIndex() / 512) != (mergedBatch.GetAtlasIndex() / 512) ||
+				(batch.GetTextureAtlas() != mergedBatch.GetTextureAtlas()) ||
 				batch.GetAlphaBlend() != mergedBatch.GetAlphaBlend() ||
 				batch.GetPrimitiveType() != mergedBatch.GetPrimitiveType() ||
 				((mergedBatch.GetVertexCount() + batch.GetVertexCount()) > 65535))
@@ -487,14 +487,18 @@ Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, con
 
 	auto pargb = pargbOffset != 0xFF ? *(const uint32_t*)(vertex + pargbOffset) : 0xFFFFFFFF;
 
-	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.GetRgbCombine(), batch.GetAlphaCombine(), batch.IsChromaKeyEnabled(), batch.GetAtlasIndex(), batch.GetPaletteIndex());
+	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.GetRgbCombine(), batch.GetAlphaCombine(), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), batch.GetPaletteIndex());
 }
 
 const Batch D2DXContext::PrepareBatchForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const
 {
 	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
 	batch.SetPrimitiveType(PrimitiveType::Triangles);
-	batch.SetAtlasIndex(_d3d11Context->UpdateTexture(batch, _tmuMemory.items));
+	
+	auto tcl = _d3d11Context->UpdateTexture(batch, _tmuMemory.items);
+	batch.SetTextureAtlas(tcl._textureAtlas);
+	batch.SetTextureIndex(tcl._textureIndex);
+
 	batch.SetGameAddress(gameAddress);
 	batch.SetStartVertex(_vertexCount);
 	batch.SetVertexCount(vertexCount);
@@ -739,17 +743,20 @@ void D2DXContext::InsertLogoOnTitleScreen()
 
 	PrepareLogoTextureBatch();
 
-	_logoTextureBatch.SetAtlasIndex(_d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items));
+	auto tcl = _d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items);
+
+	_logoTextureBatch.SetTextureAtlas(tcl._textureAtlas);
+	_logoTextureBatch.SetTextureIndex(tcl._textureIndex);
 	_logoTextureBatch.SetStartVertex(_vertexCount);
 
 	const float x = (float)(_d3d11Context->GetMetrics()._gameWidth - 90 - 16);
 	const float y = (float)(_d3d11Context->GetMetrics()._gameHeight - 50 - 16);
 	const uint32_t color = 0xFFFFa090;
 
-	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);
-	Vertex vertex1(x + 80, y, 80, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);
-	Vertex vertex2(x + 80, y + 41, 80, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);
-	Vertex vertex3(x, y + 41, 0, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);
+	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15);
+	Vertex vertex1(x + 80, y, 80, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15);
+	Vertex vertex2(x + 80, y + 41, 80, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15);
+	Vertex vertex3(x, y + 41, 0, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15);
 
 	assert((_vertexCount + 6) < _vertices.capacity);
 	int32_t vertexWriteIndex = _vertexCount;

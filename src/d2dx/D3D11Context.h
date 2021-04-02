@@ -42,7 +42,7 @@ namespace d2dx
 
 		void LoadGammaTable(const uint32_t* paletteAndGamma);
 		void BulkWriteVertices(const Vertex* vertices, uint32_t vertexCount);
-		int32_t UpdateTexture(const Batch& batch, const uint8_t* tmuData);
+		TextureCacheLocation UpdateTexture(const Batch& batch, const uint8_t* tmuData);
 		void Draw(const Batch& batch);
 		void Present();
 		void WriteToScreen(const uint32_t* pixels, int32_t width, int32_t height);
@@ -83,6 +83,7 @@ namespace d2dx
 		void CreateRenderTarget();
 		void CreateSamplerStates();
 		void CreateTextureCaches();
+		uint32_t DetermineMaxTextureArraySize();
 		void UpdateViewport(int32_t width, int32_t height);
 		void SetBlendState(AlphaBlend alphaBlend);
 		void UpdateConstants();

@@ -38,7 +38,7 @@ namespace d2dx
 			_t(t),
 			_color(color),
 			_paletteIndex_isChromaKeyEnabled_alphaCombine_rgbCombine((paletteIndex << 8) | (isChromaKeyEnabled ? (1U << 2U) : 0) | ((uint32_t)alphaCombine << 1U) | ((uint32_t)rgbCombine)),
-			_atlasIndex(atlasIndex & 511)
+			_atlasIndex(atlasIndex)
 		{
 			assert(s >= INT16_MIN && s <= INT16_MAX);
 			assert(t >= INT16_MIN && t <= INT16_MAX);

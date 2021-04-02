@@ -314,7 +314,7 @@ void D3D11Context::Draw(const Batch& batch)
 	SetBlendState(batch.GetAlphaBlend());
 
 	TextureCache* atlas = GetTextureCache(batch);
-	ID3D11ShaderResourceView* srvs[2] = { atlas->GetSrv(batch.GetAtlasIndex()), _paletteTextureSrv.Get() };
+	ID3D11ShaderResourceView* srvs[2] = { atlas->GetSrv(batch.GetTextureAtlas()), _paletteTextureSrv.Get() };
 	SetPSShaderResourceViews(srvs);
 
 	switch (batch.GetPrimitiveType())
@@ -599,7 +599,6 @@ void D3D11Context::UpdateConstants()
 	if (_options.screenMode == ScreenMode::FullscreenDefault)
 	{
 		float scale = (float)_metrics._renderHeight / _metrics._gameHeight;
-
 		const uint32_t scaledWidth = (uint32_t)(scale * _metrics._gameWidth);
 		_constants.vertexOffset[0] = (float)(_metrics._desktopWidth / 2 - scaledWidth / 2);
 		_constants.vertexOffset[1] = 0.0f;
@@ -676,20 +675,20 @@ uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(int32_t width, int32_t h
 	return 6;
 }
 
-int32_t D3D11Context::UpdateTexture(const Batch& batch, const uint8_t* tmuData)
+TextureCacheLocation D3D11Context::UpdateTexture(const Batch& batch, const uint8_t* tmuData)
 {
 	assert(batch.IsValid() && "Batch has no texture set.");
 	const uint32_t contentKey = batch.GetHash() ^ batch.GetPaletteIndex();
 
 	TextureCache* atlas = GetTextureCache(batch);
-	int32_t atlasIndex = atlas->FindTexture(contentKey, -1);
+	auto tcl = atlas->FindTexture(contentKey, -1);
 
-	if (atlasIndex < 0)
+	if (tcl._textureAtlas < 0)
 	{
-		atlasIndex = atlas->InsertTexture(contentKey, batch, tmuData);
+		tcl = atlas->InsertTexture(contentKey, batch, tmuData);
 	}
 
-	return atlasIndex;
+	return tcl;
 }
 
 void D3D11Context::UpdateViewport(int32_t width, int32_t height)
@@ -777,16 +776,48 @@ LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
+uint32_t D3D11Context::DetermineMaxTextureArraySize()
+{
+	HRESULT hr = E_FAIL;
+
+	for (uint32_t arraySize = 2048; arraySize > 512; arraySize /= 2)
+	{
+		CD3D11_TEXTURE2D_DESC desc{
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			16U,
+			16U,
+			arraySize,
+			1U,
+			D3D11_BIND_SHADER_RESOURCE,
+			D3D11_USAGE_DEFAULT
+		};
+
+		ComPtr<ID3D11Texture2D> tempTexture;
+		hr = _device->CreateTexture2D(&desc, nullptr, &tempTexture);
+
+		if (SUCCEEDED(hr))
+		{
+			return arraySize;
+		}
+
+	} while (FAILED(hr));
+
+	return 512;
+}
+
 void D3D11Context::CreateTextureCaches()
 {
-	static const uint32_t capacities[6] = { 2048, 2048, 2048, 2048, 2048, 1024 };
+	static const uint32_t capacities[6] = { 2048, 2048, 2048, 2048, 2048, 2048 };
+
+	const uint32_t texturesPerAtlas = DetermineMaxTextureArraySize();
+	ALWAYS_PRINT("The device supports %u textures per atlas.", texturesPerAtlas);
 
 	uint32_t totalSize = 0;
 	for (int32_t i = 0; i < ARRAYSIZE(_textureCaches); ++i)
 	{
 		int32_t width = 1U << (i + 3);
 
-		_textureCaches[i] = make_unique<TextureCache>(width, width, capacities[i], _device.Get(), _simd, _textureProcessor);
+		_textureCaches[i] = make_unique<TextureCache>(width, width, capacities[i], texturesPerAtlas, _device.Get(), _simd, _textureProcessor);
 
 		DEBUG_PRINT("Creating texture cache for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
 
@@ -942,7 +973,7 @@ void D3D11Context::SetSizes(int32_t gameWidth, int32_t gameHeight, int32_t rende
 {
 	_metrics._gameWidth = gameWidth;
 	_metrics._gameHeight = gameHeight;
-	
+
 	if (renderWidth > 0 && renderHeight > 0)
 	{
 		_metrics._renderWidth = renderWidth;

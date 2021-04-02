@@ -21,11 +21,15 @@
 #include "Simd.h"
 #include "TextureCachePolicy.h"
 
-#define D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
-
 namespace d2dx
 {
 	class Batch;
+
+	struct TextureCacheLocation final
+	{
+		int16_t _textureAtlas;
+		int16_t _textureIndex;
+	};
 
 	class TextureCache final
 	{
@@ -34,42 +38,29 @@ namespace d2dx
 			int32_t width,
 			int32_t height,
 			uint32_t capacity,
+			uint32_t texturesPerAtlas,
 			ID3D11Device* device,
 			std::shared_ptr<Simd> simd,
 			std::shared_ptr<TextureProcessor> textureProcessor);
 
 		void OnNewFrame();
 
-		int32_t FindTexture(
-			uint32_t contentKey,
-			int32_t lastIndex);
+		TextureCacheLocation FindTexture(uint32_t contentKey, int32_t lastIndex);
 
-		int32_t InsertTexture(
-			uint32_t contentKey,
-			const Batch& batch,
-			const uint8_t* tmuData);
+		TextureCacheLocation InsertTexture(uint32_t contentKey, const Batch& batch, _In_reads_(D2DX_TMU_MEMORY_SIZE) const uint8_t* tmuData);
 
 		uint32_t GetCapacity() const;
-
-		ID3D11Texture2D* GetTexture(
-			uint32_t atlasIndex) const;
-
-		ID3D11ShaderResourceView* GetSrv(
-			uint32_t atlasIndex) const;
-
+		uint32_t GetTexturesPerAtlas() const;
+		ID3D11Texture2D* GetTexture(uint32_t atlasIndex) const;
+		ID3D11ShaderResourceView* GetSrv(uint32_t atlasIndex) const;
 		uint32_t GetMemoryFootprint() const;
 
 	private:
-		int32_t _atlasWidth;
-		int32_t _atlasHeight;
-		int32_t _atlasArraySize;
-
 		int32_t _width;
 		int32_t _height;
 		uint32_t _capacity;
-
-		int32_t _tileCountX;
-		int32_t _tileCountY;
+		uint32_t _texturesPerAtlas;
+		int32_t _atlasCount;
 
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> _deviceContext;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> _textures[4];

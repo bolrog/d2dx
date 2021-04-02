@@ -26,14 +26,14 @@ namespace d2dx
 	public:
 		Batch() :
 			_textureStartAddress(0),
-			_startVertexHigh_atlasIndex(0),
+			_startVertexHigh_textureIndex(0),
 			_textureHash(0),
 			_textureHeight_textureWidth_alphaBlend(0),
 			_vertexCount(0),
 			_isChromaKeyEnabled_gameAddress_paletteIndex(0),
 			_textureCategory_primitiveType_combiners(0),
 			_startVertexLow(0),
-			_unused(0)
+			_textureAtlas(0)
 		{
 		}
 
@@ -144,15 +144,15 @@ namespace d2dx
 
 		inline int32_t GetStartVertex() const
 		{
-			return _startVertexLow | ((_startVertexHigh_atlasIndex & 0xF000) << 4);
+			return _startVertexLow | ((_startVertexHigh_textureIndex & 0xF000) << 4);
 		}
 
 		inline void SetStartVertex(int32_t startVertex)
 		{
 			assert(startVertex <= 0xFFFFF);
 			_startVertexLow = startVertex & 0xFFFF;
-			_startVertexHigh_atlasIndex &= ~0xF000;
-			_startVertexHigh_atlasIndex |= (startVertex >> 4) & 0xF000;
+			_startVertexHigh_textureIndex &= ~0xF000;
+			_startVertexHigh_textureIndex |= (startVertex >> 4) & 0xF000;
 		}
 
 		inline uint32_t GetVertexCount() const
@@ -184,16 +184,27 @@ namespace d2dx
 			_textureHash = textureHash;
 		}
 
-		inline uint32_t GetAtlasIndex() const
+		inline uint32_t GetTextureAtlas() const
 		{
-			return (uint32_t)(_startVertexHigh_atlasIndex & 0x0FFF);
+			return (uint32_t)(_textureAtlas & 7);
 		}
 
-		inline void SetAtlasIndex(uint32_t atlasIndex)
+		inline void SetTextureAtlas(uint32_t textureAtlas)
 		{
-			assert(atlasIndex < 4096);
-			_startVertexHigh_atlasIndex &= ~0x0FFF;
-			_startVertexHigh_atlasIndex = (uint16_t)(atlasIndex & 0x0FFF);
+			assert(textureAtlas < 8);
+			_textureAtlas = textureAtlas & 7;
+		}
+
+		inline uint32_t GetTextureIndex() const
+		{
+			return (uint32_t)(_startVertexHigh_textureIndex & 0x0FFF);
+		}
+
+		inline void SetTextureIndex(uint32_t textureIndex)
+		{
+			assert(textureIndex < 4096);
+			_startVertexHigh_textureIndex &= ~0x0FFF;
+			_startVertexHigh_textureIndex = (uint16_t)(textureIndex & 0x0FFF);
 		}
 
 		inline TextureCategory GetTextureCategory() const
@@ -237,11 +248,11 @@ namespace d2dx
 		uint16_t _startVertexLow;
 		uint16_t _vertexCount;
 		uint16_t _textureStartAddress;							// byte address / D2DX_TMU_ADDRESS_ALIGNMENT
-		uint16_t _startVertexHigh_atlasIndex;					// VVVVAAAA AAAAAAAA
+		uint16_t _startVertexHigh_textureIndex;					// VVVVAAAA AAAAAAAA
 		uint8_t _textureHeight_textureWidth_alphaBlend;			// HHHWWWBB
 		uint8_t _isChromaKeyEnabled_gameAddress_paletteIndex;	// CGGGPPPP
 		uint8_t _textureCategory_primitiveType_combiners;		// TTT.PPCC
-		uint8_t _unused;										// ........
+		uint8_t _textureAtlas;									// .....AAA
 	};
 
 	static_assert(sizeof(Batch) == 16, "sizeof(Batch)");

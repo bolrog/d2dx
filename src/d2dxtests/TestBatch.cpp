@@ -49,7 +49,8 @@ namespace d2dxtests
 			Assert::IsFalse(batch.IsValid());
 			Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 			Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-			Assert::AreEqual(0U, batch.GetAtlasIndex());
+			Assert::AreEqual(0U, batch.GetTextureAtlas());
+			Assert::AreEqual(0U, batch.GetTextureIndex());
 			Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 			Assert::AreEqual(0U, batch.GetHash());
 			Assert::AreEqual(2, batch.GetHeight());
@@ -72,7 +73,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual((d2dx::AlphaBlend)i, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -96,7 +98,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual((d2dx::AlphaCombine)i, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -116,11 +119,13 @@ namespace d2dxtests
 			Batch batch;
 			for (uint32_t i = 0; i < 4096; ++i)
 			{
-				batch.SetAtlasIndex(i);
+				batch.SetTextureAtlas(i / 512);
+				batch.SetTextureIndex(i & 511);
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(i, batch.GetAtlasIndex());
+				Assert::AreEqual(i / 512, batch.GetTextureAtlas());
+				Assert::AreEqual(i & 511, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -144,7 +149,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual((GameAddress)i, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -168,7 +174,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual((uint32_t)i, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -194,7 +201,8 @@ namespace d2dxtests
 					Assert::IsFalse(batch.IsValid());
 					Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 					Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-					Assert::AreEqual(0U, batch.GetAtlasIndex());
+					Assert::AreEqual(0U, batch.GetTextureAtlas());
+					Assert::AreEqual(0U, batch.GetTextureIndex());
 					Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 					Assert::AreEqual(0U, batch.GetHash());
 					Assert::AreEqual(1 << h, batch.GetHeight());
@@ -219,7 +227,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -243,7 +252,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -267,7 +277,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -291,7 +302,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -315,7 +327,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -339,7 +352,8 @@ namespace d2dxtests
 				Assert::IsTrue(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
@@ -363,7 +377,8 @@ namespace d2dxtests
 				Assert::IsFalse(batch.IsValid());
 				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
 				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetAtlasIndex());
+				Assert::AreEqual(0U, batch.GetTextureAtlas());
+				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
 				Assert::AreEqual(2, batch.GetHeight());
