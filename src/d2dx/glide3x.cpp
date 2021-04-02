@@ -444,7 +444,7 @@ FX_ENTRY FxU32 FX_CALL
 	grTexMaxAddress(GrChipID_t tmu)
 {
 	EnsureInitialized();
-	return tmu == 0 ? D2DX_TMU_MEMORY_SIZE - 512 : 0;
+	return tmu == 0 ? D2DX_TMU_MEMORY_SIZE - (2 * D2DX_TMU_ADDRESS_ALIGNMENT) : 0;
 }
 
 FX_ENTRY void FX_CALL
