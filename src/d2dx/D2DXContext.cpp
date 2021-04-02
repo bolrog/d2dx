@@ -32,12 +32,15 @@ D2DXContext::D2DXContext() :
 	_frame(0),
 	_majorGameState(MajorGameState::Unknown),
 	_vertexLayout(0xFF),
-	_currentFrameIndex(0),
 	_tmuMemory(D2DX_TMU_MEMORY_SIZE),
 	_sideTmuMemory(D2DX_SIDE_TMU_MEMORY_SIZE),
 	_constantColor(0xFFFFFFFF),
 	_paletteKeys(D2DX_MAX_PALETTES),
-	_gammaTable(256)
+	_gammaTable(256),
+	_batchCount(0),
+	_batches(D2DX_MAX_BATCHES_PER_FRAME),
+	_vertexCount(0),
+	_vertices(D2DX_MAX_VERTICES_PER_FRAME)
 {
 	memset(_paletteKeys.items, 0, sizeof(uint32_t) * _paletteKeys.capacity);
 
@@ -97,7 +100,7 @@ uint32_t D2DXContext::OnGet(uint32_t pname, uint32_t plength, int32_t* params)
 		*params = 1;
 		return 4;
 	case GR_TEXTURE_ALIGN:
-		*params = 256;
+		*params = D2DX_TMU_ADDRESS_ALIGNMENT;
 		return 4;
 	case GR_MEMORY_UMA:
 		*params = 0;
@@ -168,10 +171,8 @@ void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
 		_d3d11Context->SetSizes(width, height, windowWidth * _options.defaultZoomLevel, windowHeight * _options.defaultZoomLevel);
 	}
 
-	_frames[0]._batchCount = 0;
-	_frames[1]._batchCount = 0;
-	_frames[0]._vertexCount = 0;
-	_frames[1]._vertexCount = 0;
+	_batchCount = 0;
+	_vertexCount = 0;
 	_scratchBatch = Batch();
 }
 
@@ -228,7 +229,7 @@ void D2DXContext::OnTexSource(uint32_t tmu, uint32_t startAddress, int32_t width
 
 void D2DXContext::CheckMajorGameState()
 {
-	const int32_t batchCount = (int32_t)_frames[_currentFrameIndex]._batchCount;
+	const int32_t batchCount = (int32_t)_batchCount;
 
 	if (_majorGameState == MajorGameState::Unknown && batchCount == 0)
 	{
@@ -245,7 +246,7 @@ void D2DXContext::CheckMajorGameState()
 	{
 		for (int32_t i = 0; i < batchCount; ++i)
 		{
-			const Batch& batch = _frames[_currentFrameIndex]._batches.items[i];
+			const Batch& batch = _batches.items[i];
 
 			if ((GameAddress)batch.GetGameAddress() == GameAddress::DrawFloor)
 			{
@@ -258,8 +259,8 @@ void D2DXContext::CheckMajorGameState()
 		{
 			for (int32_t i = 0; i < batchCount; ++i)
 			{
-				const Batch& batch = _frames[_currentFrameIndex]._batches.items[i];
-				const float y0 = _frames[_currentFrameIndex]._vertices.items[batch.GetStartVertex()].GetY();
+				const Batch& batch = _batches.items[i];
+				const float y0 = _vertices.items[batch.GetStartVertex()].GetY();
 
 				if (batch.GetHash() == 0x4bea7b80 && y0 >= 550)
 				{
@@ -273,15 +274,14 @@ void D2DXContext::CheckMajorGameState()
 
 void D2DXContext::DrawBatches()
 {
-	const int32_t batchCount = (int32_t)_frames[_currentFrameIndex]._batchCount;
-	Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
+	const int32_t batchCount = (int32_t)_batchCount;
 
 	Batch mergedBatch;
 	int32_t drawCalls = 0;
 
 	for (int32_t i = 0; i < batchCount; ++i)
 	{
-		const Batch& batch = _frames[_currentFrameIndex]._batches.items[i];
+		const Batch& batch = _batches.items[i];
 
 		if (!batch.IsValid())
 		{
@@ -330,17 +330,16 @@ void D2DXContext::OnBufferSwap()
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
 
-	_d3d11Context->BulkWriteVertices(_frames[_currentFrameIndex]._vertices.items, _frames[_currentFrameIndex]._vertexCount);
+	_d3d11Context->BulkWriteVertices(_vertices.items, _vertexCount);
 
 	DrawBatches();
 
 	_d3d11Context->Present();
 
 	++_frame;
-	_currentFrameIndex = (_currentFrameIndex + 1) & 1;
 
-	_frames[_currentFrameIndex]._batchCount = 0;
-	_frames[_currentFrameIndex]._vertexCount = 0;
+	_batchCount = 0;
+	_vertexCount = 0;
 }
 
 void D2DXContext::OnColorCombine(GrCombineFunction_t function, GrCombineFactor_t factor, GrCombineLocal_t local, GrCombineOther_t other, bool invert)
@@ -416,17 +415,13 @@ void D2DXContext::OnDrawLine(const void* v1, const void* v2, uint32_t gameContex
 {
 	FixIngameMousePosition();
 
-	Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
-
 	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
 
 	Batch batch = _scratchBatch;
 	batch.SetPrimitiveType(PrimitiveType::Triangles);
 	batch.SetGameAddress(gameAddress);
-	batch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
+	batch.SetStartVertex(_vertexCount);
 	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
-
-	TextureCacheLocation textureCacheLocation = _d3d11Context->UpdateTexture(_scratchBatch, _tmuMemory.items);
 
 	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch);
 	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch);
@@ -457,20 +452,20 @@ void D2DXContext::OnDrawLine(const void* v1, const void* v2, uint32_t gameContex
 	vertex3.SetX(vertex3.GetX() + dx);
 	vertex3.SetY(vertex3.GetY() + dy);
 
-	assert((_frames[_currentFrameIndex]._vertexCount + 6) < _frames[_currentFrameIndex]._vertices.capacity);
-	int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;
-	vertices[vertexWriteIndex++] = vertex0;
-	vertices[vertexWriteIndex++] = vertex1;
-	vertices[vertexWriteIndex++] = vertex2;
-	vertices[vertexWriteIndex++] = vertex1;
-	vertices[vertexWriteIndex++] = vertex2;
-	vertices[vertexWriteIndex++] = vertex3;
-	_frames[_currentFrameIndex]._vertexCount = vertexWriteIndex;
+	assert((_vertexCount + 6) < _vertices.capacity);
+	int32_t vertexWriteIndex = _vertexCount;
+	_vertices.items[vertexWriteIndex++] = vertex0;
+	_vertices.items[vertexWriteIndex++] = vertex1;
+	_vertices.items[vertexWriteIndex++] = vertex2;
+	_vertices.items[vertexWriteIndex++] = vertex1;
+	_vertices.items[vertexWriteIndex++] = vertex2;
+	_vertices.items[vertexWriteIndex++] = vertex3;
+	_vertexCount = vertexWriteIndex;
 
 	batch.SetVertexCount(6);
 
-	assert(_frames[_currentFrameIndex]._batchCount < _frames[_currentFrameIndex]._batches.capacity);
-	_frames[_currentFrameIndex]._batches.items[_frames[_currentFrameIndex]._batchCount++] = batch;
+	assert(_batchCount < _batches.capacity);
+	_batches.items[_batchCount++] = batch;
 }
 
 Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, const Batch& batch)
@@ -495,14 +490,13 @@ Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, con
 	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.GetRgbCombine(), batch.GetAlphaCombine(), batch.IsChromaKeyEnabled(), batch.GetAtlasIndex(), batch.GetPaletteIndex());
 }
 
-const Batch D2DXContext::CloneForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const
+const Batch D2DXContext::PrepareBatchForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const
 {
 	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
-	auto textureCacheLocation = _d3d11Context->UpdateTexture(batch, _tmuMemory.items);
-
 	batch.SetPrimitiveType(PrimitiveType::Triangles);
+	batch.SetAtlasIndex(_d3d11Context->UpdateTexture(batch, _tmuMemory.items));
 	batch.SetGameAddress(gameAddress);
-	batch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
+	batch.SetStartVertex(_vertexCount);
 	batch.SetVertexCount(vertexCount);
 	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 	return batch;
@@ -512,9 +506,7 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 {
 	FixIngameMousePosition();
 
-	Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
-
-	const Batch batch = CloneForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
+	const Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
 	const uint32_t vertexLayout = _vertexLayout;
 
 	switch (mode)
@@ -528,12 +520,12 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 		{
 			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch);
 
-			assert((_frames[_currentFrameIndex]._vertexCount + 3) < _frames[_currentFrameIndex]._vertices.capacity);
-			int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;
-			vertices[vertexWriteIndex++] = firstVertex;
-			vertices[vertexWriteIndex++] = prevVertex;
-			vertices[vertexWriteIndex++] = currentVertex;
-			_frames[_currentFrameIndex]._vertexCount = vertexWriteIndex;
+			assert((_vertexCount + 3) < _vertices.capacity);
+			int32_t vertexWriteIndex = _vertexCount;
+			_vertices.items[vertexWriteIndex++] = firstVertex;
+			_vertices.items[vertexWriteIndex++] = prevVertex;
+			_vertices.items[vertexWriteIndex++] = currentVertex;
+			_vertexCount = vertexWriteIndex;
 
 			prevVertex = currentVertex;
 		}
@@ -548,12 +540,12 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 		{
 			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch);
 
-			assert((_frames[_currentFrameIndex]._vertexCount + 3) < _frames[_currentFrameIndex]._vertices.capacity);
-			int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;
-			vertices[vertexWriteIndex++] = prevPrevVertex;
-			vertices[vertexWriteIndex++] = prevVertex;
-			vertices[vertexWriteIndex++] = currentVertex;
-			_frames[_currentFrameIndex]._vertexCount = vertexWriteIndex;
+			assert((_vertexCount + 3) < _vertices.capacity);
+			int32_t vertexWriteIndex = _vertexCount;
+			_vertices.items[vertexWriteIndex++] = prevPrevVertex;
+			_vertices.items[vertexWriteIndex++] = prevVertex;
+			_vertices.items[vertexWriteIndex++] = currentVertex;
+			_vertexCount = vertexWriteIndex;
 
 			prevPrevVertex = prevVertex;
 			prevVertex = currentVertex;
@@ -565,17 +557,15 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 		return;
 	}
 
-	assert(_frames[_currentFrameIndex]._batchCount < _frames[_currentFrameIndex]._batches.capacity);
-	_frames[_currentFrameIndex]._batches.items[_frames[_currentFrameIndex]._batchCount++] = batch;
+	assert(_batchCount < _batches.capacity);
+	_batches.items[_batchCount++] = batch;
 }
 
 void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uint8_t* vertex, uint32_t stride, uint32_t gameContext)
 {
 	FixIngameMousePosition();
 
-	Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
-
-	const Batch batch = CloneForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
+	const Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
 	const uint32_t vertexLayout = _vertexLayout;
 
 	switch (mode)
@@ -593,12 +583,12 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch);
 			vertex += stride;
 
-			assert((_frames[_currentFrameIndex]._vertexCount + 3) < _frames[_currentFrameIndex]._vertices.capacity);
-			int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;
-			vertices[vertexWriteIndex++] = firstVertex;
-			vertices[vertexWriteIndex++] = prevVertex;
-			vertices[vertexWriteIndex++] = currentVertex;
-			_frames[_currentFrameIndex]._vertexCount = vertexWriteIndex;
+			assert((_vertexCount + 3) < _vertices.capacity);
+			int32_t vertexWriteIndex = _vertexCount;
+			_vertices.items[vertexWriteIndex++] = firstVertex;
+			_vertices.items[vertexWriteIndex++] = prevVertex;
+			_vertices.items[vertexWriteIndex++] = currentVertex;
+			_vertexCount = vertexWriteIndex;
 
 			prevVertex = currentVertex;
 		}
@@ -617,12 +607,12 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch);
 			vertex += stride;
 
-			assert((_frames[_currentFrameIndex]._vertexCount + 3) < _frames[_currentFrameIndex]._vertices.capacity);
-			int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;
-			vertices[vertexWriteIndex++] = prevPrevVertex;
-			vertices[vertexWriteIndex++] = prevVertex;
-			vertices[vertexWriteIndex++] = currentVertex;
-			_frames[_currentFrameIndex]._vertexCount = vertexWriteIndex;
+			assert((_vertexCount + 3) < _vertices.capacity);
+			int32_t vertexWriteIndex = _vertexCount;
+			_vertices.items[vertexWriteIndex++] = prevPrevVertex;
+			_vertices.items[vertexWriteIndex++] = prevVertex;
+			_vertices.items[vertexWriteIndex++] = currentVertex;
+			_vertexCount = vertexWriteIndex;
 
 			prevPrevVertex = prevVertex;
 			prevVertex = currentVertex;
@@ -634,8 +624,8 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 		return;
 	}
 
-	assert(_frames[_currentFrameIndex]._batchCount < _frames[_currentFrameIndex]._batches.capacity);
-	_frames[_currentFrameIndex]._batches.items[_frames[_currentFrameIndex]._batchCount++] = batch;
+	assert(_batchCount < _batches.capacity);
+	_batches.items[_batchCount++] = batch;
 }
 
 void D2DXContext::OnTexDownloadTable(GrTexTable_t type, void* data)
@@ -744,36 +734,34 @@ void D2DXContext::PrepareLogoTextureBatch()
 
 void D2DXContext::InsertLogoOnTitleScreen()
 {
-	if (_options.skipLogo || _majorGameState != MajorGameState::TitleScreen || _frames[_currentFrameIndex]._batchCount <= 0)
+	if (_options.skipLogo || _majorGameState != MajorGameState::TitleScreen || _batchCount <= 0)
 		return;
-
-	Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
 
 	PrepareLogoTextureBatch();
 
-	auto textureCacheLocation = _d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items);
-	_logoTextureBatch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
+	_logoTextureBatch.SetAtlasIndex(_d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items));
+	_logoTextureBatch.SetStartVertex(_vertexCount);
 
 	const float x = (float)(_d3d11Context->GetGameWidth() - 90 - 16);
 	const float y = (float)(_d3d11Context->GetGameHeight() - 50 - 16);
 	const uint32_t color = 0xFFFFa090;
 
-	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 15);
-	Vertex vertex1(x + 80, y, 80, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 15);
-	Vertex vertex2(x + 80, y + 41, 80, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 15);
-	Vertex vertex3(x, y + 41, 0, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, textureCacheLocation.ArrayIndex, 15);
+	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);
+	Vertex vertex1(x + 80, y, 80, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);
+	Vertex vertex2(x + 80, y + 41, 80, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);
+	Vertex vertex3(x, y + 41, 0, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);
 
-	assert((_frames[_currentFrameIndex]._vertexCount + 6) < _frames[_currentFrameIndex]._vertices.capacity);
-	int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;
-	vertices[vertexWriteIndex++] = vertex0;
-	vertices[vertexWriteIndex++] = vertex1;
-	vertices[vertexWriteIndex++] = vertex2;
-	vertices[vertexWriteIndex++] = vertex0;
-	vertices[vertexWriteIndex++] = vertex2;
-	vertices[vertexWriteIndex++] = vertex3;
-	_frames[_currentFrameIndex]._vertexCount = vertexWriteIndex;
+	assert((_vertexCount + 6) < _vertices.capacity);
+	int32_t vertexWriteIndex = _vertexCount;
+	_vertices.items[vertexWriteIndex++] = vertex0;
+	_vertices.items[vertexWriteIndex++] = vertex1;
+	_vertices.items[vertexWriteIndex++] = vertex2;
+	_vertices.items[vertexWriteIndex++] = vertex0;
+	_vertices.items[vertexWriteIndex++] = vertex2;
+	_vertices.items[vertexWriteIndex++] = vertex3;
+	_vertexCount = vertexWriteIndex;
 
-	_frames[_currentFrameIndex]._batches.items[_frames[_currentFrameIndex]._batchCount++] = _logoTextureBatch;
+	_batches.items[_batchCount++] = _logoTextureBatch;
 }
 
 GameVersion D2DXContext::GetGameVersion() const
@@ -793,7 +781,7 @@ void D2DXContext::FixIngameMousePosition()
 	   we are using a non-1 window scale. This fix, which is run as early in the frame
 	   as we can, forces the ingame variables back to the proper values. */
 
-	if (_frames[_currentFrameIndex]._batchCount == 0)
+	if (_batchCount == 0)
 	{
 		_gameHelper.SetIngameMousePos(_mouseX, _mouseY);
 	}

@@ -676,21 +676,20 @@ uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(int32_t width, int32_t h
 	return 6;
 }
 
-TextureCacheLocation D3D11Context::UpdateTexture(Batch& batch, const uint8_t* tmuData)
+int32_t D3D11Context::UpdateTexture(const Batch& batch, const uint8_t* tmuData)
 {
 	assert(batch.IsValid() && "Batch has no texture set.");
 	const uint32_t contentKey = batch.GetHash() ^ batch.GetPaletteIndex();
 
 	TextureCache* atlas = GetTextureCache(batch);
-	TextureCacheLocation textureCacheLocation = atlas->FindTexture(contentKey, -1);
+	int32_t atlasIndex = atlas->FindTexture(contentKey, -1);
 
-	if (textureCacheLocation.ArrayIndex < 0)
+	if (atlasIndex < 0)
 	{
-		textureCacheLocation = atlas->InsertTexture(contentKey, batch, tmuData);
+		atlasIndex = atlas->InsertTexture(contentKey, batch, tmuData);
 	}
 
-	batch.SetAtlasIndex(textureCacheLocation.ArrayIndex);
-	return textureCacheLocation;
+	return atlasIndex;
 }
 
 void D3D11Context::UpdateViewport(int32_t width, int32_t height)

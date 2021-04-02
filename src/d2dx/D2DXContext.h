@@ -24,23 +24,6 @@
 
 namespace d2dx
 {
-	struct FrameData
-	{
-		FrameData() :
-			_batchCount(0),
-			_batches(16384),
-			_vertexCount(0),
-			_vertices(1024 * 1024)
-		{
-		}
-
-		int32_t _batchCount;
-		Buffer<Batch> _batches;
-
-		int32_t _vertexCount;
-		Buffer<Vertex> _vertices;
-	};
-
 	class D2DXContext final
 	{
 	public:
@@ -86,7 +69,7 @@ namespace d2dx
 		void PrepareLogoTextureBatch();
 		void InsertLogoOnTitleScreen();
 		void DrawBatches();
-		const Batch CloneForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const;
+		const Batch PrepareBatchForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const;
 		Vertex ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, const Batch& batch);
 		void FixIngameMousePosition();
 
@@ -108,8 +91,11 @@ namespace d2dx
 
 		uint32_t _vertexLayout;
 
-		int32_t _currentFrameIndex;
-		FrameData _frames[2];
+		int32_t _batchCount;
+		Buffer<Batch> _batches;
+
+		int32_t _vertexCount;
+		Buffer<Vertex> _vertices;
 
 		GameHelper _gameHelper;
 		Options _options;

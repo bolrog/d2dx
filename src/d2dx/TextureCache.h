@@ -27,13 +27,6 @@ namespace d2dx
 {
 	class Batch;
 
-	struct TextureCacheLocation
-	{
-		int32_t OffsetS;
-		int32_t OffsetT;
-		int32_t ArrayIndex;
-	};
-
 	class TextureCache final
 	{
 	public:
@@ -47,13 +40,13 @@ namespace d2dx
 
 		void OnNewFrame();
 
-		TextureCacheLocation FindTexture(
+		int32_t FindTexture(
 			uint32_t contentKey,
 			int32_t lastIndex);
 
-		TextureCacheLocation InsertTexture(
+		int32_t InsertTexture(
 			uint32_t contentKey,
-			Batch& batch,
+			const Batch& batch,
 			const uint8_t* tmuData);
 
 		uint32_t GetCapacity() const;
@@ -79,13 +72,8 @@ namespace d2dx
 		int32_t _tileCountY;
 
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> _deviceContext;
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> _textures[4];
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _srvs[4];
-#else
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> _texture;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _srv;
-#endif
 		std::shared_ptr<TextureProcessor> _textureProcessor;
 		std::unique_ptr<TextureCachePolicy> _policy;
 	};

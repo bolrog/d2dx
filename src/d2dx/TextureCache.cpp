@@ -32,7 +32,6 @@ TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, ID3
 {
 #ifndef D2DX_UNITTEST
 
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
 	_atlasWidth = _width;
 	_atlasHeight = _height;
 	_tileCountX = 1;
@@ -59,50 +58,6 @@ TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, ID3
 		D2DX_RELEASE_CHECK_HR(device->CreateShaderResourceView(_textures[partition].Get(), NULL, _srvs[partition].GetAddressOf()));
 	}
 
-#else
-	_atlasWidth = 4096;
-	_atlasHeight = 4096;
-	_tileCountX = _atlasWidth / width;
-	_tileCountY = _atlasHeight / height;
-	_atlasArraySize = (int32_t)ceil((float)capacity / (_tileCountX * _tileCountY));
-
-	while (_atlasArraySize == 1)
-	{
-		int32_t tempAtlasWidth = _atlasWidth / 2;
-		int32_t tempAtlasHeight = _atlasHeight / 2;
-		int32_t tempTileCountX = (_atlasWidth / 2) / width;
-		int32_t tempTileCountY = (_atlasHeight / 2) / height;
-		int32_t tempAtlasArraySize = (int32_t)ceil((float)capacity / (tempTileCountX * tempTileCountY));
-
-		if (tempAtlasArraySize > 1)
-		{
-			break;
-		}
-
-		_atlasWidth = tempAtlasWidth;
-		_atlasHeight = tempAtlasHeight;
-		_tileCountX = tempTileCountX;
-		_tileCountY = tempTileCountY;
-		_atlasArraySize = tempAtlasArraySize;
-	}
-
-	assert((_tileCountX * _tileCountY * _atlasArraySize) >= _capacity);
-
-	CD3D11_TEXTURE2D_DESC desc
-	{
-		DXGI_FORMAT_R8_UINT,
-		(UINT)_atlasWidth,
-		(UINT)_atlasHeight,
-		(UINT)_atlasArraySize,
-		1U,
-		D3D11_BIND_SHADER_RESOURCE,
-		D3D11_USAGE_DEFAULT
-	};
-
-	D2DX_RELEASE_CHECK_HR(device->CreateTexture2D(&desc, nullptr, &_texture));
-	D2DX_RELEASE_CHECK_HR(device->CreateShaderResourceView(_texture.Get(), NULL, _srv.GetAddressOf()));
-#endif
-
 	device->GetImmediateContext(&_deviceContext);
 	assert(_deviceContext);
 #endif
@@ -113,33 +68,12 @@ uint32_t TextureCache::GetMemoryFootprint() const
 	return _atlasWidth * _atlasHeight * _atlasArraySize * sizeof(uint8_t);
 }
 
-TextureCacheLocation TextureCache::FindTexture(uint32_t contentKey, int32_t lastIndex)
+int32_t TextureCache::FindTexture(uint32_t contentKey, int32_t lastIndex)
 {
-	int32_t index = _policy->Find(contentKey, lastIndex);
-
-	if (index < 0)
-	{
-		return { 0, 0, -1 };
-	}
-
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
-	return { 0, 0, index };
-#else
-	const int32_t arrayIndex = index / (_tileCountX * _tileCountY);
-	const int32_t subIndex = index % (_tileCountX * _tileCountY);
-	const int32_t tileX = subIndex % _tileCountX;
-	const int32_t tileY = subIndex / _tileCountX;
-	assert(arrayIndex < _atlasArraySize);
-
-	TextureCacheLocation tcl;
-	tcl.OffsetS = tileX * _width;
-	tcl.OffsetT = tileY * _height;
-	tcl.ArrayIndex = arrayIndex;
-	return tcl;
-#endif
+	return _policy->Find(contentKey, lastIndex);
 }
 
-TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, Batch& batch, const uint8_t* tmuData)
+int32_t TextureCache::InsertTexture(uint32_t contentKey, const Batch& batch, const uint8_t* tmuData)
 {
 	assert(batch.IsValid() && batch.GetWidth() > 0 && batch.GetHeight() > 0);
 
@@ -153,49 +87,21 @@ TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, Batch& bat
 
 #ifndef D2DX_UNITTEST
 	CD3D11_BOX box;
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
 	box.left = 0;
 	box.top = 0;
 	box.right = batch.GetWidth();
 	box.bottom = batch.GetHeight();
 	assert(replacementIndex < _atlasArraySize);
-#else
-	int32_t arrayIndex = replacementIndex / (_tileCountX * _tileCountY);
-	int32_t subIndex = replacementIndex % (_tileCountX * _tileCountY);
-	int32_t tileX = subIndex % _tileCountX;
-	int32_t tileY = subIndex / _tileCountX;
-	box.left = tileX * _width;
-	box.top = tileY * _height;
-	box.right = box.left + batch.GetWidth();
-	box.bottom = box.top + batch.GetHeight();
-	assert(box.left >= 0 && box.left <= _atlasWidth);
-	assert(box.right >= 0 && box.right <= _atlasWidth);
-	assert(box.top >= 0 && box.top <= _atlasHeight);
-	assert(box.bottom >= 0 && box.bottom <= _atlasHeight);
-	assert(arrayIndex < _atlasArraySize);
-#endif
 	box.front = 0;
 	box.back = 1;
 
 	const uint8_t* pData = tmuData + batch.GetTextureStartAddress();
 
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
 	_deviceContext->UpdateSubresource(_textures[replacementIndex / 512].Get(), replacementIndex & 511, &box, pData, batch.GetWidth(), 0);
-#else
-	_deviceContext->UpdateSubresource(_texture.Get(), arrayIndex, &box, pData, batch.GetWidth(), 0);
-#endif
 
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
-	return { 0, 0, replacementIndex };
+	return replacementIndex;
 #else
-	return { tileX * _width, tileY * _height, arrayIndex };
-#endif
-#else
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
-	return { 0, 0, replacementIndex };
-#else
-	return { 0,0,0 };
-#endif
+	return replacementIndex;
 #endif
 }
 
@@ -206,11 +112,7 @@ uint32_t TextureCache::GetCapacity() const
 
 ID3D11Texture2D* TextureCache::GetTexture(uint32_t atlasIndex) const
 {
-#ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
 	return _textures[atlasIndex / 512].Get();
-#else
-	return _texture.Get();
-#endif
 }
 
 ID3D11ShaderResourceView* TextureCache::GetSrv(uint32_t atlasIndex) const

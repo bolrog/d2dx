@@ -216,8 +216,8 @@ namespace d2dx
 
 		inline void SetTextureStartAddress(int32_t startAddress)
 		{
-			assert(!(startAddress & 255));
-			assert(startAddress >= 0 && startAddress <= (D2DX_TMU_MEMORY_SIZE - 256));
+			assert(!(startAddress & (D2DX_TMU_ADDRESS_ALIGNMENT-1)));
+			assert(startAddress >= 0 && startAddress <= (D2DX_TMU_MEMORY_SIZE - D2DX_TMU_ADDRESS_ALIGNMENT));
 
 			startAddress >>= 8;
 			++startAddress;
@@ -236,7 +236,7 @@ namespace d2dx
 		uint32_t _textureHash;
 		uint16_t _startVertexLow;
 		uint16_t _vertexCount;
-		uint16_t _textureStartAddress;							// byte address / 256
+		uint16_t _textureStartAddress;							// byte address / D2DX_TMU_ADDRESS_ALIGNMENT
 		uint16_t _startVertexHigh_atlasIndex;					// VVVVAAAA AAAAAAAA
 		uint8_t _textureHeight_textureWidth_alphaBlend;			// HHHWWWBB
 		uint8_t _isChromaKeyEnabled_gameAddress_paletteIndex;	// CGGGPPPP
