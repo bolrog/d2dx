@@ -152,12 +152,10 @@ namespace d2dx
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _renderTargetTextureRtv;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _renderTargetTextureSrv;
 
-		HWND _hWnd;
-		bool _isFullscreen;
-
-		Options& _options;
 		std::unique_ptr<TextureCache> _textureCaches[6];
-		uint32_t _atlasUsageStats[15];
+
+		HWND _hWnd;
+		Options& _options;
 
 		struct
 		{

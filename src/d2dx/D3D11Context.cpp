@@ -62,8 +62,7 @@ D3D11Context::D3D11Context(
 	_constants{ 0 },
 	_frameLatencyWaitableObject{ nullptr },
 	_simd{ simd },
-	_textureProcessor{ textureProcessor },
-	_isFullscreen{ options.screenMode != ScreenMode::Windowed }
+	_textureProcessor{ textureProcessor }
 {
 	memset(&_shadowState, 0, sizeof(_shadowState));
 
@@ -92,11 +91,6 @@ D3D11Context::D3D11Context(
 
 	_featureLevel = D3D_FEATURE_LEVEL_11_0;
 	D3D_FEATURE_LEVEL requestFeatureLevel = D3D_FEATURE_LEVEL_11_0;
-
-	ALWAYS_PRINT("Desktop size %ix%i", _metrics._desktopWidth, _metrics._desktopHeight);
-	ALWAYS_PRINT("Game size %ix%i", _metrics._gameWidth, _metrics._gameHeight);
-	ALWAYS_PRINT("Render size %ix%i", _metrics._renderWidth, _metrics._renderHeight);
-	ALWAYS_PRINT("Window size %ix%i", clientRect.right - clientRect.left, clientRect.bottom - clientRect.top);
 
 	_dxgiAllowTearingFlagSupported = IsAllowTearingFlagSupported();
 
@@ -407,8 +401,6 @@ void D3D11Context::Present()
 	_deviceContext->ClearRenderTargetView(_renderTargetTextureRtv.Get(), color);
 
 	_deviceContext->RSSetState(_rasterizerState.Get());
-
-	_deviceContext->IASetInputLayout(_inputLayout.Get());
 
 	SetVS(_vs.Get());
 	SetPS(_ps.Get());
@@ -919,6 +911,8 @@ void D3D11Context::AdjustWindowPlacement(HWND hWnd, bool centerOnCurrentPosition
 		_metrics._gameWidth, _metrics._gameHeight, (int)(((float)_metrics._renderHeight / _metrics._gameHeight) * 100.0f));
 	SetWindowTextA(hWnd, newWindowText);
 
+	ALWAYS_PRINT("Desktop size %ix%i", _metrics._desktopWidth, _metrics._desktopHeight);
+	ALWAYS_PRINT("Window size %ix%i", _metrics._windowWidth, _metrics._windowHeight);
 	ALWAYS_PRINT("Game size %ix%i", _metrics._gameWidth, _metrics._gameHeight);
 	ALWAYS_PRINT("Render size %ix%i", _metrics._renderWidth, _metrics._renderHeight);
 
@@ -929,11 +923,7 @@ void D3D11Context::AdjustWindowPlacement(HWND hWnd, bool centerOnCurrentPosition
 		_swapChain2->SetSourceSize(_metrics._renderWidth, _metrics._renderHeight);
 	}
 
-	D3D11_RECT scissorRect;
-	scissorRect.left = (LONG)_constants.vertexOffset[0];
-	scissorRect.right = _metrics._renderWidth - (LONG)_constants.vertexOffset[0];
-	scissorRect.top = 0;
-	scissorRect.bottom = _metrics._renderHeight;
+	CD3D11_RECT scissorRect{ (LONG)_constants.vertexOffset[0], 0, _metrics._renderWidth - (LONG)_constants.vertexOffset[0], _metrics._renderHeight };
 	_deviceContext->RSSetScissorRects(1, &scissorRect);
 
 	UpdateViewport(_metrics._renderWidth, _metrics._renderHeight);
@@ -1019,16 +1009,14 @@ bool D3D11Context::IsAllowTearingFlagSupported() const
 
 void D3D11Context::ToggleFullscreen()
 {
-	if (_isFullscreen)
+	if (_options.screenMode == ScreenMode::FullscreenDefault)
 	{
 		_options.screenMode = ScreenMode::Windowed;
 		SetSizes(_metrics._gameWidth, _metrics._gameHeight, _metrics._windowWidth, _metrics._windowHeight);
-		_isFullscreen = false;
 	}
 	else
 	{
 		_options.screenMode = ScreenMode::FullscreenDefault;
 		SetSizes(_metrics._gameWidth, _metrics._gameHeight, _metrics._desktopWidth, _metrics._desktopHeight);
-		_isFullscreen = true;
 	}
 }
