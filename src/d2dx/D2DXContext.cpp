@@ -219,7 +219,7 @@ void D2DXContext::OnTexSource(uint32_t tmu, uint32_t startAddress, int32_t width
 		pixels[2 + 10 * 16] = 181;
 		pixels[1 + 11 * 16] = 29;
 	}
-	hash = fnv_32a_buf(pixels, pixelsSize, FNV1_32A_INIT);
+
 	bool isStFlipped = height > width;
 	if (isStFlipped)
 	{
