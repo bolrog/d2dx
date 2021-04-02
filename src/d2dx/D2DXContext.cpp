@@ -46,13 +46,14 @@ D2DXContext::D2DXContext() :
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
-	_options.skipLogo = strstr(commandLine, "-gxskiplogo") != nullptr;
+	_options.skipLogo = strstr(commandLine, "-dxskiplogo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
+	_options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
 
-	bool gxscale2 = strstr(commandLine, "-gxscale2") != nullptr;
-	bool gxscale3 = strstr(commandLine, "-gxscale3") != nullptr;
+	bool dxscale2 = strstr(commandLine, "-dxscale2") != nullptr || strstr(commandLine, "-gxscale2") != nullptr;
+	bool dxscale3 = strstr(commandLine, "-dxscale3") != nullptr || strstr(commandLine, "-gxscale3") != nullptr;
 	_options.defaultZoomLevel =
-		gxscale3 ? 3 :
-		gxscale2 ? 2 :
+		dxscale3 ? 3 :
+		dxscale2 ? 2 :
 		1;
 
 	_options.screenMode = windowed ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;

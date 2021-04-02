@@ -96,11 +96,11 @@ D3D11Context::D3D11Context(
 
 	DWORD swapChainCreateFlags = 0;
 
-	if (_dxgiAllowTearingFlagSupported)
+	if (_options.noVSync && _dxgiAllowTearingFlagSupported)
 	{
 		swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 	}
-	else
+	else if (!_options.noVSync)
 	{
 		swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 	}
@@ -153,7 +153,7 @@ D3D11Context::D3D11Context(
 	{
 		ALWAYS_PRINT("Swap chain supports IDXGISwapChain2.");
 
-		if (!_dxgiAllowTearingFlagSupported)
+		if (!_options.noVSync)
 		{
 			ALWAYS_PRINT("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
 			_frameLatencyWaitableObject = _swapChain2->GetFrameLatencyWaitableObject();
@@ -363,23 +363,22 @@ void D3D11Context::Present()
 	srvs[1] = nullptr;
 	SetPSShaderResourceViews(srvs);
 
-	if (_dxgiAllowTearingFlagSupported)
+	if (_options.noVSync)
 	{
-		D2DX_RELEASE_CHECK_HR(_swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING));
+		D2DX_RELEASE_CHECK_HR(_swapChain->Present(0, _dxgiAllowTearingFlagSupported ? DXGI_PRESENT_ALLOW_TEARING : 0));
 	}
-	else if (_frameLatencyWaitableObject)
+	else 
 	{
 		D2DX_RELEASE_CHECK_HR(_swapChain->Present(0, 0));
 
-		DWORD result = WaitForSingleObjectEx(
-			_frameLatencyWaitableObject,
-			1000, // 1 second timeout (shouldn't ever occur)
-			true
-		);
-	}
-	else
-	{
-		D2DX_RELEASE_CHECK_HR(_swapChain->Present(0, 0));
+		if (_frameLatencyWaitableObject)
+		{
+			DWORD result = WaitForSingleObjectEx(
+				_frameLatencyWaitableObject,
+				1000, // 1 second timeout (shouldn't ever occur)
+				true
+			);
+		}
 	}
 
 	if (_deviceContext1)

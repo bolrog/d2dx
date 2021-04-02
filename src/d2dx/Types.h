@@ -37,6 +37,7 @@ namespace d2dx
 	{
 		ScreenMode screenMode;
 		bool skipLogo;
+		bool noVSync;
 		uint32_t defaultZoomLevel;
 	};
 
