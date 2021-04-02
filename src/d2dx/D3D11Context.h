@@ -54,12 +54,21 @@ namespace d2dx
 		TextureCache* GetTextureCache(const Batch& batch) const;
 
 		void SetSizes(int32_t gameWidth, int32_t gameHeight, int32_t renderWidth, int32_t renderHeight);
-		int32_t GetGameWidth() const;
-		int32_t GetGameHeight() const;
-		int32_t GetWindowWidth() const;
-		int32_t GetWindowHeight() const;
-		int32_t GetRenderWidth() const;
-		int32_t GetRenderHeight() const;
+
+		struct Metrics
+		{
+			int32_t _desktopWidth;
+			int32_t _desktopHeight;
+			int32_t _desktopClientMaxHeight;
+			int32_t _windowWidth;
+			int32_t _windowHeight;
+			int32_t _renderWidth;
+			int32_t _renderHeight;
+			int32_t _gameWidth;
+			int32_t _gameHeight;
+		};
+		
+		const Metrics& GetMetrics() const;
 
 		void ToggleFullscreen();
 
@@ -86,18 +95,6 @@ namespace d2dx
 		void SetPSShaderResourceViews(ID3D11ShaderResourceView* srvs[2]);
 		void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt);
 
-		struct Metrics
-		{
-			int32_t _desktopWidth;
-			int32_t _desktopHeight;
-			int32_t _desktopClientMaxHeight;
-			int32_t _windowWidth;
-			int32_t _windowHeight;
-			int32_t _renderWidth;
-			int32_t _renderHeight;
-			int32_t _gameWidth;
-			int32_t _gameHeight;
-		};
 
 		Metrics _metrics;
 

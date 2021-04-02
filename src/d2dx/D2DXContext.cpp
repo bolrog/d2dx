@@ -742,8 +742,8 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	_logoTextureBatch.SetAtlasIndex(_d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items));
 	_logoTextureBatch.SetStartVertex(_vertexCount);
 
-	const float x = (float)(_d3d11Context->GetGameWidth() - 90 - 16);
-	const float y = (float)(_d3d11Context->GetGameHeight() - 50 - 16);
+	const float x = (float)(_d3d11Context->GetMetrics()._gameWidth - 90 - 16);
+	const float y = (float)(_d3d11Context->GetMetrics()._gameHeight - 50 - 16);
 	const uint32_t color = 0xFFFFa090;
 
 	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetAtlasIndex(), 15);

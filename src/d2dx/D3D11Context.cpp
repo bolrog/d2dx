@@ -752,13 +752,21 @@ LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 	}
 	else if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
 	{
+#ifdef NDEBUG
 		ShowCursor_Real(FALSE);
-
+#endif
 		uint32_t x = LOWORD(lParam);
 		uint32_t y = HIWORD(lParam);
 
-		x = (uint32_t)(x * ((double)d3d11Context->GetGameWidth() / d3d11Context->GetRenderWidth()));
-		y = (uint32_t)(y * ((double)d3d11Context->GetGameHeight() / d3d11Context->GetRenderHeight()));
+		const D3D11Context::Metrics& metrics = d3d11Context->GetMetrics();
+
+		const bool isFullscreen = d3d11Context->GetOptions().screenMode == ScreenMode::FullscreenDefault;
+		const float scale = (float)metrics._renderHeight / metrics._gameHeight;
+		const uint32_t scaledWidth = (uint32_t)(scale * metrics._gameWidth);
+		const float mouseOffsetX = isFullscreen ? (float)(metrics._desktopWidth / 2 - scaledWidth / 2) : 0.0f;
+
+		x = (uint32_t)(max(0, x - mouseOffsetX) / scale);
+		y = (uint32_t)(y / scale);
 
 		g_d2dxContext->OnMousePosChanged(x, y);
 
@@ -950,36 +958,6 @@ void D3D11Context::SetSizes(int32_t gameWidth, int32_t gameHeight, int32_t rende
 	AdjustWindowPlacement(_hWnd, true);
 }
 
-int32_t D3D11Context::GetGameWidth() const
-{
-	return _metrics._gameWidth;
-}
-
-int32_t D3D11Context::GetGameHeight() const
-{
-	return _metrics._gameHeight;
-}
-
-int32_t D3D11Context::GetWindowWidth() const
-{
-	return _metrics._windowWidth;
-}
-
-int32_t D3D11Context::GetWindowHeight() const
-{
-	return _metrics._windowHeight;
-}
-
-int32_t D3D11Context::GetRenderWidth() const
-{
-	return _metrics._renderWidth;
-}
-
-int32_t D3D11Context::GetRenderHeight() const
-{
-	return _metrics._renderHeight;
-}
-
 bool D3D11Context::IsAllowTearingFlagSupported() const
 {
 	ComPtr<IDXGIFactory4> dxgiFactory4;
@@ -1018,4 +996,9 @@ void D3D11Context::ToggleFullscreen()
 		_options.screenMode = ScreenMode::FullscreenDefault;
 		SetSizes(_metrics._gameWidth, _metrics._gameHeight, _metrics._desktopWidth, _metrics._desktopHeight);
 	}
+}
+
+const D3D11Context::Metrics& D3D11Context::GetMetrics() const
+{
+	return _metrics;
 }
