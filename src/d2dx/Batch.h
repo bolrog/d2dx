@@ -1,5 +1,5 @@
 /*
-    This file is part of D2DX.
+	This file is part of D2DX.
 
 	D2DX is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -45,9 +45,9 @@ namespace d2dx
 
 		inline void SetGameAddress(GameAddress gameAddress)
 		{
-			assert((int32_t)gameAddress >= 0 && (int32_t)gameAddress < (int32_t)GameAddress::Count);
-			_isChromaKeyEnabled_gameAddress_paletteIndex &= 0x8F;
-			_isChromaKeyEnabled_gameAddress_paletteIndex |= (uint8_t)gameAddress << 4;
+			assert((int32_t)gameAddress < 8);
+			_isChromaKeyEnabled_gameAddress_paletteIndex &= ~0x70;
+			_isChromaKeyEnabled_gameAddress_paletteIndex |= (uint8_t)((uint32_t)gameAddress << 4) & 0x70;
 		}
 
 		inline int32_t GetPaletteIndex() const
@@ -254,10 +254,10 @@ namespace d2dx
 		uint32_t _textureHash;
 		uint16_t _startVertexLow;
 		uint16_t _vertexCount;
-		uint16_t _textureStartAddress;
+		uint16_t _textureStartAddress;							// byte address / 256
 		uint8_t _textureHeight_textureWidth_alphaBlend;			// HHHWWWBB
-		uint8_t _atlasIndexHigh;								// AAAAAAAA
-		uint8_t _atlasIndexLow;									// 0000AAAA
+		uint8_t _atlasIndexHigh;								// 0000AAAA
+		uint8_t _atlasIndexLow;									// AAAAAAAA
 		uint8_t _isChromaKeyEnabled_gameAddress_paletteIndex;
 		uint8_t _textureCategory_primitiveType_combiners;		// TTT0PPCC
 		uint8_t _isRgba_startVertexHigh;

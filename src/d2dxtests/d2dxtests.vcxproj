@@ -105,6 +105,7 @@
     <ClCompile Include="..\d2dx\TextureCachePolicyBitPmru.cpp" />
     <ClCompile Include="..\d2dx\TextureProcessor.cpp" />
     <ClCompile Include="..\d2dx\Utils.cpp" />
+    <ClCompile Include="TestBatch.cpp" />
     <ClCompile Include="TestTextureCache.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

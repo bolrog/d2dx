@@ -48,6 +48,7 @@
     <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
       <Filter>d2dx</Filter>
     </ClCompile>
+    <ClCompile Include="TestBatch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\d2dx\Batch.h">

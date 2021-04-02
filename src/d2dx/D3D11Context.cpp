@@ -844,7 +844,7 @@ TextureCache* D3D11Context::GetTextureCache(const Batch& batch) const
 {
 	const int32_t longest = max(batch.GetWidth(), batch.GetHeight());
 	assert(longest >= 8);
-	uint32_t log2Longest;
+	uint32_t log2Longest = 0;
 	BitScanForward((DWORD*)&log2Longest, (DWORD)longest);
 	log2Longest -= 3;
 	assert(log2Longest <= 5);
