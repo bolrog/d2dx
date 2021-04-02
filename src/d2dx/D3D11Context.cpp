@@ -781,12 +781,12 @@ void D3D11Context::CreateTextureCaches()
 
 		_textureCaches[i] = make_unique<TextureCache>(width, width, capacities[i], _device.Get(), _simd, _textureProcessor);
 
-		DEBUG_PRINT("Creating texture atlas for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
+		DEBUG_PRINT("Creating texture cache for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
 
 		totalSize += _textureCaches[i]->GetMemoryFootprint();
 	}
 
-	ALWAYS_PRINT("Total texture cache is %u kB.", totalSize / 1024);
+	ALWAYS_PRINT("Total size of texture caches is %u kB.", totalSize / 1024);
 }
 
 void D3D11Context::SetVS(ID3D11VertexShader* vs)

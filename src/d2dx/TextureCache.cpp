@@ -37,7 +37,7 @@ TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, ID3
 	_atlasHeight = _height;
 	_tileCountX = 1;
 	_tileCountY = 1;
-	_atlasArraySize = capacity / 512;
+	_atlasArraySize = capacity;
 
 	CD3D11_TEXTURE2D_DESC desc
 	{
@@ -158,7 +158,7 @@ TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, Batch& bat
 	box.top = 0;
 	box.right = batch.GetWidth();
 	box.bottom = batch.GetHeight();
-	assert((replacementIndex / 512) < _atlasArraySize);
+	assert(replacementIndex < _atlasArraySize);
 #else
 	int32_t arrayIndex = replacementIndex / (_tileCountX * _tileCountY);
 	int32_t subIndex = replacementIndex % (_tileCountX * _tileCountY);
