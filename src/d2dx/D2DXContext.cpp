@@ -220,16 +220,9 @@ void D2DXContext::OnTexSource(uint32_t tmu, uint32_t startAddress, int32_t width
 		pixels[1 + 11 * 16] = 29;
 	}
 
-	bool isStFlipped = height > width;
-	if (isStFlipped)
-	{
-		std::swap(width, height);
-	}
-
 	_scratchBatch.SetTextureStartAddress(startAddress);
 	_scratchBatch.SetTextureHash(hash);
 	_scratchBatch.SetTextureSize(width, height);
-	_scratchBatch.SetIsStFlipped(isStFlipped);
 	_scratchBatch.SetTextureCategory(_gameHelper.GetTextureCategoryFromHash(hash));
 }
 
@@ -496,10 +489,7 @@ Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, Bat
 	assert((st[1] - floor(st[1])) < 1e6);
 	int16_t s = ((int16_t)st[0] >> stShift);
 	int16_t t = ((int16_t)st[1] >> stShift);
-	if (batch.IsStFlipped())
-	{
-		std::swap(s, t);
-	}
+
 	s += textureCacheLocation.OffsetS;
 	t += textureCacheLocation.OffsetT;
 	auto pargb = pargbOffset != 0xFF ? *(const uint32_t*)(vertex + pargbOffset) : 0xFFFFFFFF;

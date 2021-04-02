@@ -245,17 +245,6 @@ namespace d2dx
 			_textureStartAddress = startAddress & 0xFFFF;
 		}
 
-		inline bool IsStFlipped() const
-		{
-			return (_textureCategory_primitiveType_combiners & 0x10) != 0;
-		}
-
-		inline void SetIsStFlipped(bool isStFlipped)
-		{
-			_textureCategory_primitiveType_combiners &= ~0x10;
-			_textureCategory_primitiveType_combiners |= isStFlipped ? 0x10 : 0;
-		}
-
 		inline bool IsValid() const
 		{
 			return _textureStartAddress != 0;
@@ -270,7 +259,7 @@ namespace d2dx
 		uint8_t _atlasIndexHigh;								// AAAAAAAA
 		uint8_t _atlasIndexLow;									// 0000AAAA
 		uint8_t _isChromaKeyEnabled_gameAddress_paletteIndex;
-		uint8_t _textureCategory_primitiveType_combiners;		// TTTFPPCC
+		uint8_t _textureCategory_primitiveType_combiners;		// TTT0PPCC
 		uint8_t _isRgba_startVertexHigh;
 	};
 

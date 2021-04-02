@@ -842,13 +842,13 @@ void D3D11Context::SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt)
 
 TextureCache* D3D11Context::GetTextureCache(const Batch& batch) const
 {
-	const int32_t width = batch.GetWidth();
-	assert(width >= 8);
-	uint32_t log2w;
-	BitScanForward((DWORD*)&log2w, (DWORD)width);
-	log2w -= 3;
-	assert(log2w <= 5);
-	return _textureCaches[log2w].get();
+	const int32_t longest = max(batch.GetWidth(), batch.GetHeight());
+	assert(longest >= 8);
+	uint32_t log2Longest;
+	BitScanForward((DWORD*)&log2Longest, (DWORD)longest);
+	log2Longest -= 3;
+	assert(log2Longest <= 5);
+	return _textureCaches[log2Longest].get();
 }
 
 void D3D11Context::AdjustWindowPlacement(HWND hWnd, bool centerOnCurrentPosition)

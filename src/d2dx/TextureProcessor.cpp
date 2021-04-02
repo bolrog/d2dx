@@ -29,22 +29,6 @@ TextureProcessor::~TextureProcessor()
 }
 
 _Use_decl_annotations_
-void TextureProcessor::Transpose(
-	int32_t width,
-	int32_t height,
-	const uint8_t* __restrict srcPixels,
-	uint8_t* __restrict dstPixels)
-{
-	for (int32_t y = 0; y < height; ++y)
-	{
-		for (int32_t x = 0; x < width; ++x)
-		{
-			*dstPixels++ = srcPixels[y + x * height];
-		}
-	}
-}
-
-_Use_decl_annotations_
 void TextureProcessor::CopyPixels(
 	int32_t srcWidth,
 	int32_t srcHeight,
@@ -89,38 +73,21 @@ void TextureProcessor::ConvertChromaKeyedToRGBA(
 	const uint8_t* __restrict srcPixels,
 	const uint32_t* __restrict palette,
 	uint32_t* __restrict dstPixels,
-	uint32_t dstPitch,
-	bool isStFlipped)
+	uint32_t dstPitch)
 {
 	assert(width <= 256 && height <= 256);
 
 	uint32_t skip = dstPitch - width;
 
-	if (isStFlipped)
+	const uint32_t pixelCount = (uint32_t)(width * height);
+	for (int32_t y = 0; y < height; ++y)
 	{
-		int32_t i = 0;
-		for (int32_t y = 0; y < height; ++y)
+		for (int32_t x = 0; x < width; ++x)
 		{
-			for (int32_t x = 0; x < width; ++x)
-			{
-				const uint32_t c32 = palette[srcPixels[y + x * height]] | 0xFF000000;
-				*dstPixels++ = c32 == 0xFF000000 ? 0 : c32;
-			}
-			dstPixels += skip;
+			const uint32_t c32 = palette[*srcPixels++] | 0xFF000000;
+			*dstPixels++ = c32 == 0xFF000000 ? 0 : c32;
 		}
-	}
-	else
-	{
-		const uint32_t pixelCount = (uint32_t)(width * height);
-		for (int32_t y = 0; y < height; ++y)
-		{
-			for (int32_t x = 0; x < width; ++x)
-			{
-				const uint32_t c32 = palette[*srcPixels++] | 0xFF000000;
-				*dstPixels++ = c32 == 0xFF000000 ? 0 : c32;
-			}
-			dstPixels += skip;
-		}
+		dstPixels += skip;
 	}
 }
 

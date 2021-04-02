@@ -26,13 +26,6 @@ namespace d2dx
 		TextureProcessor();
 		~TextureProcessor();
 
-		void Transpose(
-			int32_t width,
-			int32_t height,
-			_In_reads_(width * height) const uint8_t* __restrict srcPixels,
-			_Out_writes_all_(width * height) uint8_t* __restrict dstPixels
-		);
-
 		void CopyPixels(
 			int32_t srcWidth,
 			int32_t srcHeight,
@@ -54,8 +47,7 @@ namespace d2dx
 			_In_reads_(width* height) const uint8_t* __restrict srcPixels,
 			_In_reads_(256) const uint32_t* __restrict palette,
 			_Out_writes_all_(dstPitch * height) uint32_t* __restrict dstPixels,
-			uint32_t dstPitch,
-			bool isStFlipped);
+			uint32_t dstPitch);
 
 		void Dilate(
 			int32_t width,

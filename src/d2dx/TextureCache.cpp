@@ -27,10 +27,6 @@ TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, ID3
 	_width{ width },
 	_height{ height },
 	_capacity{ capacity },
-	_convertedData{ 256 * 256 },
-	_dilatedData{ 256 * 256 },
-	_tempData(256 * 256),
-	_tempData2(256 * 256),
 	_textureProcessor(textureProcessor),
 	_policy(make_unique<TextureCachePolicyBitPmru>(capacity, simd))
 {
@@ -183,12 +179,6 @@ TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, Batch& bat
 
 	const uint8_t* pData = tmuData + batch.GetTextureStartAddress();
 
-	if (batch.IsStFlipped())
-	{
-		_textureProcessor->Transpose(batch.GetWidth(), batch.GetHeight(), pData, _tempData.items);
-		_textureProcessor->CopyPixels(batch.GetWidth(), batch.GetHeight(), _tempData.items, batch.GetWidth(), _tempData2.items, _width);
-		pData = _tempData2.items;
-	}
 #ifdef D2DX_TEXTURE_CACHE_IS_ARRAY_BASED
 	_deviceContext->UpdateSubresource(_textures[replacementIndex / 512].Get(), replacementIndex & 511, &box, pData, batch.GetWidth(), 0);
 #else

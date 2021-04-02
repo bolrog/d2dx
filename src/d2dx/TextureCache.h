@@ -87,10 +87,6 @@ namespace d2dx
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _srv;
 #endif
 		std::shared_ptr<TextureProcessor> _textureProcessor;
-		Buffer<uint8_t> _tempData;
-		Buffer<uint8_t> _tempData2;
-		Buffer<uint32_t> _convertedData;
-		Buffer<uint32_t> _dilatedData;
 		std::unique_ptr<TextureCachePolicy> _policy;
 	};
 }
