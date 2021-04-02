@@ -428,8 +428,8 @@ void D2DXContext::OnDrawLine(const void* v1, const void* v2, uint32_t gameContex
 
 	TextureCacheLocation textureCacheLocation = _d3d11Context->UpdateTexture(_scratchBatch, _tmuMemory.items);
 
-	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, textureCacheLocation);
-	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, textureCacheLocation);
+	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch);
+	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch);
 
 	float dx = endVertex.GetX() - startVertex.GetX();
 	float dy = endVertex.GetY() - startVertex.GetY();
@@ -473,7 +473,7 @@ void D2DXContext::OnDrawLine(const void* v1, const void* v2, uint32_t gameContex
 	_frames[_currentFrameIndex]._batches.items[_frames[_currentFrameIndex]._batchCount++] = batch;
 }
 
-Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, Batch& batch, TextureCacheLocation textureCacheLocation)
+Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, const Batch& batch)
 {
 	uint32_t stShift = 0;
 	_BitScanReverse((DWORD*)&stShift, max(batch.GetWidth(), batch.GetHeight()));
@@ -490,11 +490,22 @@ Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, Bat
 	int16_t s = ((int16_t)st[0] >> stShift);
 	int16_t t = ((int16_t)st[1] >> stShift);
 
-	s += textureCacheLocation.OffsetS;
-	t += textureCacheLocation.OffsetT;
 	auto pargb = pargbOffset != 0xFF ? *(const uint32_t*)(vertex + pargbOffset) : 0xFFFFFFFF;
 
-	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.GetRgbCombine(), batch.GetAlphaCombine(), batch.IsChromaKeyEnabled(), textureCacheLocation.ArrayIndex, batch.GetPaletteIndex());
+	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.GetRgbCombine(), batch.GetAlphaCombine(), batch.IsChromaKeyEnabled(), batch.GetAtlasIndex(), batch.GetPaletteIndex());
+}
+
+const Batch D2DXContext::CloneForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const
+{
+	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
+	auto textureCacheLocation = _d3d11Context->UpdateTexture(batch, _tmuMemory.items);
+
+	batch.SetPrimitiveType(PrimitiveType::Triangles);
+	batch.SetGameAddress(gameAddress);
+	batch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
+	batch.SetVertexCount(vertexCount);
+	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
+	return batch;
 }
 
 void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** pointers, uint32_t gameContext)
@@ -503,26 +514,19 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 
 	Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
 
-	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
-
-	Batch batch = _scratchBatch;
-	batch.SetPrimitiveType(PrimitiveType::Triangles);
-	batch.SetGameAddress(gameAddress);
-	batch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
-	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
-
-	auto textureCacheLocation = _d3d11Context->UpdateTexture(batch, _tmuMemory.items);
+	const Batch batch = CloneForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
+	const uint32_t vertexLayout = _vertexLayout;
 
 	switch (mode)
 	{
 	case GR_TRIANGLE_FAN:
 	{
-		Vertex firstVertex = ReadVertex((const uint8_t*)pointers[0], _vertexLayout, batch, textureCacheLocation);
-		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], _vertexLayout, batch, textureCacheLocation);
+		Vertex firstVertex = ReadVertex((const uint8_t*)pointers[0], vertexLayout, batch);
+		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], vertexLayout, batch);
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], _vertexLayout, batch, textureCacheLocation);
+			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch);
 
 			assert((_frames[_currentFrameIndex]._vertexCount + 3) < _frames[_currentFrameIndex]._vertices.capacity);
 			int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;
@@ -532,18 +536,17 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 			_frames[_currentFrameIndex]._vertexCount = vertexWriteIndex;
 
 			prevVertex = currentVertex;
-			batch.SetVertexCount(batch.GetVertexCount() + 3);
 		}
 		break;
 	}
 	case GR_TRIANGLE_STRIP:
 	{
-		Vertex prevPrevVertex = ReadVertex((const uint8_t*)pointers[0], _vertexLayout, batch, textureCacheLocation);
-		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], _vertexLayout, batch, textureCacheLocation);
+		Vertex prevPrevVertex = ReadVertex((const uint8_t*)pointers[0], vertexLayout, batch);
+		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], vertexLayout, batch);
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], _vertexLayout, batch, textureCacheLocation);
+			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch);
 
 			assert((_frames[_currentFrameIndex]._vertexCount + 3) < _frames[_currentFrameIndex]._vertices.capacity);
 			int32_t vertexWriteIndex = _frames[_currentFrameIndex]._vertexCount;
@@ -554,7 +557,6 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 
 			prevPrevVertex = prevVertex;
 			prevVertex = currentVertex;
-			batch.SetVertexCount(batch.GetVertexCount() + 3);
 		}
 		break;
 	}
@@ -573,29 +575,22 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 
 	Vertex* vertices = _frames[_currentFrameIndex]._vertices.items;
 
-	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
-
-	Batch batch = _scratchBatch;
-	batch.SetPrimitiveType(PrimitiveType::Triangles);
-	batch.SetGameAddress(gameAddress);
-	batch.SetStartVertex(_frames[_currentFrameIndex]._vertexCount);
-	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
-
-	auto textureCacheLocation = _d3d11Context->UpdateTexture(batch, _tmuMemory.items);
+	const Batch batch = CloneForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
+	const uint32_t vertexLayout = _vertexLayout;
 
 	switch (mode)
 	{
 	case GR_TRIANGLE_FAN:
 	{
-		Vertex firstVertex = ReadVertex(vertex, _vertexLayout, batch, textureCacheLocation);
+		Vertex firstVertex = ReadVertex(vertex, _vertexLayout, batch);
 		vertex += stride;
 
-		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch, textureCacheLocation);
+		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch);
 		vertex += stride;
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch, textureCacheLocation);
+			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch);
 			vertex += stride;
 
 			assert((_frames[_currentFrameIndex]._vertexCount + 3) < _frames[_currentFrameIndex]._vertices.capacity);
@@ -606,21 +601,20 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 			_frames[_currentFrameIndex]._vertexCount = vertexWriteIndex;
 
 			prevVertex = currentVertex;
-			batch.SetVertexCount(batch.GetVertexCount() + 3);
 		}
 		break;
 	}
 	case GR_TRIANGLE_STRIP:
 	{
-		Vertex prevPrevVertex = ReadVertex(vertex, _vertexLayout, batch, textureCacheLocation);
+		Vertex prevPrevVertex = ReadVertex(vertex, _vertexLayout, batch);
 		vertex += stride;
 
-		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch, textureCacheLocation);
+		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch);
 		vertex += stride;
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch, textureCacheLocation);
+			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch);
 			vertex += stride;
 
 			assert((_frames[_currentFrameIndex]._vertexCount + 3) < _frames[_currentFrameIndex]._vertices.capacity);
@@ -632,7 +626,6 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 
 			prevPrevVertex = prevVertex;
 			prevVertex = currentVertex;
-			batch.SetVertexCount(batch.GetVertexCount() + 3);
 		}
 		break;
 	}

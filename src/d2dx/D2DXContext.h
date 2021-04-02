@@ -86,7 +86,8 @@ namespace d2dx
 		void PrepareLogoTextureBatch();
 		void InsertLogoOnTitleScreen();
 		void DrawBatches();
-		Vertex ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, Batch& batch, TextureCacheLocation textureCacheLocation);
+		const Batch CloneForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const;
+		Vertex ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, const Batch& batch);
 		void FixIngameMousePosition();
 
 		uint32_t _renderFilter;

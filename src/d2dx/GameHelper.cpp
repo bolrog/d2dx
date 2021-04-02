@@ -234,7 +234,7 @@ static const uint32_t gameAddresses_114d[] =
 	0x0050c0de, /* DrawSomething2 */
 };
 
-GameAddress GameHelper::IdentifyGameAddress(uint32_t returnAddress)
+GameAddress GameHelper::IdentifyGameAddress(uint32_t returnAddress) const
 {
 	const uint32_t* gameAddresses = nullptr;
 	uint32_t gameAddressCount = 0;

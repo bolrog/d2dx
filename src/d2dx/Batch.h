@@ -166,7 +166,7 @@ namespace d2dx
 			_vertexCount = vertexCount;
 		}
 
-		inline uint32_t SelectColorAndAlpha(uint32_t iteratedColor, uint32_t constantColor)
+		inline uint32_t SelectColorAndAlpha(uint32_t iteratedColor, uint32_t constantColor) const
 		{
 			const auto rgbCombine = GetRgbCombine();
 			uint32_t result = (rgbCombine == RgbCombine::ConstantColor ? constantColor : iteratedColor) & 0x00FFFFFF;

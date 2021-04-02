@@ -33,7 +33,7 @@ namespace d2dx
 		void GetConfiguredGameSize(int32_t* width, int32_t* height) const;
 		void SetIngameMousePos(int32_t x, int32_t y);
 
-		GameAddress IdentifyGameAddress(uint32_t returnAddress);
+		GameAddress IdentifyGameAddress(uint32_t returnAddress) const;
 
 		TextureCategory GetTextureCategoryFromHash(uint32_t textureHash) const;
 		TextureCategory RefineTextureCategoryFromGameAddress(TextureCategory previousCategory, GameAddress gameAddress) const;
