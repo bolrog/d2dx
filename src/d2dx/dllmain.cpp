@@ -21,7 +21,6 @@
 #include "D2DXDetours.h"
 #include "GameHelper.h"
 #include "resource.h"
-#include "dllmain.h"
 
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "dxgi.lib")
