@@ -41,13 +41,18 @@ namespace d2dx
 		OutputDebugStringA(ssss); \
 	}
 
+	static __declspec(noreturn) void fatal(const char* msg)
+	{
+		MessageBoxA(nullptr, msg, "D2DX Fatal Error", MB_OK | MB_ICONSTOP);
+		TerminateProcess(GetCurrentProcess(), -1);
+	}
+
 	static void release_check(bool expr, const char* exprString)
 	{
 		if (!expr)
 		{
 			OutputDebugStringA(exprString);
-			MessageBoxA(NULL, exprString, "Failed assertion", MB_OK);
-			PostQuitMessage(-1);
+			fatal(exprString);
 		}
 	}
 
@@ -56,8 +61,7 @@ namespace d2dx
 		if (FAILED(hr))
 		{
 			OutputDebugStringA(exprString);
-			MessageBoxA(NULL, exprString, "Failed assertion", MB_OK);
-			PostQuitMessage(-1);
+			fatal(exprString);
 		}
 	}
 
