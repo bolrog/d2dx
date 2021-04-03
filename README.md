@@ -2,7 +2,7 @@
 
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
-Version 0.99.403
+Version 0.99.403b
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (or 8+).
@@ -80,20 +80,21 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
 ### It's ugly/slow/buggy.
   Let me know by filing an issue! I'd like to keep improving D2DX (within the scope of the project).
 
-## Acknowledgements
+## Third-party libraries
 This project uses the following third party libraries:
-- FNV1a hash reference implementation, which is in the public domain
-- Detours by Microsoft
-- SlashDiablo-HD by Mir Drualga and Bartosz Jankowski
+- FNV1a hash reference implementation, which is in the public domain.
+- Detours by Microsoft.
+- SlashDiablo-HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
 
 ## Release history
 
-### 0.99.403
+### 0.99.403b
   - Fix mouse sensitivy being wrong in the horizontal direction in widescreen mode.
   - Fix bug occasionally causing visual corruption when many things were on screen.
   - Fix the well-known issue of the '5' character looking like a '6'. (Shouldn't interfere with other mods.)
   - Fix "tearing" seen due to vsync being disabled. Re-enable vsync by default (use -dxnovsync to disable it).
   - Some small performance improvements.
+  - Updated: include the relevant license texts.
 
 ### 0.99.402
   - Add seamless alt-enter switching between windowed and fullscreen modes.
