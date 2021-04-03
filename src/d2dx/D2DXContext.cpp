@@ -28,6 +28,27 @@ using namespace d2dx;
 using namespace DirectX::PackedVector;
 using namespace std;
 
+static bool destroyed = false;
+static std::unique_ptr<D2DXContext> instance;
+
+D2DXContext* D2DXContext::Instance()
+{
+	/* The game is single threaded and there's no worry about synchronization. */
+
+	if (!instance && !destroyed)
+	{
+		instance = make_unique<D2DXContext>();
+	}
+
+	return instance.get();
+}
+
+void D2DXContext::Destroy()
+{
+	instance = nullptr;
+	destroyed = true;
+}
+
 D2DXContext::D2DXContext() :
 	_renderFilter(0),
 	_capturingFrame(false),

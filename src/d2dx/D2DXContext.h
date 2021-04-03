@@ -29,6 +29,9 @@ namespace d2dx
 	class D2DXContext final
 	{
 	public:
+		static D2DXContext* Instance();
+		static void Destroy();
+
 		D2DXContext();
 		~D2DXContext();
 

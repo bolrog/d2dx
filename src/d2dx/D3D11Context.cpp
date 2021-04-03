@@ -31,8 +31,6 @@ using namespace d2dx;
 using namespace std;
 using namespace Microsoft::WRL;
 
-extern unique_ptr<D2DXContext> g_d2dxContext;
-
 extern int (WINAPI* ShowCursor_Real)(
 	_In_ BOOL bShow);
 
@@ -743,7 +741,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 	else if (uMsg == WM_DESTROY)
 	{
 		RemoveWindowSubclass(hWnd, d2dxSubclassWndProc, 1234);
-		g_d2dxContext = nullptr;
+		D2DXContext::Destroy();
 	}
 	else if (uMsg == WM_NCMOUSEMOVE)
 	{
@@ -768,7 +766,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 		x = (uint32_t)(max(0, x - mouseOffsetX) / scale);
 		y = (uint32_t)(y / scale);
 
-		g_d2dxContext->OnMousePosChanged(x, y);
+		D2DXContext::Instance()->OnMousePosChanged(x, y);
 
 		lParam = x;
 		lParam |= y << 16;
