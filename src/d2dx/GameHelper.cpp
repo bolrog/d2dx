@@ -24,11 +24,11 @@
 using namespace d2dx;
 
 GameHelper::GameHelper() :
+	_isPd2(LoadLibraryA("PD2_EXT.dll")),
 	_version(GetGameVersion()),
 	_hProcess(GetCurrentProcess()),
 	_hGameExe(GetModuleHandleA("game.exe")),
-	_hD2ClientDll(LoadLibraryA("D2Client.dll")),
-	_isPd2(LoadLibraryA("PD2_EXT.dll") != nullptr)
+	_hD2ClientDll(LoadLibraryA("D2Client.dll"))
 {
 	InitializeTextureHashPrefixTable();
 }
