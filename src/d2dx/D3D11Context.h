@@ -1,6 +1,8 @@
 /*
 	This file is part of D2DX.
 
+	Copyright (C) 2021  Bolrog
+
 	D2DX is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -57,15 +59,15 @@ namespace d2dx
 
 		struct Metrics
 		{
-			int32_t _desktopWidth;
-			int32_t _desktopHeight;
-			int32_t _desktopClientMaxHeight;
-			int32_t _windowWidth;
-			int32_t _windowHeight;
-			int32_t _renderWidth;
-			int32_t _renderHeight;
-			int32_t _gameWidth;
-			int32_t _gameHeight;
+			int32_t desktopWidth;
+			int32_t desktopHeight;
+			int32_t desktopClientMaxHeight;
+			int32_t windowWidth;
+			int32_t windowHeight;
+			int32_t renderWidth;
+			int32_t renderHeight;
+			int32_t gameWidth;
+			int32_t gameHeight;
 		};
 		
 		const Metrics& GetMetrics() const;
@@ -95,7 +97,6 @@ namespace d2dx
 		void SetBlendState(ID3D11BlendState* blendState);
 		void SetPSShaderResourceViews(ID3D11ShaderResourceView* srvs[2]);
 		void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt);
-
 
 		Metrics _metrics;
 

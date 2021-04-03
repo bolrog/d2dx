@@ -1,6 +1,8 @@
 /*
 	This file is part of D2DX.
 
+	Copyright (C) 2021  Bolrog
+
 	D2DX is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -750,8 +752,8 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	_logoTextureBatch.SetTextureIndex(tcl._textureIndex);
 	_logoTextureBatch.SetStartVertex(_vertexCount);
 
-	const float x = (float)(_d3d11Context->GetMetrics()._gameWidth - 90 - 16);
-	const float y = (float)(_d3d11Context->GetMetrics()._gameHeight - 50 - 16);
+	const float x = (float)(_d3d11Context->GetMetrics().gameWidth - 90 - 16);
+	const float y = (float)(_d3d11Context->GetMetrics().gameHeight - 50 - 16);
 	const uint32_t color = 0xFFFFa090;
 
 	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15);
