@@ -18,6 +18,7 @@
 */
 #include "pch.h"
 #include "D2DXContext.h"
+#include "D2DXIntegrationImpl.h"
 
 using namespace d2dx;
 using namespace std;
@@ -41,4 +42,19 @@ extern "C"
             d2dxContext->GetSuggestedCustomResolution(width, height);
         }
     }
+}
+
+bool d2dx::IsD2DXLoaded()
+{
+    return true;
+}
+
+void d2dx::SetCustomResolution(int32_t width, int32_t height)
+{
+    D2DX_SetCustomResolution(width, height);
+}
+
+void d2dx::GetSuggestedCustomResolution(int32_t* width, int32_t* height)
+{
+    D2DX_GetSuggestedCustomResolution(width, height);
 }

@@ -35,6 +35,51 @@
     </ClCompile>
     <ClCompile Include="D2DXIntegrationImpl.cpp" />
     <ClCompile Include="D2DXDetours.cpp" />
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Config.cpp">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Offset.cpp">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Stubs.cpp">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Version.cpp">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDCellContext.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDColor.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDConfig.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDDraw.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDInventory.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDPatches.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDResolution.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2AnyPatch.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2BasePatch.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2InterceptorPatch.cpp">
+      <Filter>thirdparty\SlashDiablo-HD\D2Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.cpp">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -95,6 +140,80 @@
     </ClInclude>
     <ClInclude Include="D2DXDetours.h" />
     <ClInclude Include="dx256_bmp.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Config.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Constants.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2DataTables.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Offset.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2PacketDef.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patches.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Ptrs.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Structs.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Stubs.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Vars.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Version.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\TemplateIncludes.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDCellContext.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDColor.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDConfig.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDDraw.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDInventory.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDPatches.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDResolution.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2AnyPatch.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2BasePatch.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2InterceptorPatch.h">
+      <Filter>thirdparty\SlashDiablo-HD\D2Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.h">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DXIntegrationImpl.h" />
+    <ClInclude Include="dllmain.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />
@@ -115,10 +234,36 @@
     <Filter Include="thirdparty\detours">
       <UniqueIdentifier>{8240f153-200d-47ad-b776-7f45ed2a1d3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="thirdparty\SlashDiablo-HD">
+      <UniqueIdentifier>{b7b4542a-addf-4ce4-a695-83a1c1cfc2ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty\SlashDiablo-HD\D2HD">
+      <UniqueIdentifier>{5d476829-331e-4a7d-a45e-79847350db9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty\SlashDiablo-HD\D2Patch">
+      <UniqueIdentifier>{36595dfa-ea35-4a64-bb2f-0ab0ca7b37e1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">
       <Filter>shaders</Filter>
     </None>
+    <None Include="..\..\thirdparty\SlashDiablo-HD\Resources\SlashDiabloHD.mpq">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDConfigInterception.S">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </MASM>
+    <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDDrawInterception.S">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </MASM>
+    <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDPatchesInterception.S">
+      <Filter>thirdparty\SlashDiablo-HD\D2HD</Filter>
+    </MASM>
+    <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2StubsAsm.S">
+      <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

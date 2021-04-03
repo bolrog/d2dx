@@ -34,6 +34,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -67,12 +68,16 @@
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
       <FloatingPointExceptions>true</FloatingPointExceptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <Profile>true</Profile>
+      <AdditionalDependencies>version.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
       <Command>copy $(OutDir)glide3x.dll "C:\games\Diablo II\"</Command>
@@ -97,6 +102,8 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -105,6 +112,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalDependencies>version.lib; kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
       <Command>copy $(OutDir)glide3x.dll "C:\games\Diablo II\"</Command>
@@ -124,8 +133,34 @@
     <ClInclude Include="..\..\thirdparty\glide3\glideutl.h" />
     <ClInclude Include="..\..\thirdparty\glide3\sst1init.h" />
     <ClInclude Include="..\..\thirdparty\glide3\SST1VID.H" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Config.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Constants.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2DataTables.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDCellContext.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDColor.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDConfig.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDDraw.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDInventory.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDPatches.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDResolution.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Offset.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2PacketDef.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patches.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2AnyPatch.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2BasePatch.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2InterceptorPatch.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Ptrs.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Structs.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Stubs.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Vars.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Version.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.h" />
+    <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\TemplateIncludes.h" />
     <ClInclude Include="D2DXDetours.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="D2DXIntegrationImpl.h" />
+    <ClInclude Include="dllmain.h" />
     <ClInclude Include="dx256_bmp.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="D3D11Context.h" />
@@ -148,6 +183,66 @@
     <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Config.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDCellContext.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDColor.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDConfig.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDDraw.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDInventory.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDPatches.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDResolution.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Offset.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2AnyPatch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2BasePatch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Patch\D2InterceptorPatch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Stubs.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Version.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="D2DXDetours.cpp" />
     <ClCompile Include="D2DXIntegrationImpl.cpp" />
@@ -250,6 +345,21 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDConfigInterception.S">
+      <FileType>Document</FileType>
+    </MASM>
+    <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDDrawInterception.S">
+      <FileType>Document</FileType>
+    </MASM>
+    <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDPatchesInterception.S">
+      <FileType>Document</FileType>
+    </MASM>
+    <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2StubsAsm.S">
+      <FileType>Document</FileType>
+    </MASM>
+    <None Include="..\..\thirdparty\SlashDiablo-HD\Resources\SlashDiabloHD.mpq">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Constants.hlsli" />
   </ItemGroup>
   <ItemGroup>
@@ -257,5 +367,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>
