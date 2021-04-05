@@ -61,6 +61,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions);D2DX_UNITTEST</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -79,6 +80,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions);D2DX_UNITTEST</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -93,9 +95,9 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\d2dx\D2DXConfigurator.cpp" />
     <ClCompile Include="..\d2dx\D2DXContext.cpp" />
     <ClCompile Include="..\d2dx\D2DXDetours.cpp" />
-    <ClCompile Include="..\d2dx\D2DXIntegrationImpl.cpp" />
     <ClCompile Include="..\d2dx\D3D11Context.cpp" />
     <ClCompile Include="..\d2dx\GameHelper.cpp" />
     <ClCompile Include="..\d2dx\glide3x.cpp" />

@@ -39,9 +39,6 @@
     <ClCompile Include="..\d2dx\D2DXDetours.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
-    <ClCompile Include="..\d2dx\D2DXIntegrationImpl.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
     <ClCompile Include="..\d2dx\D3D11Context.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
@@ -49,6 +46,9 @@
       <Filter>d2dx</Filter>
     </ClCompile>
     <ClCompile Include="TestBatch.cpp" />
+    <ClCompile Include="..\d2dx\D2DXConfigurator.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\d2dx\Batch.h">

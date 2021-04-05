@@ -56,7 +56,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;D2DX_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>D2DX_EXPORT;WIN32;_DEBUG;D2DX_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -69,7 +69,9 @@
       </UndefinePreprocessorDefinitions>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <ExceptionHandling>Async</ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -89,7 +91,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;D2DX_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>D2DX_EXPORT;WIN32;NDEBUG;D2DX_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -103,7 +105,9 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <ControlFlowGuard>false</ControlFlowGuard>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <ExceptionHandling>Async</ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -159,7 +163,7 @@
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\TemplateIncludes.h" />
     <ClInclude Include="D2DXDetours.h" />
     <ClInclude Include="Buffer.h" />
-    <ClInclude Include="D2DXIntegrationImpl.h" />
+    <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="dx256_bmp.h" />
     <ClInclude Include="TextureCache.h" />
@@ -245,7 +249,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="D2DXDetours.cpp" />
-    <ClCompile Include="D2DXIntegrationImpl.cpp" />
+    <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="D3D11Context.cpp" />

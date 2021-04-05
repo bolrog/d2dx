@@ -33,7 +33,7 @@
     <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
       <Filter>thirdparty\fnv</Filter>
     </ClCompile>
-    <ClCompile Include="D2DXIntegrationImpl.cpp" />
+    <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="D2DXDetours.cpp" />
     <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Config.cpp">
       <Filter>thirdparty\SlashDiablo-HD</Filter>
@@ -212,7 +212,7 @@
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.h">
       <Filter>thirdparty\SlashDiablo-HD</Filter>
     </ClInclude>
-    <ClInclude Include="D2DXIntegrationImpl.h" />
+    <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dllmain.h" />
   </ItemGroup>
   <ItemGroup>
