@@ -2,7 +2,7 @@
 
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
-Version 0.99.403b
+Version 0.99.405
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (or 8+).
@@ -48,7 +48,6 @@ D2DX has been tested working with the following mods:
   [LAUNCHING]
   Param=-3dfx
   ```
-  If you wish to use the widescreen modes, also copy the included "D2DX_SlashDiabloHD.dll" and "SlashDiabloHD.mpq" into your Diablo II folder.
 
 ## Usage
 ### To start the game with D2DX enabled
@@ -57,11 +56,21 @@ D2DX has been tested working with the following mods:
   ```
 Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
 
+### Command-line options
+  -dxnologo hide the "D2DX" logo on the title screen
+  -dxnowide don't use widescreen mode (note: may lead to worse image quality in fullscreen)
+
 ### Experimental widescreen (windowed and fullscreen) modes 
   PLEASE NOTE: This only works with 1.12, 1.13c and 1.13d at this time.
 
-  Ensure the "D2DX_SlashDiabloHD.dll" and "SlashDiabloHD.mpq" files are in your Diablo II folder.
-  When it is present, D2DX will enable a new in-game resolution, close to the normal ones but having the aspect ratio of your monitor.
+  D2DX contains a modified version of D2HD to provide widescreen in-game modes.
+
+  Widescreen mode is enabled by default, except if:
+  - The option -dxnowide is passed.
+  - Running a game version that isn't supported.
+  - Running the "Median XL" mod (D2DX will allow it to use 1024x768 instead).
+
+  D2DX will create a file named "d2dx_d2hd.mpq" in the Diablo II folder, and add a new in-game resolution, close to the normal ones but having the aspect ratio of your monitor.
   The goal of this is to achieve proper fullscreen scaling without artifacts when displaying the game on modern PCs.
 
   - For a 1920x1080 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
@@ -69,8 +78,8 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   - For a 3840x2160 monitor, this is 960x540 (in fullscreen: 4x integer scaling).
 
 ### Miscellaneous
-- To get rid of the "DX" logo on the title screen, add -gxskiplogo to the command line.
-- To scale the window by 2x or 3x, add -gxscale2 or -gxscale3 to the command line. Note that if the Window doesn't fit on the desktop, the scale factor will be lowered.
+- To get rid of the "DX" logo on the title screen, add -dxnologo to the command line.
+- To scale the window by 2x or 3x, add -dxscale2 or -dxscale3 to the command line. Note that if the Window doesn't fit on the desktop, the scale factor will be lowered.
 
 ## Troubleshooting
 
@@ -84,9 +93,13 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
 This project uses the following third party libraries:
 - FNV1a hash reference implementation, which is in the public domain.
 - Detours by Microsoft.
-- SlashDiablo-HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
+- SlashDiablo-HD/D2HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
 
 ## Release history
+
+### 0.99.405
+  - Simplify installation by removing the need to copy SlashDiablo-HD/D2HD DLL and MPQ files.
+    Only glide3x.dll needs to be copied to the Diablo II folder.
 
 ### 0.99.403b
   - Fix mouse sensitivy being wrong in the horizontal direction in widescreen mode.

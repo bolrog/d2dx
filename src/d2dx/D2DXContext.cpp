@@ -69,7 +69,7 @@ D2DXContext::D2DXContext() :
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
-	_options.skipLogo = strstr(commandLine, "-dxskiplogo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
+	_options.skipLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
 	_options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
 
 	bool dxscale2 = strstr(commandLine, "-dxscale2") != nullptr || strstr(commandLine, "-gxscale2") != nullptr;
