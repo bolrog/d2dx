@@ -31,6 +31,7 @@ GameHelper::GameHelper() :
 	_hD2ClientDll(LoadLibraryA("D2Client.dll"))
 {
 	InitializeTextureHashPrefixTable();
+	FixBadRegistrySettings();
 }
 
 GameHelper::~GameHelper()
@@ -530,3 +531,43 @@ GameVersion GameHelper::GetGameVersion()
 	return version;
 }
 
+void GameHelper::FixBadRegistrySettings()
+{
+	/* It seems like D2DX sometimes causes a bad setting in the registry, probably when touching
+	   the settings in the Video Options menu, and likely due to the modifications done to SD-HD.
+	   
+	   While this isn't a fix (and I should fix the problem), at least this will recover the situation 
+	   the next time the game is launched. */
+
+	HKEY hKey;
+	LPCTSTR diablo2Key = TEXT("SOFTWARE\\Blizzard Entertainment\\Diablo II");
+	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, diablo2Key, 0, KEY_READ | KEY_WRITE, &hKey);
+	assert(openRes == ERROR_SUCCESS);
+	if (openRes == ERROR_SUCCESS)
+	{
+		DWORD type = REG_DWORD;
+		DWORD size = 4;
+		DWORD value;
+		auto queryRes = RegQueryValueExA(hKey, "Light Quality", NULL, &type, (LPBYTE)&value, &size);
+		assert(queryRes == ERROR_SUCCESS || queryRes == ERROR_MORE_DATA);
+		if (queryRes == ERROR_SUCCESS && size == 4 && value > 2)
+		{
+			value = 2;
+			RegSetValueExA(hKey, "Light Quality", 0, type, (LPBYTE)&value, size);
+		}
+		queryRes = RegQueryValueExA(hKey, "Blended Shadows", NULL, &type, (LPBYTE)&value, &size);
+		assert(queryRes == ERROR_SUCCESS || queryRes == ERROR_MORE_DATA);
+		if (queryRes == ERROR_SUCCESS && size == 4 && value > 1)
+		{
+			value = 1;
+			RegSetValueExA(hKey, "Blended Shadows", 0, type, (LPBYTE)&value, size);
+		}
+		queryRes = RegQueryValueExA(hKey, "Perspective", NULL, &type, (LPBYTE)&value, &size);
+		assert(queryRes == ERROR_SUCCESS || queryRes == ERROR_MORE_DATA);
+		if (queryRes == ERROR_SUCCESS && size == 4 && value > 1)
+		{
+			value = 1;
+			RegSetValueExA(hKey, "Perspective", 0, type, (LPBYTE)&value, size);
+		}
+	}
+}
