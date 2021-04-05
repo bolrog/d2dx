@@ -67,8 +67,13 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   ```
   -dxnowide 
   ```
-
-In windowed mode, scale the size by 2 or 3:
+  
+  Disable v-sync (may be useful on G-Sync/FreeSync displays)
+  ```
+  -dxnovsync
+  ```
+  
+  In windowed mode, scale the size by 2 or 3:
   ```
   -dxscale2
   -dxscale3
