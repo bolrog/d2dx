@@ -57,8 +57,22 @@ D2DX has been tested working with the following mods:
 Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
 
 ### Command-line options
-  -dxnologo hide the "D2DX" logo on the title screen
-  -dxnowide don't use widescreen mode (note: may lead to worse image quality in fullscreen)
+
+  Hide the "D2DX" logo on the title screen
+  ```
+  -dxnologo
+  ``` 
+  
+  Disable widescreen mode (note: may lead to worse image quality in fullscreen)
+  ```
+  -dxnowide 
+  ```
+
+In windowed mode, scale the size by 2 or 3:
+  ```
+  -dxscale2
+  -dxscale3
+  ```
 
 ### Experimental widescreen (windowed and fullscreen) modes 
   PLEASE NOTE: This only works with 1.12, 1.13c and 1.13d at this time.
@@ -76,10 +90,6 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   - For a 1920x1080 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
   - For a 2560×1440 monitor, this is 853x480 (in fullscreen: 3x integer scaling).
   - For a 3840x2160 monitor, this is 960x540 (in fullscreen: 4x integer scaling).
-
-### Miscellaneous
-- To get rid of the "DX" logo on the title screen, add -dxnologo to the command line.
-- To scale the window by 2x or 3x, add -dxscale2 or -dxscale3 to the command line. Note that if the Window doesn't fit on the desktop, the scale factor will be lowered.
 
 ## Troubleshooting
 
