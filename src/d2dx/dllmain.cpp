@@ -18,7 +18,7 @@
 */
 #include "pch.h"
 #include "D2DXContext.h"
-#include "D2DXDetours.h"
+#include "Detours.h"
 #include "GameHelper.h"
 #include "BuiltinD2HD.h"
 
