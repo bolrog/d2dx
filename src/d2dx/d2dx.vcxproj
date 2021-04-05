@@ -161,7 +161,8 @@
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Version.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\TemplateIncludes.h" />
-    <ClInclude Include="D2DXDetours.h" />
+    <ClInclude Include="BuiltinD2HD.h" />
+    <ClInclude Include="Detours.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dllmain.h" />
@@ -248,7 +249,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="D2DXDetours.cpp" />
+    <ClCompile Include="BuiltinD2HD.cpp" />
+    <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="dllmain.cpp" />

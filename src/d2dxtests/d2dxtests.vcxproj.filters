@@ -36,9 +36,6 @@
     <ClCompile Include="..\d2dx\D2DXContext.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
-    <ClCompile Include="..\d2dx\D2DXDetours.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
     <ClCompile Include="..\d2dx\D3D11Context.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
@@ -47,6 +44,9 @@
     </ClCompile>
     <ClCompile Include="TestBatch.cpp" />
     <ClCompile Include="..\d2dx\D2DXConfigurator.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\d2dx\Detours.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
   </ItemGroup>
@@ -58,9 +58,6 @@
       <Filter>d2dx</Filter>
     </ClInclude>
     <ClInclude Include="..\d2dx\D2DXContext.h">
-      <Filter>d2dx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\d2dx\D2DXDetours.h">
       <Filter>d2dx</Filter>
     </ClInclude>
     <ClInclude Include="..\d2dx\D3D11Context.h">
@@ -91,6 +88,9 @@
       <Filter>d2dx</Filter>
     </ClInclude>
     <ClInclude Include="..\d2dx\Vertex.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\Detours.h">
       <Filter>d2dx</Filter>
     </ClInclude>
   </ItemGroup>

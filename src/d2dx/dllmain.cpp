@@ -20,45 +20,15 @@
 #include "D2DXContext.h"
 #include "D2DXDetours.h"
 #include "GameHelper.h"
-#include "resource.h"
+#include "BuiltinD2HD.h"
 
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
-bool SDHD_Initialize();
-
 using namespace d2dx;
 using namespace std;
-
-static void EnsureD2HDMpqExists(HMODULE hModule);
-
-static bool IsWideModeAvailable()
-{
-    const char* commandLine = GetCommandLineA();
-    if (strstr(commandLine, "-dxnowide"))
-    {
-        return false;
-    }
-
-    GameHelper gameHelper;
-    auto gameVersion = gameHelper.GetVersion();
-
-    if (gameVersion != d2dx::GameVersion::Lod112 &&
-        gameVersion != d2dx::GameVersion::Lod113c &&
-        gameVersion != d2dx::GameVersion::Lod113d)
-    {
-        return false;
-    }
-
-    if (LoadLibraryA("D2Sigma.dll"))
-    {
-        return false;
-    }
-
-    return true;
-}
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -72,13 +42,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         printf("DLL_PROCESS_ATTACH\n");        
         SetProcessDPIAware();
         AttachDetours();
-
-        if (IsWideModeAvailable())
-        {            
-            EnsureD2HDMpqExists(hModule);
-            SDHD_Initialize();
-        }
-
+        TryInitializeBuiltinD2HD(hModule);
         break;
     }
     case DLL_THREAD_ATTACH:
@@ -93,54 +57,4 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         break;
     }
     return TRUE;
-}
-
-static void EnsureD2HDMpqExists(HMODULE hModule)
-{
-    void* d2HDMpqPtr = nullptr;
-    DWORD d2HDMpqSize = 0;
-    HRSRC d2HDMpqResourceInfo = nullptr;
-    HGLOBAL d2HDMpqResourceData = nullptr;
-    HANDLE d2HDMpqFile = nullptr;
-    DWORD bytesWritten = 0;
-
-    d2HDMpqResourceInfo = FindResourceA(hModule, MAKEINTRESOURCEA(IDR_MPQ1), "mpq");
-    if (!d2HDMpqResourceInfo)
-    {
-        goto end;
-    }
-    
-    d2HDMpqResourceData = LoadResource(hModule, d2HDMpqResourceInfo);
-    if (!d2HDMpqResourceData)
-    {
-        goto end;
-    }
-
-    d2HDMpqSize = SizeofResource(hModule, d2HDMpqResourceInfo);
-    d2HDMpqPtr = LockResource(d2HDMpqResourceData);
-    if (!d2HDMpqPtr || !d2HDMpqSize)
-    {
-        goto end;
-    }
-
-    d2HDMpqFile = CreateFileA("d2dx_d2hd.mpq", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (!d2HDMpqFile)
-    {
-        goto end;
-    }
-
-    if (!WriteFile(d2HDMpqFile, d2HDMpqPtr, d2HDMpqSize, &bytesWritten, nullptr))
-    {
-        goto end;
-    }
-
-end:
-    if (d2HDMpqResourceData)
-    {
-        UnlockResource(d2HDMpqResourceData);
-    }
-    if (d2HDMpqFile)
-    {
-        CloseHandle(d2HDMpqFile);
-    }
 }

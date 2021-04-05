@@ -34,7 +34,7 @@
       <Filter>thirdparty\fnv</Filter>
     </ClCompile>
     <ClCompile Include="D2DXConfigurator.cpp" />
-    <ClCompile Include="D2DXDetours.cpp" />
+    <ClCompile Include="Detours.cpp" />
     <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\D2Config.cpp">
       <Filter>thirdparty\SlashDiablo-HD</Filter>
     </ClCompile>
@@ -80,6 +80,7 @@
     <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.cpp">
       <Filter>thirdparty\SlashDiablo-HD</Filter>
     </ClCompile>
+    <ClCompile Include="BuiltinD2HD.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -138,7 +139,7 @@
     <ClInclude Include="..\..\thirdparty\detours\syelog.h">
       <Filter>thirdparty\detours</Filter>
     </ClInclude>
-    <ClInclude Include="D2DXDetours.h" />
+    <ClInclude Include="Detours.h" />
     <ClInclude Include="dx256_bmp.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Config.h">
       <Filter>thirdparty\SlashDiablo-HD</Filter>
@@ -214,6 +215,7 @@
     </ClInclude>
     <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="BuiltinD2HD.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

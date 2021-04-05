@@ -17,7 +17,10 @@
     along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "pch.h"
-#include "D2DXDetours.h"
+#include "Detours.h"
+#include "Utils.h"
+
+using namespace d2dx;
 
 #pragma comment(lib, "../../thirdparty/detours/detours.lib")
 
@@ -161,7 +164,7 @@ void d2dx::AttachDetours()
     LONG lError = DetourTransactionCommit();
 
     if (lError != NO_ERROR) {
-        MessageBox(HWND_DESKTOP, L"Failed to detour", L"timb3r", MB_OK);
+        fatal("Failed to detour Win32 functions.");
     }
 }
 
@@ -186,6 +189,6 @@ void d2dx::DetachDetours()
     LONG lError = DetourTransactionCommit();
 
     if (lError != NO_ERROR) {
-        MessageBox(HWND_DESKTOP, L"Failed to detour", L"timb3r", MB_OK);
+        /* An error here doesn't really matter. The process is going. */
     }
 }

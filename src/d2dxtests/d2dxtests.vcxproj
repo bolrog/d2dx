@@ -97,8 +97,8 @@
     </ClCompile>
     <ClCompile Include="..\d2dx\D2DXConfigurator.cpp" />
     <ClCompile Include="..\d2dx\D2DXContext.cpp" />
-    <ClCompile Include="..\d2dx\D2DXDetours.cpp" />
     <ClCompile Include="..\d2dx\D3D11Context.cpp" />
+    <ClCompile Include="..\d2dx\Detours.cpp" />
     <ClCompile Include="..\d2dx\GameHelper.cpp" />
     <ClCompile Include="..\d2dx\glide3x.cpp" />
     <ClCompile Include="..\d2dx\Simd.cpp" />
@@ -119,8 +119,8 @@
     <ClInclude Include="..\d2dx\Batch.h" />
     <ClInclude Include="..\d2dx\Buffer.h" />
     <ClInclude Include="..\d2dx\D2DXContext.h" />
-    <ClInclude Include="..\d2dx\D2DXDetours.h" />
     <ClInclude Include="..\d2dx\D3D11Context.h" />
+    <ClInclude Include="..\d2dx\Detours.h" />
     <ClInclude Include="..\d2dx\dx256_bmp.h" />
     <ClInclude Include="..\d2dx\GameHelper.h" />
     <ClInclude Include="..\d2dx\TextureCache.h" />
