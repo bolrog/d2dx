@@ -42,14 +42,36 @@ namespace d2dx
 		
 		~D3D11Context();
 
-		void LoadGammaTable(const uint32_t* paletteAndGamma);
-		void BulkWriteVertices(const Vertex* vertices, uint32_t vertexCount);
-		TextureCacheLocation UpdateTexture(const Batch& batch, const uint8_t* tmuData);
-		void Draw(const Batch& batch);
+		void LoadGammaTable(
+			_In_reads_(256) const uint32_t* gammaTable);
+		
+		void BulkWriteVertices(
+			_In_reads_(vertexCount) const Vertex* vertices,
+			uint32_t vertexCount);
+		
+		TextureCacheLocation UpdateTexture(
+			const Batch& batch,
+			_In_reads_(tmuDataSize) const uint8_t* tmuData,
+			uint32_t tmuDataSize);
+		
+		void Draw(
+			const Batch& batch);
+		
 		void Present();
-		void WriteToScreen(const uint32_t* pixels, int32_t width, int32_t height);
-		void SetGamma(float red, float green, float blue);
-		void SetPalette(int32_t paletteIndex, const uint32_t* palette);
+		
+		void WriteToScreen(
+			_In_reads_(width * height) const uint32_t* pixels,
+			int32_t width,
+			int32_t height);
+		
+		void SetGamma(
+			float red, 
+			float green, 
+			float blue);
+		
+		void SetPalette(
+			int32_t paletteIndex, 
+			_In_reads_(256) const uint32_t* palette);
 
 		const Options& GetOptions() const;
 
@@ -86,17 +108,38 @@ namespace d2dx
 		void CreateSamplerStates();
 		void CreateTextureCaches();
 		uint32_t DetermineMaxTextureArraySize();
-		void UpdateViewport(int32_t width, int32_t height);
+		
+		void UpdateViewport(
+			int32_t width, 
+			int32_t height);
+		
 		void SetBlendState(AlphaBlend alphaBlend);
+		
 		void UpdateConstants();
-		void AdjustWindowPlacement(HWND hWnd, bool centerOnCurrentPosition);
-		uint32_t UpdateVerticesWithFullScreenQuad(int32_t width, int32_t height);
+		
+		void AdjustWindowPlacement(
+			_In_ HWND hWnd,
+			bool centerOnCurrentPosition);
+		
+		uint32_t UpdateVerticesWithFullScreenQuad(
+			int32_t width,
+			int32_t height);
+		
 		bool IsAllowTearingFlagSupported() const;
-		void SetVS(ID3D11VertexShader* vs);
-		void SetPS(ID3D11PixelShader* ps);
-		void SetBlendState(ID3D11BlendState* blendState);
-		void SetPSShaderResourceViews(ID3D11ShaderResourceView* srvs[2]);
-		void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt);
+		
+		void SetVS(
+			_In_ ID3D11VertexShader* vs);
+		void SetPS(
+			_In_ ID3D11PixelShader* ps);
+		
+		void SetBlendState(
+			_In_ ID3D11BlendState* blendState);
+		
+		void SetPSShaderResourceViews(
+			_In_ ID3D11ShaderResourceView* srvs[2]);
+		
+		void SetPrimitiveTopology(
+			D3D11_PRIMITIVE_TOPOLOGY pt);
 
 		Metrics _metrics;
 

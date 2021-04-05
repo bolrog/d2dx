@@ -28,11 +28,20 @@ namespace d2dx
 	class TextureCachePolicyBitPmru final : public TextureCachePolicy
 	{
 	public:
-		TextureCachePolicyBitPmru(uint32_t capacity, std::shared_ptr<Simd> simd);
+		TextureCachePolicyBitPmru(
+			uint32_t capacity,
+			std::shared_ptr<Simd> simd);
+		
 		virtual ~TextureCachePolicyBitPmru();
 
-		virtual int32_t Find(uint32_t contentKey, int32_t lastIndex) override;
-		virtual int32_t Insert(uint32_t contentKey, bool& evicted) override;
+		virtual int32_t Find(
+			uint32_t contentKey,
+			int32_t lastIndex) override;
+		
+		virtual int32_t Insert(
+			uint32_t contentKey,
+			_Out_ bool& evicted) override;
+		
 		virtual void OnNewFrame() override;
 
 	private:

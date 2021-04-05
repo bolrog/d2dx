@@ -476,7 +476,9 @@ void D3D11Context::CreatePaletteTexture()
 	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_paletteTexture.Get(), nullptr, &_paletteTextureSrv));
 }
 
-void D3D11Context::LoadGammaTable(const uint32_t* gammaTable)
+_Use_decl_annotations_
+void D3D11Context::LoadGammaTable(
+	const uint32_t* gammaTable)
 {
 	_deviceContext->UpdateSubresource(_gammaTexture.Get(), 0, nullptr, gammaTable, 1024, 0);
 }
@@ -499,7 +501,11 @@ void D3D11Context::CreateVideoTextures()
 	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_videoTexture.Get(), NULL, &_videoTextureSrv));
 }
 
-void D3D11Context::WriteToScreen(const uint32_t* pixels, int32_t width, int32_t height)
+_Use_decl_annotations_
+void D3D11Context::WriteToScreen(
+	const uint32_t* pixels,
+	int32_t width,
+	int32_t height)
 {
 	D3D11_MAPPED_SUBRESOURCE ms;
 	D2DX_RELEASE_CHECK_HR(_deviceContext->Map(_videoTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
@@ -524,7 +530,8 @@ void D3D11Context::WriteToScreen(const uint32_t* pixels, int32_t width, int32_t 
 	Present();
 }
 
-void D3D11Context::SetBlendState(AlphaBlend alphaBlend)
+void D3D11Context::SetBlendState(
+	AlphaBlend alphaBlend)
 {
 	ComPtr<ID3D11BlendState> blendState = _blendStates[(int32_t)alphaBlend];
 
@@ -623,7 +630,10 @@ void D3D11Context::UpdateConstants()
 	}
 }
 
-void D3D11Context::BulkWriteVertices(const Vertex* vertices, uint32_t vertexCount)
+_Use_decl_annotations_
+void D3D11Context::BulkWriteVertices(
+	const Vertex* vertices,
+	uint32_t vertexCount)
 {
 	assert(vertexCount <= _vbCapacity);
 	vertexCount = min(vertexCount, _vbCapacity);
@@ -642,7 +652,9 @@ void D3D11Context::BulkWriteVertices(const Vertex* vertices, uint32_t vertexCoun
 	_vbWriteIndex += vertexCount;
 }
 
-uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(int32_t width, int32_t height)
+uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(
+	int32_t width, 
+	int32_t height)
 {
 	Vertex vertices[6] = {
 		Vertex{ 0.0f, 0.0f, 0, 0, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
@@ -674,7 +686,11 @@ uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(int32_t width, int32_t h
 	return 6;
 }
 
-TextureCacheLocation D3D11Context::UpdateTexture(const Batch& batch, const uint8_t* tmuData)
+_Use_decl_annotations_
+TextureCacheLocation D3D11Context::UpdateTexture(
+	const Batch& batch,
+	const uint8_t* tmuData,
+	uint32_t tmuDataSize)
 {
 	assert(batch.IsValid() && "Batch has no texture set.");
 	const uint32_t contentKey = batch.GetHash() ^ batch.GetPaletteIndex();
@@ -684,19 +700,24 @@ TextureCacheLocation D3D11Context::UpdateTexture(const Batch& batch, const uint8
 
 	if (tcl._textureAtlas < 0)
 	{
-		tcl = atlas->InsertTexture(contentKey, batch, tmuData);
+		tcl = atlas->InsertTexture(contentKey, batch, tmuData, tmuDataSize);
 	}
 
 	return tcl;
 }
 
-void D3D11Context::UpdateViewport(int32_t width, int32_t height)
+void D3D11Context::UpdateViewport(
+	int32_t width,
+	int32_t height)
 {
 	CD3D11_VIEWPORT viewport{ 0.0f, 0.0f, (float)width, (float)height };
 	_deviceContext->RSSetViewports(1, &viewport);
 }
 
-void D3D11Context::SetGamma(float red, float green, float blue)
+void D3D11Context::SetGamma(
+	float red,
+	float green,
+	float blue)
 {
 	uint32_t gammaTable[256];
 
@@ -715,7 +736,10 @@ void D3D11Context::SetGamma(float red, float green, float blue)
 	LoadGammaTable(gammaTable);
 }
 
-void D3D11Context::SetPalette(int32_t paletteIndex, const uint32_t* palette)
+_Use_decl_annotations_
+void D3D11Context::SetPalette(
+	int32_t paletteIndex,
+	const uint32_t* palette)
 {
 	_deviceContext->UpdateSubresource(_paletteTexture.Get(), paletteIndex, nullptr, palette, 1024, 0);
 }
@@ -725,8 +749,13 @@ const Options& D3D11Context::GetOptions() const
 	return _options;
 }
 
-LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
-	LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+LRESULT CALLBACK d2dxSubclassWndProc(
+	HWND hWnd,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam,
+	UINT_PTR uIdSubclass,
+	DWORD_PTR dwRefData)
 {
 	D3D11Context* d3d11Context = (D3D11Context*)dwRefData;
 
@@ -826,7 +855,9 @@ void D3D11Context::CreateTextureCaches()
 	ALWAYS_PRINT("Total size of texture caches is %u kB.", totalSize / 1024);
 }
 
-void D3D11Context::SetVS(ID3D11VertexShader* vs)
+_Use_decl_annotations_
+void D3D11Context::SetVS(
+	ID3D11VertexShader* vs)
 {
 	if (vs != _shadowState._lastVS)
 	{
@@ -835,7 +866,9 @@ void D3D11Context::SetVS(ID3D11VertexShader* vs)
 	}
 }
 
-void D3D11Context::SetPS(ID3D11PixelShader* ps)
+_Use_decl_annotations_
+void D3D11Context::SetPS(
+	ID3D11PixelShader* ps)
 {
 	if (ps != _shadowState._lastPS)
 	{
@@ -844,7 +877,9 @@ void D3D11Context::SetPS(ID3D11PixelShader* ps)
 	}
 }
 
-void D3D11Context::SetBlendState(ID3D11BlendState* blendState)
+_Use_decl_annotations_
+void D3D11Context::SetBlendState(
+	ID3D11BlendState* blendState)
 {
 	if (blendState != _shadowState._lastBlendState)
 	{
@@ -855,7 +890,9 @@ void D3D11Context::SetBlendState(ID3D11BlendState* blendState)
 	}
 }
 
-void D3D11Context::SetPSShaderResourceViews(ID3D11ShaderResourceView* srvs[2])
+_Use_decl_annotations_
+void D3D11Context::SetPSShaderResourceViews(
+	ID3D11ShaderResourceView* srvs[2])
 {
 	if (srvs[0] != _shadowState._psSrvs[0] ||
 		srvs[1] != _shadowState._psSrvs[1])
@@ -866,7 +903,8 @@ void D3D11Context::SetPSShaderResourceViews(ID3D11ShaderResourceView* srvs[2])
 	}
 }
 
-void D3D11Context::SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY pt)
+void D3D11Context::SetPrimitiveTopology(
+	D3D11_PRIMITIVE_TOPOLOGY pt)
 {
 	if (pt != _shadowState._primitiveTopology)
 	{
@@ -888,7 +926,10 @@ TextureCache* D3D11Context::GetTextureCache(const Batch& batch) const
 	return _textureCaches[log2Longest].get();
 }
 
-void D3D11Context::AdjustWindowPlacement(HWND hWnd, bool centerOnCurrentPosition)
+_Use_decl_annotations_
+void D3D11Context::AdjustWindowPlacement(
+	HWND hWnd,
+	bool centerOnCurrentPosition)
 {
 	const int32_t desktopCenterX = _metrics.desktopWidth / 2;
 	const int32_t desktopCenterY = _metrics.desktopHeight / 2;
@@ -968,7 +1009,11 @@ void D3D11Context::AdjustWindowPlacement(HWND hWnd, bool centerOnCurrentPosition
 	Present();
 }
 
-void D3D11Context::SetSizes(int32_t gameWidth, int32_t gameHeight, int32_t renderWidth, int32_t renderHeight)
+void D3D11Context::SetSizes(
+	int32_t gameWidth, 
+	int32_t gameHeight, 
+	int32_t renderWidth, 
+	int32_t renderHeight)
 {
 	_metrics.gameWidth = gameWidth;
 	_metrics.gameHeight = gameHeight;

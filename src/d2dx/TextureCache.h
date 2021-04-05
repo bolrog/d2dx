@@ -41,20 +41,32 @@ namespace d2dx
 			int32_t height,
 			uint32_t capacity,
 			uint32_t texturesPerAtlas,
-			ID3D11Device* device,
+			_In_ ID3D11Device* device,
 			std::shared_ptr<Simd> simd,
 			std::shared_ptr<TextureProcessor> textureProcessor);
 
 		void OnNewFrame();
 
-		TextureCacheLocation FindTexture(uint32_t contentKey, int32_t lastIndex);
+		TextureCacheLocation FindTexture(
+			uint32_t contentKey,
+			int32_t lastIndex);
 
-		TextureCacheLocation InsertTexture(uint32_t contentKey, const Batch& batch, _In_reads_(D2DX_TMU_MEMORY_SIZE) const uint8_t* tmuData);
+		TextureCacheLocation InsertTexture(
+			uint32_t contentKey,
+			const Batch& batch,
+			_In_reads_(tmuDataSize) const uint8_t* tmuData,
+			uint32_t tmuDataSize);
 
 		uint32_t GetCapacity() const;
+
 		uint32_t GetTexturesPerAtlas() const;
-		ID3D11Texture2D* GetTexture(uint32_t atlasIndex) const;
-		ID3D11ShaderResourceView* GetSrv(uint32_t atlasIndex) const;
+		
+		ID3D11Texture2D* GetTexture(
+			uint32_t atlasIndex) const;
+		
+		ID3D11ShaderResourceView* GetSrv(
+			uint32_t atlasIndex) const;
+		
 		uint32_t GetMemoryFootprint() const;
 
 	private:
@@ -63,7 +75,6 @@ namespace d2dx
 		uint32_t _capacity;
 		uint32_t _texturesPerAtlas;
 		int32_t _atlasCount;
-
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> _deviceContext;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> _textures[4];
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _srvs[4];

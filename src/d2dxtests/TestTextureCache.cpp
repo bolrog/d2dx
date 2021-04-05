@@ -71,7 +71,7 @@ namespace d2dxtests
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
+				textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
 			}
 
 			for (uint32_t i = 0; i < 64; ++i)
@@ -98,7 +98,7 @@ namespace d2dxtests
 			for (uint32_t i = 0; i < 65; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
+				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
 
 				if (i == 64)
 				{
@@ -160,7 +160,7 @@ namespace d2dxtests
 					Assert::AreEqual((int16_t)0, tcl._textureIndex);
 				}
 
-				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data());
+				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
 
 				if (i == 64)
 				{

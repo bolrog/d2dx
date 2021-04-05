@@ -40,7 +40,9 @@ TextureCachePolicyBitPmru::~TextureCachePolicyBitPmru()
 {
 }
 
-int32_t TextureCachePolicyBitPmru::Find(uint32_t contentKey, int32_t lastIndex)
+int32_t TextureCachePolicyBitPmru::Find(
+	uint32_t contentKey,
+	int32_t lastIndex)
 {
 	assert(contentKey != 0);
 
@@ -64,7 +66,9 @@ int32_t TextureCachePolicyBitPmru::Find(uint32_t contentKey, int32_t lastIndex)
 	return -1;
 }
 
-int32_t TextureCachePolicyBitPmru::Insert(uint32_t contentKey, bool& evicted)
+int32_t TextureCachePolicyBitPmru::Insert(
+	uint32_t contentKey,
+	_Out_ bool& evicted)
 {
 	int32_t replacementIndex = -1;
 

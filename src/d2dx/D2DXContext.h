@@ -36,36 +36,122 @@ namespace d2dx
 		~D2DXContext();
 
 		bool IsCapturingFrame() const;
+		
 		bool IsDrawingDisabled() const;
 
 		void OnGlideInit();
+
 		void OnGlideShutdown();
-		const char* OnGetString(uint32_t pname);
-		uint32_t OnGet(uint32_t pname, uint32_t plength, int32_t* params);
-		void OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height);
-		void OnVertexLayout(uint32_t param, int32_t offset);
-		void OnTexDownload(uint32_t tmu, const uint8_t* sourceAddress, uint32_t startAddress, int32_t width, int32_t height);
-		void OnTexSource(uint32_t tmu, uint32_t startAddress, int32_t width, int32_t height);
-		void OnConstantColorValue(uint32_t color);
-		void OnAlphaBlendFunction(GrAlphaBlendFnc_t rgb_sf, GrAlphaBlendFnc_t rgb_df, GrAlphaBlendFnc_t alpha_sf, GrAlphaBlendFnc_t alpha_df);
-		void OnColorCombine(GrCombineFunction_t function, GrCombineFactor_t factor, GrCombineLocal_t local, GrCombineOther_t other, bool invert);
-		void OnAlphaCombine(GrCombineFunction_t function, GrCombineFactor_t factor, GrCombineLocal_t local, GrCombineOther_t other, bool invert);
-		void OnDrawLine(const void* v1, const void* v2, uint32_t gameContext);
-		void OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** pointers, uint32_t gameContext);
-		void OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uint8_t* vertex, uint32_t stride, uint32_t gameContext);
-		void OnTexDownloadTable(GrTexTable_t type, void* data);
-		void OnLoadGammaTable(uint32_t nentries, uint32_t* red, uint32_t* green, uint32_t* blue);
-		void OnChromakeyMode(GrChromakeyMode_t mode);
-		void OnLfbUnlock(const uint32_t* lfbPtr, uint32_t strideInBytes);
-		void OnGammaCorrectionRGB(float red, float green, float blue);
+
+		const char* OnGetString(
+			uint32_t pname);
+		
+		uint32_t OnGet(
+			uint32_t pname,
+			uint32_t plength,
+			_Out_writes_(plength) int32_t* params);
+		
+		void OnSstWinOpen(
+			uint32_t hWnd,
+			int32_t width,
+			int32_t height);
+		
+		void OnVertexLayout(
+			uint32_t param,
+			int32_t offset);
+		
+		void OnTexDownload(
+			uint32_t tmu,
+			_In_reads_(width * height) const uint8_t* sourceAddress,
+			uint32_t startAddress,
+			int32_t width,
+			int32_t height);
+		
+		void OnTexSource(
+			uint32_t tmu,
+			uint32_t startAddress,
+			int32_t width,
+			int32_t height);
+		
+		void OnConstantColorValue(
+			uint32_t color);
+		
+		void OnAlphaBlendFunction(
+			GrAlphaBlendFnc_t rgb_sf,
+			GrAlphaBlendFnc_t rgb_df,
+			GrAlphaBlendFnc_t alpha_sf,
+			GrAlphaBlendFnc_t alpha_df);
+		
+		void OnColorCombine(
+			GrCombineFunction_t function,
+			GrCombineFactor_t factor,
+			GrCombineLocal_t local,
+			GrCombineOther_t other,
+			bool invert);
+		
+		void OnAlphaCombine(
+			GrCombineFunction_t function,
+			GrCombineFactor_t factor,
+			GrCombineLocal_t local,
+			GrCombineOther_t other,
+			bool invert);
+		
+		void OnDrawLine(
+			_In_ const void* v1,
+			_In_ const void* v2,
+			uint32_t gameContext);
+		
+		void OnDrawVertexArray(
+			uint32_t mode,
+			uint32_t count,
+			_In_reads_(count) uint8_t** pointers,
+			uint32_t gameContext);
+		
+		void OnDrawVertexArrayContiguous(
+			uint32_t mode,
+			uint32_t count,
+			_In_reads_(count * stride) uint8_t* vertex,
+			uint32_t stride,
+			uint32_t gameContext);
+		
+		void OnTexDownloadTable(
+			GrTexTable_t type,
+			_In_reads_bytes_(256 * 4) void* data);
+		
+		void OnLoadGammaTable(
+			uint32_t nentries, 
+			_In_reads_(nentries) uint32_t* red, 
+			_In_reads_(nentries) uint32_t* green,
+			_In_reads_(nentries) uint32_t* blue);
+		
+		void OnChromakeyMode(
+			GrChromakeyMode_t mode);
+		
+		void OnLfbUnlock(
+			_In_reads_bytes_(strideInBytes * 480) const uint32_t* lfbPtr,
+			uint32_t strideInBytes);
+		
+		void OnGammaCorrectionRGB(
+			float red,
+			float green,
+			float blue);
+		
 		void OnBufferSwap();
 		
-		void OnMousePosChanged(int32_t x, int32_t y);
+		void OnMousePosChanged(
+			int32_t x,
+			int32_t y);
 
-		void SetCustomResolution(int32_t width, int32_t height);
-		void GetSuggestedCustomResolution(int32_t* width, int32_t* height);
+		void SetCustomResolution(
+			int32_t width,
+			int32_t height);
+		
+		void GetSuggestedCustomResolution(
+			_Out_ int32_t* width,
+			_Out_ int32_t* height);
 
-		void LogGlideCall(const char* s);
+		void LogGlideCall(
+			_In_z_ const char* s);
 
 		GameVersion GetGameVersion() const;
 
@@ -74,8 +160,17 @@ namespace d2dx
 		void PrepareLogoTextureBatch();
 		void InsertLogoOnTitleScreen();
 		void DrawBatches();
-		const Batch PrepareBatchForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const;
-		Vertex ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, const Batch& batch);
+		const Batch PrepareBatchForSubmit(
+			Batch batch,
+			PrimitiveType primitiveType,
+			uint32_t vertexCount,
+			uint32_t gameContext) const;
+		
+		Vertex ReadVertex(
+			const uint8_t* vertex,
+			uint32_t vertexLayout,
+			const Batch& batch);
+		
 		void FixIngameMousePosition();
 
 		uint32_t _renderFilter;

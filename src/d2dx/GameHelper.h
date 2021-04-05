@@ -29,16 +29,28 @@ namespace d2dx
 		~GameHelper();
 
 		GameVersion GetVersion() const;
+		
 		const char* GetVersionString() const;
 
 		uint32_t ScreenOpenMode() const;
-		void GetConfiguredGameSize(int32_t* width, int32_t* height) const;
-		void SetIngameMousePos(int32_t x, int32_t y);
+		
+		void GetConfiguredGameSize(
+			_Out_ int32_t* width,
+			_Out_ int32_t* height) const;
+		
+		void SetIngameMousePos(
+			int32_t x,
+			int32_t y);
 
-		GameAddress IdentifyGameAddress(uint32_t returnAddress) const;
+		GameAddress IdentifyGameAddress(
+			uint32_t returnAddress) const;
 
-		TextureCategory GetTextureCategoryFromHash(uint32_t textureHash) const;
-		TextureCategory RefineTextureCategoryFromGameAddress(TextureCategory previousCategory, GameAddress gameAddress) const;
+		TextureCategory GetTextureCategoryFromHash(
+			uint32_t textureHash) const;
+		
+		TextureCategory RefineTextureCategoryFromGameAddress(
+			TextureCategory previousCategory,
+			GameAddress gameAddress) const;
 
 	private:
 		uint32_t ReadU32(HANDLE module, uint32_t offset) const;

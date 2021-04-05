@@ -25,6 +25,9 @@ namespace d2dx
 	public:
 		static std::shared_ptr<Simd> Create();
 
-		virtual int32_t IndexOfUInt32(_In_reads_(itemsCount) const uint32_t* __restrict items, uint32_t itemsCount, uint32_t item) = 0;
+		virtual int32_t IndexOfUInt32(
+			_In_reads_(itemsCount) const uint32_t* __restrict items,
+			uint32_t itemsCount,
+			uint32_t item) = 0;
 	};
 }

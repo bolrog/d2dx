@@ -104,7 +104,10 @@ const char* D2DXContext::OnGetString(uint32_t pname)
 	return NULL;
 }
 
-uint32_t D2DXContext::OnGet(uint32_t pname, uint32_t plength, int32_t* params)
+uint32_t D2DXContext::OnGet(
+	uint32_t pname,
+	uint32_t plength,
+	int32_t* params)
 {
 	switch (pname)
 	{
@@ -450,12 +453,10 @@ void D2DXContext::OnDrawLine(const void* v1, const void* v2, uint32_t gameContex
 	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch);
 	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch);
 
-	float dx = endVertex.GetX() - startVertex.GetX();
-	float dy = endVertex.GetY() - startVertex.GetY();
+	float dx = startVertex.GetY() - endVertex.GetY();
+	float dy = endVertex.GetX() - startVertex.GetX();
 	const float lensqr = dx * dx + dy * dy;
 	const float len = lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
-	std::swap(dx, dy);
-	dx = -dx;
 	const float halfinvlen = 1.0f / (2.0f * len);
 	dx *= halfinvlen;
 	dy *= halfinvlen;
@@ -519,7 +520,7 @@ const Batch D2DXContext::PrepareBatchForSubmit(Batch batch, PrimitiveType primit
 	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
 	batch.SetPrimitiveType(PrimitiveType::Triangles);
 	
-	auto tcl = _d3d11Context->UpdateTexture(batch, _tmuMemory.items);
+	auto tcl = _d3d11Context->UpdateTexture(batch, _tmuMemory.items, _tmuMemory.capacity);
 	batch.SetTextureAtlas(tcl._textureAtlas);
 	batch.SetTextureIndex(tcl._textureIndex);
 
@@ -767,7 +768,7 @@ void D2DXContext::InsertLogoOnTitleScreen()
 
 	PrepareLogoTextureBatch();
 
-	auto tcl = _d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items);
+	auto tcl = _d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items, _sideTmuMemory.capacity);
 
 	_logoTextureBatch.SetTextureAtlas(tcl._textureAtlas);
 	_logoTextureBatch.SetTextureIndex(tcl._textureIndex);

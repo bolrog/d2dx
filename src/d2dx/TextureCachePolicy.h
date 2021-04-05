@@ -25,8 +25,14 @@ namespace d2dx
 	public:
 		virtual ~TextureCachePolicy() {}
 
-		virtual int32_t Find(uint32_t contentKey, int32_t lastIndex) = 0;
-		virtual int32_t Insert(uint32_t contentKey, bool& evicted) = 0;
+		virtual int32_t Find(
+			uint32_t contentKey,
+			int32_t lastIndex) = 0;
+		
+		virtual int32_t Insert(
+			uint32_t contentKey,
+			_Out_ bool& evicted) = 0;
+		
 		virtual void OnNewFrame() = 0;
 	};
 }

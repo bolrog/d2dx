@@ -81,7 +81,11 @@ TextureCacheLocation TextureCache::FindTexture(uint32_t contentKey, int32_t last
 }
 
 _Use_decl_annotations_
-TextureCacheLocation TextureCache::InsertTexture(uint32_t contentKey, const Batch& batch, const uint8_t* tmuData)
+TextureCacheLocation TextureCache::InsertTexture(
+	uint32_t contentKey,
+	const Batch& batch,
+	const uint8_t* tmuData,
+	uint32_t tmuDataSize)
 {
 	assert(batch.IsValid() && batch.GetWidth() > 0 && batch.GetHeight() > 0);
 

@@ -23,7 +23,10 @@ using namespace d2dx;
 using namespace std;
 
 _Use_decl_annotations_
-int32_t SimdSse2::IndexOfUInt32(const uint32_t* items, uint32_t itemsCount, uint32_t item)
+int32_t SimdSse2::IndexOfUInt32(
+	const uint32_t* items,
+	uint32_t itemsCount,
+	uint32_t item)
 {
 	assert(items && ((uintptr_t)items & 63) == 0);
 	assert(!(itemsCount & 0x3F));
