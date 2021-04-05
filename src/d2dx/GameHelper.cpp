@@ -46,6 +46,7 @@ GameVersion GameHelper::GetVersion() const
 	return _version;
 }
 
+_Use_decl_annotations_
 const char* GameHelper::GetVersionString() const
 {
 	switch (_version)
@@ -88,36 +89,39 @@ uint32_t GameHelper::ScreenOpenMode() const
 	}
 }
 
-void GameHelper::GetConfiguredGameSize(int32_t* width, int32_t* height) const
+_Use_decl_annotations_
+void GameHelper::GetConfiguredGameSize(
+	int32_t* width,
+	int32_t* height) const
 {
 	HKEY hKey;
 	LPCTSTR diablo2Key = TEXT("SOFTWARE\\Blizzard Entertainment\\Diablo II");
 	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, diablo2Key, 0, KEY_READ, &hKey);
-	assert(openRes == ERROR_SUCCESS);
-	if (openRes == ERROR_SUCCESS)
+	if (openRes != ERROR_SUCCESS)
 	{
-		DWORD type = REG_DWORD;
-		DWORD size = 4;
-		DWORD value;
-		auto queryRes = RegQueryValueExA(hKey, "Resolution", NULL, &type, (LPBYTE)&value, &size);
-		assert(queryRes == ERROR_SUCCESS || queryRes == ERROR_MORE_DATA);
-
-		if (value == 0)
-		{
-			*width = 640;
-			*height = 480;
-		}
-		else
-		{
-			*width = 800;
-			*height = 600;
-		}
-
-		if (RegCloseKey(hKey) == ERROR_SUCCESS)
-		{
-
-		}
+		*width = 800;
+		*height = 600;
+		return;
 	}
+
+	DWORD type = REG_DWORD;
+	DWORD size = 4;
+	DWORD value;
+	auto queryRes = RegQueryValueExA(hKey, "Resolution", NULL, &type, (LPBYTE)&value, &size);
+	assert(queryRes == ERROR_SUCCESS || queryRes == ERROR_MORE_DATA);
+
+	if (value == 0)
+	{
+		*width = 640;
+		*height = 480;
+	}
+	else
+	{
+		*width = 800;
+		*height = 600;
+	}
+
+	RegCloseKey(hKey);
 }
 
 void GameHelper::SetIngameMousePos(int32_t x, int32_t y)

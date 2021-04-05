@@ -25,7 +25,15 @@
 using namespace d2dx;
 using namespace std;
 
-TextureCache::TextureCache(int32_t width, int32_t height, uint32_t capacity, uint32_t texturesPerAtlas, ID3D11Device* device, shared_ptr<Simd> simd, shared_ptr<TextureProcessor> textureProcessor) :
+_Use_decl_annotations_
+TextureCache::TextureCache(
+	int32_t width,
+	int32_t height,
+	uint32_t capacity,
+	uint32_t texturesPerAtlas,
+	ID3D11Device* device,
+	shared_ptr<Simd> simd,
+	shared_ptr<TextureProcessor> textureProcessor) :
 	_width{ width },
 	_height{ height },
 	_capacity{ capacity },
@@ -124,12 +132,14 @@ uint32_t TextureCache::GetTexturesPerAtlas() const
 	return _texturesPerAtlas;
 }
 
-ID3D11Texture2D* TextureCache::GetTexture(uint32_t atlasIndex) const
+ID3D11Texture2D* TextureCache::GetTexture(
+	uint32_t atlasIndex) const
 {
 	return _textures[atlasIndex / _texturesPerAtlas].Get();
 }
 
-ID3D11ShaderResourceView* TextureCache::GetSrv(uint32_t textureAtlas) const
+ID3D11ShaderResourceView* TextureCache::GetSrv(
+	uint32_t textureAtlas) const
 {
 	assert(textureAtlas >= 0 && textureAtlas < _atlasCount);
 	return _srvs[textureAtlas].Get();

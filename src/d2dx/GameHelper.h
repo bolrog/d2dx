@@ -30,7 +30,7 @@ namespace d2dx
 
 		GameVersion GetVersion() const;
 		
-		const char* GetVersionString() const;
+		_Ret_z_ const char* GetVersionString() const;
 
 		uint32_t ScreenOpenMode() const;
 		

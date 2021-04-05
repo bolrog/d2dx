@@ -27,11 +27,11 @@ static GrLfbInfo_t lfbInfo = { 0 };
 static char tempString[2048];
 static bool initialized = false;
 
-#define D2DX_LOG(s, ...) \
-	if (D2DXContext::Instance() && D2DXContext::Instance()->IsCapturingFrame()) { \
-		sprintf_s(tempString, s, __VA_ARGS__); \
-		D2DXContext::Instance()->LogGlideCall(tempString); \
-	}
+#define D2DX_LOG(s, ...) 
+	//if (D2DXContext::Instance() && D2DXContext::Instance()->IsCapturingFrame()) { \
+	//	sprintf_s(tempString, s, __VA_ARGS__); \
+	//	D2DXContext::Instance()->LogGlideCall(tempString); \
+	//}
 
 extern "C" {
 
@@ -843,11 +843,6 @@ FX_ENTRY void FX_CALL
 {
 	assert(false && "grDrawTriangle: Unsupported");
 	D2DX_LOG("grDrawTriangle a=%p b=%p c=%p\n", a, b, c);
-
-	if (D2DXContext::Instance()->IsDrawingDisabled())
-	{
-		return;
-	}
 
 	//(*pgrDrawTriangle)(a, b, c);
 }

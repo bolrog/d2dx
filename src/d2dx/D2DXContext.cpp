@@ -50,8 +50,6 @@ void D2DXContext::Destroy()
 }
 
 D2DXContext::D2DXContext() :
-	_renderFilter(0),
-	_capturingFrame(false),
 	_frame(0),
 	_majorGameState(MajorGameState::Unknown),
 	_vertexLayout(0xFF),
@@ -104,6 +102,7 @@ const char* D2DXContext::OnGetString(uint32_t pname)
 	return NULL;
 }
 
+_Use_decl_annotations_
 uint32_t D2DXContext::OnGet(
 	uint32_t pname,
 	uint32_t plength,
@@ -143,17 +142,9 @@ uint32_t D2DXContext::OnGet(
 	}
 }
 
-bool D2DXContext::IsDrawingDisabled() const
-{
-	return false;
-}
-
-bool D2DXContext::IsCapturingFrame() const
-{
-	return _capturingFrame;
-}
-
-void D2DXContext::LogGlideCall(const char* s)
+_Use_decl_annotations_
+void D2DXContext::LogGlideCall(
+	const char* s)
 {
 }
 
@@ -219,7 +210,13 @@ void D2DXContext::OnVertexLayout(uint32_t param, int32_t offset)
 	}
 }
 
-void D2DXContext::OnTexDownload(uint32_t tmu, const uint8_t* sourceAddress, uint32_t startAddress, int32_t width, int32_t height)
+_Use_decl_annotations_
+void D2DXContext::OnTexDownload(
+	uint32_t tmu,
+	const uint8_t* sourceAddress,
+	uint32_t startAddress,
+	int32_t width,
+	int32_t height)
 {
 	assert(tmu == 0 && (startAddress & 255) == 0);
 
@@ -231,7 +228,11 @@ void D2DXContext::OnTexDownload(uint32_t tmu, const uint8_t* sourceAddress, uint
 	memcpy_s(pStart, _tmuMemory.capacity - startAddress, sourceAddress, memRequired);
 }
 
-void D2DXContext::OnTexSource(uint32_t tmu, uint32_t startAddress, int32_t width, int32_t height)
+void D2DXContext::OnTexSource(
+	uint32_t tmu,
+	uint32_t startAddress,
+	int32_t width,
+	int32_t height)
 {
 	assert(tmu == 0 && (startAddress & 255) == 0);
 
@@ -438,7 +439,11 @@ void D2DXContext::OnAlphaBlendFunction(GrAlphaBlendFnc_t rgb_sf, GrAlphaBlendFnc
 }
 
 
-void D2DXContext::OnDrawLine(const void* v1, const void* v2, uint32_t gameContext)
+_Use_decl_annotations_
+void D2DXContext::OnDrawLine(
+	const void* v1,
+	const void* v2,
+	uint32_t gameContext)
 {
 	FixIngameMousePosition();
 
@@ -531,7 +536,12 @@ const Batch D2DXContext::PrepareBatchForSubmit(Batch batch, PrimitiveType primit
 	return batch;
 }
 
-void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** pointers, uint32_t gameContext)
+_Use_decl_annotations_
+void D2DXContext::OnDrawVertexArray(
+	uint32_t mode,
+	uint32_t count,
+	uint8_t** pointers,
+	uint32_t gameContext)
 {
 	FixIngameMousePosition();
 
@@ -590,7 +600,13 @@ void D2DXContext::OnDrawVertexArray(uint32_t mode, uint32_t count, uint8_t** poi
 	_batches.items[_batchCount++] = batch;
 }
 
-void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uint8_t* vertex, uint32_t stride, uint32_t gameContext)
+_Use_decl_annotations_
+void D2DXContext::OnDrawVertexArrayContiguous(
+	uint32_t mode, 
+	uint32_t count, 
+	uint8_t* vertex, 
+	uint32_t stride, 
+	uint32_t gameContext)
 {
 	FixIngameMousePosition();
 
@@ -657,7 +673,10 @@ void D2DXContext::OnDrawVertexArrayContiguous(uint32_t mode, uint32_t count, uin
 	_batches.items[_batchCount++] = batch;
 }
 
-void D2DXContext::OnTexDownloadTable(GrTexTable_t type, void* data)
+_Use_decl_annotations_
+void D2DXContext::OnTexDownloadTable(
+	GrTexTable_t type,
+	void* data)
 {
 	if (type != GR_TEXTABLE_PALETTE)
 	{
@@ -697,12 +716,18 @@ void D2DXContext::OnTexDownloadTable(GrTexTable_t type, void* data)
 	ALWAYS_PRINT("Too many palettes.");
 }
 
-void D2DXContext::OnChromakeyMode(GrChromakeyMode_t mode)
+void D2DXContext::OnChromakeyMode(
+	GrChromakeyMode_t mode)
 {
 	_scratchBatch.SetIsChromaKeyEnabled(mode == GR_CHROMAKEY_ENABLE);
 }
 
-void D2DXContext::OnLoadGammaTable(uint32_t nentries, uint32_t* red, uint32_t* green, uint32_t* blue)
+_Use_decl_annotations_
+void D2DXContext::OnLoadGammaTable(
+	uint32_t nentries,
+	uint32_t* red,
+	uint32_t* green,
+	uint32_t* blue)
 {
 	for (int32_t i = 0; i < (int32_t)min(nentries, 256); ++i)
 	{
@@ -712,12 +737,18 @@ void D2DXContext::OnLoadGammaTable(uint32_t nentries, uint32_t* red, uint32_t* g
 	_d3d11Context->LoadGammaTable(_gammaTable.items);
 }
 
-void D2DXContext::OnLfbUnlock(const uint32_t* lfbPtr, uint32_t strideInBytes)
+_Use_decl_annotations_
+void D2DXContext::OnLfbUnlock(
+	const uint32_t* lfbPtr,
+	uint32_t strideInBytes)
 {
 	_d3d11Context->WriteToScreen(lfbPtr, 640, 480);
 }
 
-void D2DXContext::OnGammaCorrectionRGB(float red, float green, float blue)
+void D2DXContext::OnGammaCorrectionRGB(
+	float red,
+	float green,
+	float blue)
 {
 	_d3d11Context->SetGamma(red, green, blue);
 }
@@ -819,13 +850,18 @@ void D2DXContext::FixIngameMousePosition()
 	}
 }
 
-void D2DXContext::SetCustomResolution(int32_t width, int32_t height)
+void D2DXContext::SetCustomResolution(
+	int32_t width,
+	int32_t height)
 {
 	_customWidth = width;
 	_customHeight = height;
 }
 
-void D2DXContext::GetSuggestedCustomResolution(int32_t* width, int32_t* height)
+_Use_decl_annotations_
+void D2DXContext::GetSuggestedCustomResolution(
+	int32_t* width,
+	int32_t* height)
 {
 	int32_t desktopWidth = GetSystemMetrics(SM_CXSCREEN);
 	int32_t desktopHeight = GetSystemMetrics(SM_CYSCREEN);

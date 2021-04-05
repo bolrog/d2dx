@@ -34,11 +34,7 @@ namespace d2dx
 
 		D2DXContext();
 		~D2DXContext();
-
-		bool IsCapturingFrame() const;
 		
-		bool IsDrawingDisabled() const;
-
 		void OnGlideInit();
 
 		void OnGlideShutdown();
@@ -172,9 +168,6 @@ namespace d2dx
 			const Batch& batch);
 		
 		void FixIngameMousePosition();
-
-		uint32_t _renderFilter;
-		bool _capturingFrame;
 
 		Batch _scratchBatch;
 
