@@ -90,19 +90,51 @@ D3D11Context::D3D11Context(
 	const int32_t heightFromClientRect = clientRect.bottom - clientRect.top;
 
 	_featureLevel = D3D_FEATURE_LEVEL_11_0;
-	D3D_FEATURE_LEVEL requestFeatureLevel = D3D_FEATURE_LEVEL_11_0;
+	D3D_FEATURE_LEVEL requestedFeatureLevels[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1 };
 
 	_dxgiAllowTearingFlagSupported = IsAllowTearingFlagSupported();
+	_frameLatencyWaitableObjectSupported = IsFrameLatencyWaitableObjectSupported();
 
-	DWORD swapChainCreateFlags = 0;
+	_swapChainCreateFlags = 0;
 
-	if (_options.noVSync && _dxgiAllowTearingFlagSupported)
+	if (_options.noVSync)
 	{
-		swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+		if (_dxgiAllowTearingFlagSupported)
+		{
+			_syncStrategy = D3D11SyncStrategy::AllowTearing;
+			_swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+			ALWAYS_PRINT("Using 'AllowTearing' sync strategy.")
+		}
+		else
+		{
+			_syncStrategy = D3D11SyncStrategy::Interval0;
+			ALWAYS_PRINT("Using 'Interval0' sync strategy.")
+		}
 	}
-	else if (!_options.noVSync)
+	else
 	{
-		swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+		if (_frameLatencyWaitableObjectSupported)
+		{
+			_syncStrategy = D3D11SyncStrategy::FrameLatencyWaitableObject;
+			_swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+			ALWAYS_PRINT("Using 'FrameLatencyWaitableObject' sync strategy.")
+		}
+		else
+		{
+			_syncStrategy = D3D11SyncStrategy::Interval1;
+			ALWAYS_PRINT("Using 'Interval1' sync strategy.")
+		}
+	}
+
+	if (GetWindowsVersion().major >= 10)
+	{
+		_swapStrategy = D3D11SwapStrategy::FlipDiscard;
+		ALWAYS_PRINT("Using 'FlipDiscard' swap strategy.")
+	}
+	else
+	{
+		_swapStrategy = D3D11SwapStrategy::Discard;
+		ALWAYS_PRINT("Using 'Discard' swap strategy.")
 	}
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
@@ -116,44 +148,51 @@ D3D11Context::D3D11Context(
 	swapChainDesc.OutputWindow = hWnd;
 	swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 0;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swapChainDesc.Flags = swapChainCreateFlags;
+	swapChainDesc.SwapEffect = _swapStrategy == D3D11SwapStrategy::FlipDiscard ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
+	swapChainDesc.Flags = _swapChainCreateFlags;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
 	swapChainDesc.Windowed = TRUE;
 
 #ifdef NDEBUG
-	uint32_t flags = 0;
+	uint32_t flags = D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS;
 #else
 	uint32_t flags = D3D11_CREATE_DEVICE_DEBUG;
 #endif
+
+	ComPtr<IDXGISwapChain> swapChain;
 
 	D2DX_RELEASE_CHECK_HR(D3D11CreateDeviceAndSwapChain(
 		NULL,
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
 		flags,
-		&requestFeatureLevel,
-		1,
+		requestedFeatureLevels,
+		ARRAYSIZE(requestedFeatureLevels),
 		D3D11_SDK_VERSION,
 		&swapChainDesc,
-		&_swapChain,
+		swapChain.GetAddressOf(),
 		&_device,
 		&_featureLevel,
 		&_deviceContext));
 
+	ALWAYS_PRINT("Created device with feature level %u.", _featureLevel);
+
+	D2DX_RELEASE_CHECK_HR(swapChain.As(&_swapChain1));
+
 	ComPtr<IDXGIFactory> dxgiFactory;
-	_swapChain->GetParent(IID_PPV_ARGS(&dxgiFactory));
+	_swapChain1->GetParent(IID_PPV_ARGS(&dxgiFactory));
 	if (dxgiFactory)
 	{
 		dxgiFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_WINDOW_CHANGES);
 	}
 
-	if (SUCCEEDED(_swapChain->QueryInterface(IID_PPV_ARGS(&_swapChain2))))
+	if (SUCCEEDED(_swapChain1.As(&_swapChain2)))
 	{
-		ALWAYS_PRINT("Swap chain supports IDXGISwapChain2.");
+		_backbufferSizingStrategy = D3D11BackbufferSizingStrategy::SetSourceSize;
+		ALWAYS_PRINT("Using 'SetSourceSize' backbuffer sizing strategy.")
 
-		if (!_options.noVSync)
+		if (!_options.noVSync && _frameLatencyWaitableObjectSupported)
 		{
 			ALWAYS_PRINT("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
 			_frameLatencyWaitableObject = _swapChain2->GetFrameLatencyWaitableObject();
@@ -161,7 +200,8 @@ D3D11Context::D3D11Context(
 	}
 	else
 	{
-		ALWAYS_PRINT("Swap chain does not support IDXGISwapChain2.");
+		_backbufferSizingStrategy = D3D11BackbufferSizingStrategy::ResizeBuffers;
+		ALWAYS_PRINT("Using 'ResizeBuffers' backbuffer sizing strategy.")
 	}
 
 	if (SUCCEEDED(_deviceContext->QueryInterface(IID_PPV_ARGS(&_deviceContext1))))
@@ -176,7 +216,7 @@ D3D11Context::D3D11Context(
 	if (_swapChain2)
 	{
 		ComPtr<IDXGIDevice1> dxgiDevice1;
-		if (SUCCEEDED(_swapChain->GetDevice(IID_PPV_ARGS(&dxgiDevice1))))
+		if (SUCCEEDED(_swapChain1->GetDevice(IID_PPV_ARGS(&dxgiDevice1))))
 		{
 			ALWAYS_PRINT("Setting maximum frame latency to 2.");
 			D2DX_RELEASE_CHECK_HR(dxgiDevice1->SetMaximumFrameLatency(2));
@@ -185,10 +225,12 @@ D3D11Context::D3D11Context(
 
 	// get a pointer directly to the back buffer
 	ComPtr<ID3D11Texture2D> backbuffer;
-	D2DX_RELEASE_CHECK_HR(_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &backbuffer));
+	D2DX_RELEASE_CHECK_HR(_swapChain1->GetBuffer(0, __uuidof(ID3D11Texture2D), &backbuffer));
 
 	// create a render target pointing to the back buffer
 	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(backbuffer.Get(), nullptr, &_backbufferRtv));
+
+	backbuffer = nullptr;
 
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
@@ -363,22 +405,21 @@ void D3D11Context::Present()
 	srvs[1] = nullptr;
 	SetPSShaderResourceViews(srvs);
 
-	if (_options.noVSync)
+	switch (_syncStrategy)
 	{
-		D2DX_RELEASE_CHECK_HR(_swapChain->Present(0, _dxgiAllowTearingFlagSupported ? DXGI_PRESENT_ALLOW_TEARING : 0));
-	}
-	else 
-	{
-		D2DX_RELEASE_CHECK_HR(_swapChain->Present(0, 0));
-
-		if (_frameLatencyWaitableObject)
-		{
-			DWORD result = WaitForSingleObjectEx(
-				_frameLatencyWaitableObject,
-				1000, // 1 second timeout (shouldn't ever occur)
-				true
-			);
-		}
+	case D3D11SyncStrategy::AllowTearing:
+		D2DX_RELEASE_CHECK_HR(_swapChain1->Present(0, DXGI_PRESENT_ALLOW_TEARING));
+		break;
+	case D3D11SyncStrategy::Interval0:
+		D2DX_RELEASE_CHECK_HR(_swapChain1->Present(0, 0));
+		break;
+	case D3D11SyncStrategy::FrameLatencyWaitableObject:
+		D2DX_RELEASE_CHECK_HR(_swapChain1->Present(0, 0));
+		::WaitForSingleObjectEx(_frameLatencyWaitableObject, 1000, true);
+		break;
+	case D3D11SyncStrategy::Interval1:
+		D2DX_RELEASE_CHECK_HR(_swapChain1->Present(1, 0));
+		break;
 	}
 
 	if (_deviceContext1)
@@ -653,7 +694,7 @@ void D3D11Context::BulkWriteVertices(
 }
 
 uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(
-	int32_t width, 
+	int32_t width,
 	int32_t height)
 {
 	Vertex vertices[6] = {
@@ -937,13 +978,9 @@ void D3D11Context::AdjustWindowPlacement(
 	if (_options.screenMode == ScreenMode::Windowed)
 	{
 		RECT oldWindowRect;
-		RECT oldWindowClientRect;
 		GetWindowRect(hWnd, &oldWindowRect);
-		GetClientRect(hWnd, &oldWindowClientRect);
 		const int32_t oldWindowWidth = oldWindowRect.right - oldWindowRect.left;
 		const int32_t oldWindowHeight = oldWindowRect.bottom - oldWindowRect.top;
-		const int32_t oldWindowClientWidth = oldWindowClientRect.right - oldWindowClientRect.left;
-		const int32_t oldWindowClientHeight = oldWindowClientRect.bottom - oldWindowClientRect.top;
 		const int32_t oldWindowCenterX = (oldWindowRect.left + oldWindowRect.right) / 2;
 		const int32_t oldWindowCenterY = (oldWindowRect.top + oldWindowRect.bottom) / 2;
 
@@ -957,15 +994,18 @@ void D3D11Context::AdjustWindowPlacement(
 			_metrics.renderWidth = _metrics.windowWidth;
 			_metrics.renderHeight = _metrics.windowHeight;
 		}
-
-		const int32_t newWindowWidth = (oldWindowWidth - oldWindowClientWidth) + _metrics.windowWidth;
-		const int32_t newWindowHeight = (oldWindowHeight - oldWindowClientHeight) + _metrics.windowHeight;
+		
+		const DWORD windowStyle = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+		RECT windowRect = { 0, 0, _metrics.windowWidth, _metrics.windowHeight };
+		AdjustWindowRect(&windowRect, windowStyle, FALSE);
+		const int32_t newWindowWidth = windowRect.right - windowRect.left;
+		const int32_t newWindowHeight = windowRect.bottom - windowRect.top;
 		const int32_t newWindowCenterX = centerOnCurrentPosition ? oldWindowCenterX : desktopCenterX;
 		const int32_t newWindowCenterY = centerOnCurrentPosition ? oldWindowCenterY : desktopCenterY;
 		const int32_t newWindowX = newWindowCenterX - newWindowWidth / 2;
 		const int32_t newWindowY = newWindowCenterY - newWindowHeight / 2;
 
-		SetWindowLongPtr(hWnd, GWL_STYLE, WS_VISIBLE | WS_OVERLAPPEDWINDOW);
+		SetWindowLongPtr(hWnd, GWL_STYLE, windowStyle);
 		SetWindowPos_Real(hWnd, HWND_TOP, newWindowX, newWindowY, newWindowWidth, newWindowHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
 
 #ifndef NDEBUG
@@ -996,10 +1036,7 @@ void D3D11Context::AdjustWindowPlacement(
 
 	UpdateConstants();
 
-	if (_swapChain2)
-	{
-		_swapChain2->SetSourceSize(_metrics.renderWidth, _metrics.renderHeight);
-	}
+	ResizeBackbuffer();
 
 	CD3D11_RECT scissorRect{ (LONG)_constants.vertexOffset[0], 0, _metrics.renderWidth - (LONG)_constants.vertexOffset[0], _metrics.renderHeight };
 	_deviceContext->RSSetScissorRects(1, &scissorRect);
@@ -1009,10 +1046,31 @@ void D3D11Context::AdjustWindowPlacement(
 	Present();
 }
 
+void D3D11Context::ResizeBackbuffer()
+{
+	if (_backbufferSizingStrategy == D3D11BackbufferSizingStrategy::SetSourceSize)
+	{
+		_swapChain2->SetSourceSize(_metrics.renderWidth, _metrics.renderHeight);
+	}
+	else if (_backbufferSizingStrategy == D3D11BackbufferSizingStrategy::ResizeBuffers)
+	{
+		ID3D11RenderTargetView* nullRtv = nullptr;
+		_deviceContext->OMSetRenderTargets(1, &nullRtv, nullptr);
+		_backbufferRtv = nullptr;
+
+		D2DX_RELEASE_CHECK_HR(_swapChain1->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, _swapChainCreateFlags));
+
+		ComPtr<ID3D11Texture2D> backbuffer;
+		D2DX_RELEASE_CHECK_HR(_swapChain1->GetBuffer(0, __uuidof(ID3D11Texture2D), &backbuffer));
+		D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(backbuffer.Get(), nullptr, &_backbufferRtv));
+	}
+
+}
+
 void D3D11Context::SetSizes(
-	int32_t gameWidth, 
-	int32_t gameHeight, 
-	int32_t renderWidth, 
+	int32_t gameWidth,
+	int32_t gameHeight,
+	int32_t renderWidth,
 	int32_t renderHeight)
 {
 	_metrics.gameWidth = gameWidth;
@@ -1031,6 +1089,12 @@ void D3D11Context::SetSizes(
 	}
 
 	AdjustWindowPlacement(_hWnd, true);
+}
+
+bool D3D11Context::IsFrameLatencyWaitableObjectSupported() const
+{
+	auto windowsVersion = GetWindowsVersion();
+	return (windowsVersion.major == 6 && windowsVersion.minor >= 3) || windowsVersion.major > 6;
 }
 
 bool D3D11Context::IsAllowTearingFlagSupported() const
@@ -1077,3 +1141,4 @@ const D3D11Context::Metrics& D3D11Context::GetMetrics() const
 {
 	return _metrics;
 }
+

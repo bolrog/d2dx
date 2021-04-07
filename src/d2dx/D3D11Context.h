@@ -27,6 +27,26 @@ namespace d2dx
 	class Batch;
 	class Simd;
 
+	enum class D3D11SyncStrategy
+	{
+		AllowTearing = 0,
+		Interval0 = 1,
+		FrameLatencyWaitableObject = 2,
+		Interval1 = 3,
+	};
+
+	enum class D3D11SwapStrategy
+	{
+		FlipDiscard = 0,
+		Discard = 1,
+	};
+
+	enum class D3D11BackbufferSizingStrategy
+	{
+		SetSourceSize = 0,
+		ResizeBuffers = 1,
+	};
+
 	class D3D11Context final
 	{
 	public:
@@ -125,8 +145,12 @@ namespace d2dx
 			int32_t width,
 			int32_t height);
 		
-		bool IsAllowTearingFlagSupported() const;
+		bool IsFrameLatencyWaitableObjectSupported() const;
 		
+		bool IsAllowTearingFlagSupported() const;
+
+		void ResizeBackbuffer();
+
 		void SetVS(
 			_In_ ID3D11VertexShader* vs);
 		void SetPS(
@@ -158,13 +182,19 @@ namespace d2dx
 
 		Constants _constants;
 
+		D3D11SyncStrategy _syncStrategy;
+		D3D11SwapStrategy _swapStrategy;
+		D3D11BackbufferSizingStrategy _backbufferSizingStrategy;
+
+		DWORD _swapChainCreateFlags;
 		bool _dxgiAllowTearingFlagSupported;
+		bool _frameLatencyWaitableObjectSupported;
 		D3D_FEATURE_LEVEL _featureLevel;
 		Microsoft::WRL::ComPtr<ID3D11Device> _device;
 		Microsoft::WRL::ComPtr<ID3D11Device3> _device3;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> _deviceContext;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext1> _deviceContext1;
-		Microsoft::WRL::ComPtr<IDXGISwapChain> _swapChain;
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> _swapChain1;
 		Microsoft::WRL::ComPtr<IDXGISwapChain2> _swapChain2;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> _rasterizerStateNoScissor;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> _rasterizerState;
