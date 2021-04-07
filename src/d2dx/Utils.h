@@ -67,4 +67,13 @@ namespace d2dx
 
 	#define D2DX_RELEASE_CHECK(expr) release_check(expr, #expr)
 	#define D2DX_RELEASE_CHECK_HR(expr) release_check_hr(expr, #expr)
+
+	struct WindowsVersion 
+	{
+		uint32_t major;
+		uint32_t minor;
+		uint32_t build;
+	};
+
+	WindowsVersion GetWindowsVersion();
 }

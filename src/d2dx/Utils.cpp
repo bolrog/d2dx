@@ -51,3 +51,39 @@ float d2dx::TimeEndMs(int64_t sinceThisTime)
     assert(_freq);
     return (float)(double(li.QuadPart - sinceThisTime) / _freq);
 }
+
+typedef LONG NTSTATUS, * PNTSTATUS;
+#define STATUS_SUCCESS (0x00000000)
+
+typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+
+static std::unique_ptr<WindowsVersion> windowsVersion;
+
+WindowsVersion d2dx::GetWindowsVersion()
+{
+    if (windowsVersion)
+    {
+        return *windowsVersion;
+    }
+
+    HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");
+    if (hMod) 
+    {
+        RtlGetVersionPtr fxPtr = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
+        if (fxPtr != nullptr) 
+        {
+            RTL_OSVERSIONINFOW rovi = { 0 };
+            rovi.dwOSVersionInfoSize = sizeof(rovi);
+            if (STATUS_SUCCESS == fxPtr(&rovi))
+            {
+                windowsVersion = std::make_unique<WindowsVersion>();
+                windowsVersion->major = rovi.dwMajorVersion;
+                windowsVersion->minor = rovi.dwMinorVersion;
+                windowsVersion->build = rovi.dwBuildNumber;
+                return *windowsVersion;
+            }
+        }
+    }
+    WindowsVersion wv = { 0,0,0 };
+    return wv;
+}
