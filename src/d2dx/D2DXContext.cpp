@@ -869,9 +869,16 @@ void D2DXContext::GetSuggestedCustomResolution(
 	int32_t customHeight = desktopHeight;
 	int32_t scaleFactor = 1;
 
-	while ((customHeight / 2) > 480)
+	while (customHeight > 600)
 	{
 		++scaleFactor;
+		customWidth = desktopWidth / scaleFactor;
+		customHeight = desktopHeight / scaleFactor;
+	}
+
+	if (customHeight <= 480)
+	{
+		--scaleFactor;
 		customWidth = desktopWidth / scaleFactor;
 		customHeight = desktopHeight / scaleFactor;
 	}
