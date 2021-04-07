@@ -5,7 +5,7 @@ D2DX is a preservation project for running classic Diablo II/LoD on modern PCs.
 Version 0.99.408
 
 ## Mission statement
-  - Turn the game into a well behaved DirectX 11 title on Windows 10 (or 8+).
+  - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
   - High quality scaling to modern resolutions, including widescreen.
   - Aim to preserve the classic Diablo 2/LoD experience as much as possible.
   
@@ -23,7 +23,7 @@ Version 0.99.408
 
 ## Requirements
   - Diablo 2: LoD (see Compatibility section below).
-  - Windows 8 and above (10 recommended).
+  - Windows 7 SP1 and above (10 recommended).
   - A CPU with SSE2 support.
   - Integrated graphics or discrete GPU with DirectX 11 support (feature level 10.0 required).
 
