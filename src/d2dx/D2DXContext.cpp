@@ -524,7 +524,7 @@ const Batch D2DXContext::PrepareBatchForSubmit(Batch batch, PrimitiveType primit
 {
 	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
 	batch.SetPrimitiveType(PrimitiveType::Triangles);
-	
+
 	auto tcl = _d3d11Context->UpdateTexture(batch, _tmuMemory.items, _tmuMemory.capacity);
 	batch.SetTextureAtlas(tcl._textureAtlas);
 	batch.SetTextureIndex(tcl._textureIndex);
@@ -602,10 +602,10 @@ void D2DXContext::OnDrawVertexArray(
 
 _Use_decl_annotations_
 void D2DXContext::OnDrawVertexArrayContiguous(
-	uint32_t mode, 
-	uint32_t count, 
-	uint8_t* vertex, 
-	uint32_t stride, 
+	uint32_t mode,
+	uint32_t count,
+	uint8_t* vertex,
+	uint32_t stride,
 	uint32_t gameContext)
 {
 	FixIngameMousePosition();
@@ -787,7 +787,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 	{
 		for (int32_t x = 0; x < 80; ++x)
 		{
-			data[x + (40-y) * 128] = *srcPixels++;
+			data[x + (40 - y) * 128] = *srcPixels++;
 		}
 	}
 }
@@ -869,7 +869,7 @@ void D2DXContext::GetSuggestedCustomResolution(
 	int32_t customHeight = desktopHeight;
 	int32_t scaleFactor = 1;
 
-	while (customHeight > 600)
+	while ((customHeight / 2) > 480)
 	{
 		++scaleFactor;
 		customWidth = desktopWidth / scaleFactor;
