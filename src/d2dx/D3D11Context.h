@@ -52,10 +52,8 @@ namespace d2dx
 	public:
 		D3D11Context(
 			HWND hWnd, 
-			int32_t windowWidth,
-			int32_t windowHeight,
-			int32_t gameWidth,
-			int32_t gameHeight,
+			Size gameSize,
+			Size windowSize,
 			Options& options,
 			std::shared_ptr<Simd> simd,
 			std::shared_ptr<TextureProcessor> textureProcessor);
@@ -97,22 +95,15 @@ namespace d2dx
 
 		TextureCache* GetTextureCache(const Batch& batch) const;
 
-		void SetSizes(int32_t gameWidth, int32_t gameHeight, int32_t renderWidth, int32_t renderHeight);
-
-		struct Metrics
-		{
-			int32_t desktopWidth;
-			int32_t desktopHeight;
-			int32_t desktopClientMaxHeight;
-			int32_t windowWidth;
-			int32_t windowHeight;
-			int32_t renderWidth;
-			int32_t renderHeight;
-			int32_t gameWidth;
-			int32_t gameHeight;
-		};
+		void SetSizes(
+			Size gameSize,
+			Size windowSize);
 		
-		const Metrics& GetMetrics() const;
+		Size GetGameSize() const;
+
+		Rect GetRenderRect() const;
+
+		Size GetDesktopSize() const;
 
 		void ToggleFullscreen();
 
@@ -128,22 +119,19 @@ namespace d2dx
 		void CreateSamplerStates();
 		void CreateTextureCaches();
 		uint32_t DetermineMaxTextureArraySize();
-		
-		void UpdateViewport(
-			int32_t width, 
-			int32_t height);
+		bool IsIntegerScale() const;
+
+		void UpdateViewport(Rect rect);
 		
 		void SetBlendState(AlphaBlend alphaBlend);
-		
-		void UpdateConstants();
-		
+
 		void AdjustWindowPlacement(
 			_In_ HWND hWnd,
 			bool centerOnCurrentPosition);
 		
 		uint32_t UpdateVerticesWithFullScreenQuad(
-			int32_t width,
-			int32_t height);
+			Size srcSize,
+			Rect dstRect);
 		
 		bool IsFrameLatencyWaitableObjectSupported() const;
 		
@@ -165,18 +153,20 @@ namespace d2dx
 		void SetPrimitiveTopology(
 			D3D11_PRIMITIVE_TOPOLOGY pt);
 
-		Metrics _metrics;
-
 		struct Constants
 		{
-			float vertexOffset[2];
-			float vertexScale[2];
 			float screenSize[2];
 			float dummy[2];
 		};
 
-		static_assert(sizeof(Constants) == 8 * 4, "size of Constants");
+		static_assert(sizeof(Constants) == 4 * 4, "size of Constants");
 
+		Size _gameSize;
+		Rect _renderRect;
+		Size _windowSize;
+		Size _desktopSize;
+		int32_t _desktopClientMaxHeight;
+		
 		uint32_t _vbWriteIndex;
 		uint32_t _vbCapacity;
 
@@ -201,11 +191,12 @@ namespace d2dx
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> _inputLayout;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _vb;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> _cb;
-		Microsoft::WRL::ComPtr<ID3D11VertexShader> _vs;
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> _ps;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader> _gameVS;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader> _gamePS;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> _videoPS;
-		Microsoft::WRL::ComPtr<ID3D11VertexShader> _gammaVS;
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> _gammaPS;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader> _displayVS;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader> _displayIntegerScalePS;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader> _displayNonintegerScalePS;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _backbufferRtv;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> _samplerState[2];
 
@@ -220,9 +211,9 @@ namespace d2dx
 		Microsoft::WRL::ComPtr<ID3D11Texture1D> _paletteTexture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _paletteTextureSrv;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> _renderTargetTexture;
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _renderTargetTextureRtv;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _renderTargetTextureSrv;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> _gameTexture;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> _gameTextureRtv;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _gameTextureSrv;
 
 		std::unique_ptr<TextureCache> _textureCaches[6];
 

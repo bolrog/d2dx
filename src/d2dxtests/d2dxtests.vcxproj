@@ -62,6 +62,7 @@
       <UseFullPaths>true</UseFullPaths>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -81,6 +82,7 @@
       <UseFullPaths>true</UseFullPaths>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/Zc:__cplusplus</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -103,11 +105,13 @@
     <ClCompile Include="..\d2dx\glide3x.cpp" />
     <ClCompile Include="..\d2dx\Simd.cpp" />
     <ClCompile Include="..\d2dx\SimdSse2.cpp" />
+    <ClCompile Include="..\d2dx\Metrics.cpp" />
     <ClCompile Include="..\d2dx\TextureCache.cpp" />
     <ClCompile Include="..\d2dx\TextureCachePolicyBitPmru.cpp" />
     <ClCompile Include="..\d2dx\TextureProcessor.cpp" />
     <ClCompile Include="..\d2dx\Utils.cpp" />
     <ClCompile Include="TestBatch.cpp" />
+    <ClCompile Include="TestMetrics.cpp" />
     <ClCompile Include="TestTextureCache.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -123,6 +127,7 @@
     <ClInclude Include="..\d2dx\Detours.h" />
     <ClInclude Include="..\d2dx\dx256_bmp.h" />
     <ClInclude Include="..\d2dx\GameHelper.h" />
+    <ClInclude Include="..\d2dx\Metrics.h" />
     <ClInclude Include="..\d2dx\TextureCache.h" />
     <ClInclude Include="..\d2dx\TextureCachePolicy.h" />
     <ClInclude Include="..\d2dx\TextureCachePolicyBitPmru.h" />

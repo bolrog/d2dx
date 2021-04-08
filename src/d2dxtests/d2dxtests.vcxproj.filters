@@ -49,6 +49,10 @@
     <ClCompile Include="..\d2dx\Detours.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
+    <ClCompile Include="..\d2dx\Metrics.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
+    <ClCompile Include="TestMetrics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\d2dx\Batch.h">
@@ -91,6 +95,9 @@
       <Filter>d2dx</Filter>
     </ClInclude>
     <ClInclude Include="..\d2dx\Detours.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\Metrics.h">
       <Filter>d2dx</Filter>
     </ClInclude>
   </ItemGroup>

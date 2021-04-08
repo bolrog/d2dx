@@ -18,10 +18,13 @@
 */
 #include "pch.h"
 #include "D2DXContext.h"
+#include "D3D11Context.h"
 #include "GameHelper.h"
 #include "GlideHelpers.h"
 #include "Simd.h"
+#include "Metrics.h"
 #include "Utils.h"
+#include "Vertex.h"
 #include "dx256_bmp.h"
 
 using namespace d2dx;
@@ -61,9 +64,10 @@ D2DXContext::D2DXContext() :
 	_batchCount(0),
 	_batches(D2DX_MAX_BATCHES_PER_FRAME),
 	_vertexCount(0),
-	_vertices(D2DX_MAX_VERTICES_PER_FRAME)
+	_vertices(D2DX_MAX_VERTICES_PER_FRAME),
+	_suggestedGameSize{ 0, 0 }
 {
-	memset(_paletteKeys.items, 0, sizeof(uint32_t) * _paletteKeys.capacity);
+	memset(_paletteKeys.items, 0, sizeof(uint32_t)* _paletteKeys.capacity);
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
@@ -161,23 +165,31 @@ void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
 	int32_t windowWidth, windowHeight;
 	_gameHelper.GetConfiguredGameSize(&windowWidth, &windowHeight);
 
+	Size gameSize{ width, height };
+
 	if (_customWidth > 0)
 	{
-		width = _customWidth;
-		height = _customHeight;
+		gameSize.width = _customWidth;
+		gameSize.height = _customHeight;
 	}
 
-	if (width > 800)
+	if (gameSize.width > 800)
 	{
-		windowWidth = width;
-		windowHeight = height;
+		windowWidth = gameSize.width;
+		windowHeight = gameSize.height;
 	}
 
 	if (!_d3d11Context)
 	{
 		auto simd = Simd::Create();
 		auto textureProcessor = make_shared<TextureProcessor>();
-		_d3d11Context = make_unique<D3D11Context>((HWND)hWnd, windowWidth * _options.defaultZoomLevel, windowHeight * _options.defaultZoomLevel, width, height, _options, simd, textureProcessor);
+		_d3d11Context = make_unique<D3D11Context>(
+			(HWND)hWnd,
+			gameSize,
+			Size { (int32_t)(windowWidth * _options.defaultZoomLevel), (int32_t)(windowHeight * _options.defaultZoomLevel )},
+			_options,
+			simd,
+			textureProcessor);
 	}
 	else
 	{
@@ -186,7 +198,7 @@ void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
 			windowWidth = width;
 			windowHeight = height;
 		}
-		_d3d11Context->SetSizes(width, height, windowWidth * _options.defaultZoomLevel, windowHeight * _options.defaultZoomLevel);
+		_d3d11Context->SetSizes(gameSize, { windowWidth, windowHeight });
 	}
 
 	_batchCount = 0;
@@ -805,8 +817,8 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	_logoTextureBatch.SetTextureIndex(tcl._textureIndex);
 	_logoTextureBatch.SetStartVertex(_vertexCount);
 
-	const float x = (float)(_d3d11Context->GetMetrics().gameWidth - 90 - 16);
-	const float y = (float)(_d3d11Context->GetMetrics().gameHeight - 50 - 16);
+	const float x = (float)(_d3d11Context->GetGameSize().width - 90 - 16);
+	const float y = (float)(_d3d11Context->GetGameSize().height - 50 - 16);
 	const uint32_t color = 0xFFFFa090;
 
 	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15);
@@ -863,26 +875,17 @@ void D2DXContext::GetSuggestedCustomResolution(
 	int32_t* width,
 	int32_t* height)
 {
-	int32_t desktopWidth = GetSystemMetrics(SM_CXSCREEN);
-	int32_t desktopHeight = GetSystemMetrics(SM_CYSCREEN);
-	int32_t customWidth = desktopWidth;
-	int32_t customHeight = desktopHeight;
-	int32_t scaleFactor = 1;
-
-	while (customHeight > 600)
+	if (_suggestedGameSize.width == 0)
 	{
-		++scaleFactor;
-		customWidth = desktopWidth / scaleFactor;
-		customHeight = desktopHeight / scaleFactor;
+		Size desktopSize{ GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
+		_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, true);
+		ALWAYS_PRINT("Suggesting game size %ix%i.", _suggestedGameSize.width, _suggestedGameSize.height);
 	}
+	*width = _suggestedGameSize.width;
+	*height = _suggestedGameSize.height;
+}
 
-	if (customHeight <= 480)
-	{
-		--scaleFactor;
-		customWidth = desktopWidth / scaleFactor;
-		customHeight = desktopHeight / scaleFactor;
-	}
-
-	*width = customWidth;
-	*height = customHeight;
+void D2DXContext::DisableBuiltinD2HD()
+{
+	_options.noBuiltinD2HD = true;
 }

@@ -18,14 +18,18 @@
 */
 #include "Constants.hlsli"
 
-Texture2D sceneTexture : register(t0);
-Texture1D gammaTexture : register(t1);
-
-half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
+PixelShaderInput main(
+	in float2 pos : POSITION,
+	in int2 tc : TEXCOORD0,
+	in float4 color : COLOR0,
+	in uint2 misc : TEXCOORD1)
 {
-	half3 c = sceneTexture.Load(float3(tc,0)).rgb;
-	c.r = gammaTexture.Sample(BilinearSampler, c.r).r;
-	c.g = gammaTexture.Sample(BilinearSampler, c.g).g;
-	c.b = gammaTexture.Sample(BilinearSampler, c.b).b;
-	return half4(c, 1);
+	float2 fpos = (2.0 * pos / screenSize) - 1.0;
+	
+	PixelShaderInput psInput;
+	psInput.pos = float4(fpos.x, -fpos.y, 0.0, 1.0);
+	psInput.tc = tc;
+	psInput.color = color;
+	psInput.misc = misc;
+	return psInput;
 }

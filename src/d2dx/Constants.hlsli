@@ -19,8 +19,6 @@
 
 cbuffer Constants : register(b0)
 {
-	float2 vertexOffset;
-	float2 vertexScale;
 	float2 screenSize;
 	float2 dummy;
 };

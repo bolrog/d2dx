@@ -102,11 +102,20 @@ public:
     }
 };
 
+namespace d2dx
+{
+    ID2DXConfigurator* GetConfiguratorInternal()
+    {
+        static D2DXConfigurator configurator;
+        return &configurator;
+    }
+}
+
 extern "C"
 {
     D2DX_EXPORTED ID2DXConfigurator* __stdcall D2DXGetConfigurator()
     {
-        static D2DXConfigurator configurator;
-        return &configurator;
+        D2DXContext::Instance()->DisableBuiltinD2HD();
+        return GetConfiguratorInternal();
     }
 }

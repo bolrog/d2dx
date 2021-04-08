@@ -18,14 +18,15 @@
 */
 #pragma once
 
-#include "D3D11Context.h"
-#include "GameHelper.h"
+#include "Buffer.h"
 #include "Types.h"
 #include "Batch.h"
-#include "Vertex.h"
 
 namespace d2dx
 {
+	class D3D11Context;
+	class Vertex;
+
 	class D2DXContext final
 	{
 	public:
@@ -151,6 +152,8 @@ namespace d2dx
 
 		GameVersion GetGameVersion() const;
 
+		void DisableBuiltinD2HD();
+
 	private:
 		void CheckMajorGameState();
 		void PrepareLogoTextureBatch();
@@ -201,5 +204,6 @@ namespace d2dx
 		int32_t _mouseY;
 		int32_t _customWidth;
 		int32_t _customHeight;
+		Size _suggestedGameSize;
 	};
 }

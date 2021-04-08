@@ -1,19 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="GammaPS.hlsl">
+    <FxCompile Include="DisplayIntegerScalePS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="GammaVS.hlsl">
+    <FxCompile Include="DisplayVS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PixelShader.hlsl">
+    <FxCompile Include="GamePS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
+    <FxCompile Include="GameVS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="VideoPS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="DisplayNonintegerScalePS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>
@@ -81,6 +84,7 @@
       <Filter>thirdparty\SlashDiablo-HD</Filter>
     </ClCompile>
     <ClCompile Include="BuiltinD2HD.cpp" />
+    <ClCompile Include="Metrics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -216,6 +220,7 @@
     <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="BuiltinD2HD.h" />
+    <ClInclude Include="Metrics.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

@@ -40,6 +40,7 @@ namespace d2dx
 		ScreenMode screenMode;
 		bool skipLogo;
 		bool noVSync;
+		bool noBuiltinD2HD;
 		uint32_t defaultZoomLevel;
 	};
 
@@ -118,5 +119,43 @@ namespace d2dx
 		DrawSomething1 = 6,
 		DrawSomething2 = 7,
 		Count = 8,
+	};
+
+	struct Offset final
+	{
+		int32_t x;
+		int32_t y;
+
+		bool operator==(const Offset& rhs) const
+		{
+			return x == rhs.x && y == rhs.y;
+		}
+	};
+
+	struct Size final
+	{
+		int32_t width;
+		int32_t height;
+
+		bool operator==(const Size& rhs) const
+		{
+			return width == rhs.width && height == rhs.height;
+		}
+	};
+
+	struct Rect final
+	{
+		Offset offset;
+		Size size;
+
+		bool IsValid() const
+		{
+			return size.width > 0 && size.height > 0;
+		}
+
+		bool operator==(const Rect& rhs) const
+		{
+			return offset == rhs.offset && size == rhs.size;
+		}
 	};
 }

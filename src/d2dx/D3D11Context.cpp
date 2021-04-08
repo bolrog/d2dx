@@ -20,11 +20,14 @@
 #include "D2DXContext.h"
 #include "D3D11Context.h"
 #include "GlideHelpers.h"
-#include "GammaVS_cso.h"
-#include "GammaPS_cso.h"
-#include "PixelShader_cso.h"
-#include "VertexShader_cso.h"
+#include "DisplayVS_cso.h"
+#include "DisplayNonintegerScalePS_cso.h"
+#include "DisplayIntegerScalePS_cso.h"
+#include "Metrics.h"
+#include "GamePS_cso.h"
+#include "GameVS_cso.h"
 #include "VideoPS_cso.h"
+#include "Vertex.h"
 #include "Utils.h"
 
 using namespace d2dx;
@@ -48,10 +51,8 @@ static LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 
 D3D11Context::D3D11Context(
 	HWND hWnd,
-	int32_t renderWidth,
-	int32_t renderHeight,
-	int32_t gameWidth,
-	int32_t gameHeight,
+	Size gameSize,
+	Size windowSize,
 	Options& options,
 	shared_ptr<Simd> simd,
 	shared_ptr<TextureProcessor> textureProcessor) :
@@ -66,16 +67,15 @@ D3D11Context::D3D11Context(
 {
 	memset(&_shadowState, 0, sizeof(_shadowState));
 
-	_metrics.desktopWidth = GetSystemMetrics(SM_CXSCREEN);
-	_metrics.desktopHeight = GetSystemMetrics(SM_CYSCREEN);
-	_metrics.desktopClientMaxHeight = GetSystemMetrics(SM_CYFULLSCREEN);
+	_desktopSize = { GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
+	_desktopClientMaxHeight = GetSystemMetrics(SM_CYFULLSCREEN);
 
-	_metrics.renderWidth = renderWidth;
-	_metrics.renderHeight = renderHeight;
-	_metrics.windowWidth = renderWidth;
-	_metrics.windowHeight = renderHeight;
-	_metrics.gameWidth = gameWidth;
-	_metrics.gameHeight = gameHeight;
+	_gameSize = gameSize;
+	_windowSize = windowSize;
+	_renderRect = Metrics::GetRenderRect(
+		gameSize, 
+		_options.screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize,
+		true);
 
 #ifndef NDEBUG
 	ShowCursor_Real(TRUE);
@@ -140,8 +140,8 @@ D3D11Context::D3D11Context(
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 	swapChainDesc.BufferCount = 2;
-	swapChainDesc.BufferDesc.Width = _metrics.desktopWidth;
-	swapChainDesc.BufferDesc.Height = _metrics.desktopHeight;
+	swapChainDesc.BufferDesc.Width = _desktopSize.width;
+	swapChainDesc.BufferDesc.Height = _desktopSize.height;
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -302,11 +302,12 @@ void D3D11Context::CreateVertexAndIndexBuffers()
 
 void D3D11Context::CreateShadersAndInputLayout()
 {
-	D2DX_RELEASE_CHECK_HR(_device->CreateVertexShader(VertexShader_cso, ARRAYSIZE(VertexShader_cso), NULL, &_vs));
-	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(PixelShader_cso, ARRAYSIZE(PixelShader_cso), NULL, &_ps));
+	D2DX_RELEASE_CHECK_HR(_device->CreateVertexShader(GameVS_cso, ARRAYSIZE(GameVS_cso), NULL, &_gameVS));
+	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(GamePS_cso, ARRAYSIZE(GamePS_cso), NULL, &_gamePS));
 	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(VideoPS_cso, ARRAYSIZE(VideoPS_cso), NULL, &_videoPS));
-	D2DX_RELEASE_CHECK_HR(_device->CreateVertexShader(GammaVS_cso, ARRAYSIZE(GammaVS_cso), NULL, &_gammaVS));
-	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(GammaPS_cso, ARRAYSIZE(GammaPS_cso), NULL, &_gammaPS));
+	D2DX_RELEASE_CHECK_HR(_device->CreateVertexShader(DisplayVS_cso, ARRAYSIZE(DisplayVS_cso), NULL, &_displayVS));
+	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(DisplayIntegerScalePS_cso, ARRAYSIZE(DisplayIntegerScalePS_cso), NULL, &_displayIntegerScalePS));
+	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(DisplayNonintegerScalePS_cso, ARRAYSIZE(DisplayNonintegerScalePS_cso), NULL, &_displayNonintegerScalePS));
 
 	D3D11_INPUT_ELEMENT_DESC inputElementDescs[4] =
 	{
@@ -316,7 +317,7 @@ void D3D11Context::CreateShadersAndInputLayout()
 		{ "TEXCOORD", 1, DXGI_FORMAT_R16G16_UINT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	D2DX_RELEASE_CHECK_HR(_device->CreateInputLayout(inputElementDescs, ARRAYSIZE(inputElementDescs), VertexShader_cso, ARRAYSIZE(VertexShader_cso), &_inputLayout));
+	D2DX_RELEASE_CHECK_HR(_device->CreateInputLayout(inputElementDescs, ARRAYSIZE(inputElementDescs), GameVS_cso, ARRAYSIZE(GameVS_cso), &_inputLayout));
 
 	_deviceContext->IASetInputLayout(_inputLayout.Get());
 }
@@ -350,8 +351,8 @@ void D3D11Context::CreateSamplerStates()
 
 void D3D11Context::Draw(const Batch& batch)
 {
-	SetVS(_vs.Get());
-	SetPS(_ps.Get());
+	SetVS(_gameVS.Get());
+	SetPS(_gamePS.Get());
 
 	SetBlendState(batch.GetAlphaBlend());
 
@@ -379,25 +380,39 @@ void D3D11Context::Draw(const Batch& batch)
 	}
 }
 
+bool D3D11Context::IsIntegerScale() const
+{
+	float scaleX = ((float)_renderRect.size.width / _gameSize.width);
+	float scaleY = ((float)_renderRect.size.height / _gameSize.height);
+
+	return fabs(scaleX - floor(scaleX)) < 0.01 && fabs(scaleY - floor(scaleY)) < 0.01;
+}
+
 void D3D11Context::Present()
 {
 	_deviceContext->RSSetState(_rasterizerStateNoScissor.Get());
 
 	_deviceContext->OMSetRenderTargets(1, _backbufferRtv.GetAddressOf(), NULL);
-	UpdateViewport(_metrics.renderWidth, _metrics.renderHeight);
+	
+	float color[] = { .0f, .0f, .0f, 1.0f };
+	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
+	
+	UpdateViewport(_renderRect);
 
-	ID3D11ShaderResourceView* srvs[2] = { _renderTargetTextureSrv.Get(), _gammaTextureSrv.Get() };
+	const bool isIntegerScale = IsIntegerScale();
+
+	ID3D11ShaderResourceView* srvs[2] = { _gameTextureSrv.Get(), _gammaTextureSrv.Get() };
 	SetPSShaderResourceViews(srvs);
 
-	SetVS(_gammaVS.Get());
-	SetPS(_gammaPS.Get());
+	SetVS(_displayVS.Get());
+	SetPS(isIntegerScale ? _displayIntegerScalePS.Get() : _displayNonintegerScalePS.Get());
 
 	SetBlendState(AlphaBlend::Opaque);
 
 	SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	auto startVertexLocation = _vbWriteIndex;
-	const uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_metrics.renderWidth, _metrics.renderHeight);
+	const uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, _renderRect);
 
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
@@ -424,8 +439,8 @@ void D3D11Context::Present()
 
 	if (_deviceContext1)
 	{
-		_deviceContext1->DiscardView(_renderTargetTextureSrv.Get());
-		_deviceContext1->DiscardView(_renderTargetTextureRtv.Get());
+		_deviceContext1->DiscardView(_gameTextureSrv.Get());
+		_deviceContext1->DiscardView(_gameTextureRtv.Get());
 		_deviceContext1->DiscardView(_backbufferRtv.Get());
 	}
 
@@ -434,16 +449,15 @@ void D3D11Context::Present()
 		_textureCaches[i]->OnNewFrame();
 	}
 
-	_deviceContext->OMSetRenderTargets(1, _renderTargetTextureRtv.GetAddressOf(), NULL);
-	UpdateViewport(_metrics.renderWidth, _metrics.renderHeight);
+	_deviceContext->OMSetRenderTargets(1, _gameTextureRtv.GetAddressOf(), NULL);
+	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 
-	float color[] = { .0f, .0f, .0f, 1.0f };
-	_deviceContext->ClearRenderTargetView(_renderTargetTextureRtv.Get(), color);
+	_deviceContext->ClearRenderTargetView(_gameTextureRtv.Get(), color);
 
 	_deviceContext->RSSetState(_rasterizerState.Get());
 
-	SetVS(_vs.Get());
-	SetPS(_ps.Get());
+	SetVS(_gameVS.Get());
+	SetPS(_gamePS.Get());
 }
 
 void D3D11Context::CreateRenderTarget()
@@ -466,25 +480,25 @@ void D3D11Context::CreateRenderTarget()
 
 	CD3D11_TEXTURE2D_DESC desc{
 		renderTargetFormat,
-		(UINT)_metrics.desktopWidth,
-		(UINT)_metrics.desktopHeight,
+		(UINT)_desktopSize.width,
+		(UINT)_desktopSize.height,
 		1U,
 		1U,
 		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
 		D3D11_USAGE_DEFAULT
 	};
 
-	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_renderTargetTexture));
-	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_renderTargetTexture.Get(), NULL, &_renderTargetTextureSrv));
+	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_gameTexture));
+	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_gameTexture.Get(), NULL, &_gameTextureSrv));
 
 	CD3D11_RENDER_TARGET_VIEW_DESC rtvDesc{
 		D3D11_RTV_DIMENSION_TEXTURE2D,
 		renderTargetFormat
 	};
 
-	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_renderTargetTexture.Get(), &rtvDesc, &_renderTargetTextureRtv));
+	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_gameTexture.Get(), &rtvDesc, &_gameTextureRtv));
 
-	_deviceContext->OMSetRenderTargets(1, _renderTargetTextureRtv.GetAddressOf(), NULL);
+	_deviceContext->OMSetRenderTargets(1, _gameTextureRtv.GetAddressOf(), NULL);
 }
 
 void D3D11Context::CreateGammaTexture()
@@ -553,7 +567,7 @@ void D3D11Context::WriteToScreen(
 	memcpy(ms.pData, pixels, width * height * 4);
 	_deviceContext->Unmap(_videoTexture.Get(), 0);
 
-	SetVS(_gammaVS.Get());
+	SetVS(_displayVS.Get());
 	SetPS(_videoPS.Get());
 
 	SetBlendState(AlphaBlend::Opaque);
@@ -564,8 +578,8 @@ void D3D11Context::WriteToScreen(
 	SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	uint32_t startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_metrics.renderWidth, _metrics.renderHeight);
-
+	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, { 0,0,_gameSize.width, _gameSize.height });
+	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
 	Present();
@@ -638,39 +652,6 @@ void D3D11Context::SetBlendState(
 	SetBlendState(blendState.Get());
 }
 
-void D3D11Context::UpdateConstants()
-{
-	_constants.screenSize[0] = (float)_metrics.renderWidth;
-	_constants.screenSize[1] = (float)_metrics.renderHeight;
-
-	if (_options.screenMode == ScreenMode::FullscreenDefault)
-	{
-		float scale = (float)_metrics.renderHeight / _metrics.gameHeight;
-		const uint32_t scaledWidth = (uint32_t)(scale * _metrics.gameWidth);
-		_constants.vertexOffset[0] = (float)(_metrics.desktopWidth / 2 - scaledWidth / 2);
-		_constants.vertexOffset[1] = 0.0f;
-		_constants.vertexScale[0] = scale;
-		_constants.vertexScale[1] = scale;
-	}
-	else
-	{
-		float scale = (float)_metrics.renderHeight / _metrics.gameHeight;
-		_constants.vertexOffset[0] = 0.0f;
-		_constants.vertexOffset[1] = 0.0f;
-		_constants.vertexScale[0] = scale;
-		_constants.vertexScale[1] = scale;
-	}
-
-	if (memcmp(&_constants, &_shadowState._constants, sizeof(Constants)) != 0)
-	{
-		D3D11_MAPPED_SUBRESOURCE mappedSubResource = { 0 };
-		D2DX_RELEASE_CHECK_HR(_deviceContext->Map(_cb.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubResource));
-		memcpy(mappedSubResource.pData, &_constants, sizeof(Constants));
-		_deviceContext->Unmap(_cb.Get(), 0);
-		_shadowState._constants = _constants;
-	}
-}
-
 _Use_decl_annotations_
 void D3D11Context::BulkWriteVertices(
 	const Vertex* vertices,
@@ -694,17 +675,17 @@ void D3D11Context::BulkWriteVertices(
 }
 
 uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(
-	int32_t width,
-	int32_t height)
+	Size srcSize,
+	Rect dstRect)
 {
 	Vertex vertices[6] = {
 		Vertex{ 0.0f, 0.0f, 0, 0, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
-		Vertex{ (float)width, 0.0f, (int16_t)width, 0, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
-		Vertex{ (float)width, (float)height, (int16_t)width, (int16_t)height, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
+		Vertex{ (float)dstRect.size.width, 0.0f, (int16_t)srcSize.width, 0, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
+		Vertex{ (float)dstRect.size.width, (float)dstRect.size.height, (int16_t)srcSize.width, (int16_t)srcSize.height, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
 
 		Vertex{ 0.0f, 0.0f, 0, 0, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
-		Vertex{ (float)width, (float)height, (int16_t)width, (int16_t)height, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
-		Vertex{ 0.0f, (float)height, 0, (int16_t)height, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 }
+		Vertex{ (float)dstRect.size.width, (float)dstRect.size.height, (int16_t)srcSize.width, (int16_t)srcSize.height, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
+		Vertex{ 0.0f, (float)dstRect.size.height, 0, (int16_t)srcSize.height, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 }
 	};
 
 	D3D11_MAP mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
@@ -747,12 +728,24 @@ TextureCacheLocation D3D11Context::UpdateTexture(
 	return tcl;
 }
 
-void D3D11Context::UpdateViewport(
-	int32_t width,
-	int32_t height)
+void D3D11Context::UpdateViewport(Rect rect)
 {
-	CD3D11_VIEWPORT viewport{ 0.0f, 0.0f, (float)width, (float)height };
+	CD3D11_VIEWPORT viewport{ (float)rect.offset.x, (float)rect.offset.y, (float)rect.size.width, (float)rect.size.height };
 	_deviceContext->RSSetViewports(1, &viewport);
+	
+	CD3D11_RECT scissorRect{ rect.offset.x, rect.offset.y, rect.size.width, rect.size.height };
+	_deviceContext->RSSetScissorRects(1, &scissorRect);
+
+	_constants.screenSize[0] = (float)rect.size.width;
+	_constants.screenSize[1] = (float)rect.size.height;
+	if (memcmp(&_constants, &_shadowState._constants, sizeof(Constants)) != 0)
+	{
+		D3D11_MAPPED_SUBRESOURCE mappedSubResource = { 0 };
+		D2DX_RELEASE_CHECK_HR(_deviceContext->Map(_cb.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubResource));
+		memcpy(mappedSubResource.pData, &_constants, sizeof(Constants));
+		_deviceContext->Unmap(_cb.Get(), 0);
+		_shadowState._constants = _constants;
+	}
 }
 
 void D3D11Context::SetGamma(
@@ -826,12 +819,14 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 		uint32_t x = LOWORD(lParam);
 		uint32_t y = HIWORD(lParam);
 
-		const D3D11Context::Metrics& metrics = d3d11Context->GetMetrics();
+		auto gameSize = d3d11Context->GetGameSize();
+		auto renderRect = d3d11Context->GetRenderRect();
+		auto desktopSize = d3d11Context->GetDesktopSize();
 
 		const bool isFullscreen = d3d11Context->GetOptions().screenMode == ScreenMode::FullscreenDefault;
-		const float scale = (float)metrics.renderHeight / metrics.gameHeight;
-		const uint32_t scaledWidth = (uint32_t)(scale * metrics.gameWidth);
-		const float mouseOffsetX = isFullscreen ? (float)(metrics.desktopWidth / 2 - scaledWidth / 2) : 0.0f;
+		const float scale = (float)renderRect.size.height / gameSize.height;
+		const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
+		const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
 
 		x = (uint32_t)(max(0, x - mouseOffsetX) / scale);
 		y = (uint32_t)(y / scale);
@@ -972,8 +967,8 @@ void D3D11Context::AdjustWindowPlacement(
 	HWND hWnd,
 	bool centerOnCurrentPosition)
 {
-	const int32_t desktopCenterX = _metrics.desktopWidth / 2;
-	const int32_t desktopCenterY = _metrics.desktopHeight / 2;
+	const int32_t desktopCenterX = _desktopSize.width / 2;
+	const int32_t desktopCenterY = _desktopSize.height / 2;
 
 	if (_options.screenMode == ScreenMode::Windowed)
 	{
@@ -984,19 +979,19 @@ void D3D11Context::AdjustWindowPlacement(
 		const int32_t oldWindowCenterX = (oldWindowRect.left + oldWindowRect.right) / 2;
 		const int32_t oldWindowCenterY = (oldWindowRect.top + oldWindowRect.bottom) / 2;
 
-		_metrics.windowWidth = _metrics.renderWidth;
-		_metrics.windowHeight = _metrics.renderHeight;
+		//_windowSize.width = _renderRect.size.width;
+		//_windowSize.height = _renderRect.size.height;
 
-		if (_metrics.windowHeight > _metrics.desktopClientMaxHeight)
-		{
-			_metrics.windowWidth *= (int32_t)((float)_metrics.desktopClientMaxHeight / _metrics.windowHeight);
-			_metrics.windowHeight = _metrics.desktopClientMaxHeight;
-			_metrics.renderWidth = _metrics.windowWidth;
-			_metrics.renderHeight = _metrics.windowHeight;
-		}
+		//if (_windowSize.height > _desktopClientMaxHeight)
+		//{
+		//	_windowSize.width *= (int32_t)((float)_desktopClientMaxHeight / _windowSize.height);
+		//	_windowSize.height = _desktopClientMaxHeight;
+		//	_renderRect.size.width = _windowSize.width;
+		//	_renderRect.size.height = _windowSize.height;
+		//}
 		
 		const DWORD windowStyle = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
-		RECT windowRect = { 0, 0, _metrics.windowWidth, _metrics.windowHeight };
+		RECT windowRect = { 0, 0, _windowSize.width, _windowSize.height };
 		AdjustWindowRect(&windowRect, windowStyle, FALSE);
 		const int32_t newWindowWidth = windowRect.right - windowRect.left;
 		const int32_t newWindowHeight = windowRect.bottom - windowRect.top;
@@ -1018,30 +1013,22 @@ void D3D11Context::AdjustWindowPlacement(
 	else if (_options.screenMode == ScreenMode::FullscreenDefault)
 	{
 		SetWindowLongPtr(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
-		SetWindowPos_Real(hWnd, HWND_TOP, 0, 0, _metrics.desktopWidth, _metrics.desktopHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
-
-		_metrics.renderWidth = _metrics.desktopWidth;
-		_metrics.renderHeight = _metrics.desktopHeight;
+		SetWindowPos_Real(hWnd, HWND_TOP, 0, 0, _desktopSize.width, _desktopSize.height, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
 	}
 
 	char newWindowText[256];
 	sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
-		_metrics.gameWidth, _metrics.gameHeight, (int)(((float)_metrics.renderHeight / _metrics.gameHeight) * 100.0f));
+		_gameSize.width, _gameSize.height, (int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
 	SetWindowTextA(hWnd, newWindowText);
 
-	ALWAYS_PRINT("Desktop size %ix%i", _metrics.desktopWidth, _metrics.desktopHeight);
-	ALWAYS_PRINT("Window size %ix%i", _metrics.windowWidth, _metrics.windowHeight);
-	ALWAYS_PRINT("Game size %ix%i", _metrics.gameWidth, _metrics.gameHeight);
-	ALWAYS_PRINT("Render size %ix%i", _metrics.renderWidth, _metrics.renderHeight);
-
-	UpdateConstants();
+	ALWAYS_PRINT("Desktop size %ix%i", _desktopSize.width, _desktopSize.height);
+	ALWAYS_PRINT("Window size %ix%i", _windowSize.width, _windowSize.height);
+	ALWAYS_PRINT("Game size %ix%i", _gameSize.width, _gameSize.height);
+	ALWAYS_PRINT("Render size %ix%i", _renderRect.size.width, _renderRect.size.height);
 
 	ResizeBackbuffer();
 
-	CD3D11_RECT scissorRect{ (LONG)_constants.vertexOffset[0], 0, _metrics.renderWidth - (LONG)_constants.vertexOffset[0], _metrics.renderHeight };
-	_deviceContext->RSSetScissorRects(1, &scissorRect);
-
-	UpdateViewport(_metrics.renderWidth, _metrics.renderHeight);
+	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 
 	Present();
 }
@@ -1050,7 +1037,9 @@ void D3D11Context::ResizeBackbuffer()
 {
 	if (_backbufferSizingStrategy == D3D11BackbufferSizingStrategy::SetSourceSize)
 	{
-		_swapChain2->SetSourceSize(_metrics.renderWidth, _metrics.renderHeight);
+		_swapChain2->SetSourceSize(
+			_renderRect.offset.x * 2 + _renderRect.size.width,
+			_renderRect.offset.y * 2 + _renderRect.size.height);
 	}
 	else if (_backbufferSizingStrategy == D3D11BackbufferSizingStrategy::ResizeBuffers)
 	{
@@ -1064,29 +1053,19 @@ void D3D11Context::ResizeBackbuffer()
 		D2DX_RELEASE_CHECK_HR(_swapChain1->GetBuffer(0, __uuidof(ID3D11Texture2D), &backbuffer));
 		D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(backbuffer.Get(), nullptr, &_backbufferRtv));
 	}
-
 }
 
-void D3D11Context::SetSizes(
-	int32_t gameWidth,
-	int32_t gameHeight,
-	int32_t renderWidth,
-	int32_t renderHeight)
+void D3D11Context::SetSizes(Size gameSize, Size windowSize)
 {
-	_metrics.gameWidth = gameWidth;
-	_metrics.gameHeight = gameHeight;
-
-	if (renderWidth > 0 && renderHeight > 0)
-	{
-		_metrics.renderWidth = renderWidth;
-		_metrics.renderHeight = renderHeight;
-	}
-
-	if (_metrics.gameWidth > _metrics.renderWidth || _metrics.gameHeight > _metrics.renderHeight)
-	{
-		_metrics.renderWidth = _metrics.gameWidth;
-		_metrics.renderHeight = _metrics.gameHeight;
-	}
+	_gameSize = gameSize;
+	_windowSize = windowSize;
+	
+	auto displaySize = _options.screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
+	
+	_renderRect = Metrics::GetRenderRect(
+		_gameSize, 
+		displaySize,
+		true);
 
 	AdjustWindowPlacement(_hWnd, true);
 }
@@ -1128,17 +1107,26 @@ void D3D11Context::ToggleFullscreen()
 	if (_options.screenMode == ScreenMode::FullscreenDefault)
 	{
 		_options.screenMode = ScreenMode::Windowed;
-		SetSizes(_metrics.gameWidth, _metrics.gameHeight, _metrics.windowWidth, _metrics.windowHeight);
+		SetSizes(_gameSize, _windowSize);
 	}
 	else
 	{
 		_options.screenMode = ScreenMode::FullscreenDefault;
-		SetSizes(_metrics.gameWidth, _metrics.gameHeight, _metrics.desktopWidth, _metrics.desktopHeight);
+		SetSizes(_gameSize, _windowSize);
 	}
 }
 
-const D3D11Context::Metrics& D3D11Context::GetMetrics() const
+Size D3D11Context::GetGameSize() const
 {
-	return _metrics;
+	return _gameSize;
 }
 
+Rect D3D11Context::GetRenderRect() const
+{
+	return _renderRect;
+}
+
+Size D3D11Context::GetDesktopSize() const
+{
+	return _desktopSize;
+}
