@@ -38,7 +38,8 @@ namespace d2dx
 	struct Options
 	{
 		ScreenMode screenMode;
-		bool skipLogo;
+		bool noWide;
+		bool noLogo;
 		bool noVSync;
 		bool noBuiltinD2HD;
 		uint32_t defaultZoomLevel;

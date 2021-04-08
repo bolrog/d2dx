@@ -71,7 +71,8 @@ D2DXContext::D2DXContext() :
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
-	_options.skipLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
+	_options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
+	_options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
 	_options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
 
 	bool dxscale2 = strstr(commandLine, "-dxscale2") != nullptr || strstr(commandLine, "-gxscale2") != nullptr;
@@ -173,7 +174,7 @@ void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
 		gameSize.height = _customHeight;
 	}
 
-	if (gameSize.width > 800)
+	if (gameSize.width != 640 || gameSize.height != 480)
 	{
 		windowWidth = gameSize.width;
 		windowHeight = gameSize.height;
@@ -806,7 +807,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 
 void D2DXContext::InsertLogoOnTitleScreen()
 {
-	if (_options.skipLogo || _majorGameState != MajorGameState::TitleScreen || _batchCount <= 0)
+	if (_options.noLogo || _majorGameState != MajorGameState::TitleScreen || _batchCount <= 0)
 		return;
 
 	PrepareLogoTextureBatch();
@@ -878,7 +879,7 @@ void D2DXContext::GetSuggestedCustomResolution(
 	if (_suggestedGameSize.width == 0)
 	{
 		Size desktopSize{ GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
-		_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, true);
+		_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, !_options.noWide);
 		ALWAYS_PRINT("Suggesting game size %ix%i.", _suggestedGameSize.width, _suggestedGameSize.height);
 	}
 	*width = _suggestedGameSize.width;

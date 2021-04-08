@@ -75,7 +75,7 @@ D3D11Context::D3D11Context(
 	_renderRect = Metrics::GetRenderRect(
 		gameSize, 
 		_options.screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize,
-		true);
+		!_options.noWide);
 
 #ifndef NDEBUG
 	ShowCursor_Real(TRUE);
@@ -1065,7 +1065,7 @@ void D3D11Context::SetSizes(Size gameSize, Size windowSize)
 	_renderRect = Metrics::GetRenderRect(
 		_gameSize, 
 		displaySize,
-		true);
+		!_options.noWide);
 
 	AdjustWindowPlacement(_hWnd, true);
 }

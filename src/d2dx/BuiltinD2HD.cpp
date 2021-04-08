@@ -40,7 +40,7 @@ void d2dx::TryInitializeBuiltinD2HD(HMODULE hModule)
 static bool UseBuiltInD2HD()
 {
     const char* commandLine = GetCommandLineA();
-    if (strstr(commandLine, "-dxnowide"))
+    if (strstr(commandLine, "-dxnoresmod"))
     {
         return false;
     }
