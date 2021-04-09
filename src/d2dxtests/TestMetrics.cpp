@@ -58,21 +58,61 @@ namespace d2dxtests
 			Assert::AreEqual(Size(1000, 501), suggestedGameSize);
 		}
 
-		void AssertThatGameSizeIsIntegerScale(Size desktopSize, bool wide)
+		void AssertThatGameSizeIsIntegerScale(Size desktopSize, bool wide, bool lenient)
 		{
 			auto suggestedGameSize = d2dx::Metrics::GetSuggestedGameSize(desktopSize, wide);
 			auto renderRect = d2dx::Metrics::GetRenderRect(suggestedGameSize, desktopSize, wide);
-			Assert::AreEqual(desktopSize.width, renderRect.size.width + renderRect.offset.x * 2);
-			Assert::AreEqual(desktopSize.height, renderRect.size.height + renderRect.offset.y * 2);
+			Assert::IsTrue(renderRect.offset.x >= 0);
+			Assert::IsTrue(renderRect.offset.y >= 0);
+			Assert::IsTrue(renderRect.size.width > 0);
+			Assert::IsTrue(renderRect.size.height > 0);
+			Assert::IsTrue((renderRect.offset.x + renderRect.size.width) <= desktopSize.width);
+			Assert::IsTrue((renderRect.offset.y + renderRect.size.height) <= desktopSize.height);
+
+			if (renderRect.offset.x > 0 && renderRect.offset.y > 0)
+			{
+				Assert::IsTrue(renderRect.offset.x < 16 || renderRect.offset.y < 16);
+			}
+
+			int32_t reconstructedDesktopWidth = renderRect.size.width + renderRect.offset.x * 2;
+			int32_t reconstructedDesktopHeight = renderRect.size.height + renderRect.offset.y * 2;
+
+			if (lenient)
+			{
+				/* The "remainder" on the right may not be exactly equal to desktop width. */
+				Assert::IsTrue(desktopSize.width == reconstructedDesktopWidth || desktopSize.width == reconstructedDesktopWidth + 1);
+
+				/* The "remainder" on the bottom may not be exactly equal to desktop height. */
+				Assert::IsTrue(desktopSize.height == reconstructedDesktopHeight || desktopSize.height == reconstructedDesktopHeight + 1);
+			}
+			else
+			{
+				Assert::AreEqual(desktopSize.width, reconstructedDesktopWidth);
+				Assert::AreEqual(desktopSize.height, reconstructedDesktopHeight);
+			}
 		}
 
-		TEST_METHOD(TestSuggestedGameSizeIsIntegerScale)
+		TEST_METHOD(TestRenderRectsAreGoodForStandardDesktopSizes)
 		{
 			auto standardDesktopSizes = d2dx::Metrics::GetStandardDesktopSizes();
 			for (uint32_t i = 0; i < standardDesktopSizes.capacity; ++i)
 			{
-				AssertThatGameSizeIsIntegerScale(standardDesktopSizes.items[i], false);
-				AssertThatGameSizeIsIntegerScale(standardDesktopSizes.items[i], true);
+				AssertThatGameSizeIsIntegerScale(standardDesktopSizes.items[i], false, false);
+				AssertThatGameSizeIsIntegerScale(standardDesktopSizes.items[i], true, false);
+			}
+		}
+
+		TEST_METHOD(TestRenderRectsAreGoodForNonStandardDesktopSizes)
+		{
+			for (int32_t width = 50; width < 1600; ++width)
+			{
+				AssertThatGameSizeIsIntegerScale({ width, 503 }, false, true);
+				AssertThatGameSizeIsIntegerScale({ width, 503 }, true, true);
+			}
+			for (int32_t height = 50; height < 1600; ++height)
+			{
+				AssertThatGameSizeIsIntegerScale({ 614, height }, false, true);
+				AssertThatGameSizeIsIntegerScale({ 614, height }, true, true);
 			}
 		}
 	};
