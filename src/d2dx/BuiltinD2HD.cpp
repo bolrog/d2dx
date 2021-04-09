@@ -18,33 +18,50 @@
 */
 #include "pch.h"
 #include "BuiltinD2HD.h"
+#include "Utils.h"
 #include "resource.h"
 #include "GameHelper.h"
 
 using namespace d2dx;
 
+#ifndef D2DX_UNITTEST
 bool SDHD_Initialize();
+#endif
 
-static bool UseBuiltInD2HD();
+static bool IsBuiltInD2HDCompatible();
 static void EnsureD2HDMpqExists(HMODULE hModule);
 
-void d2dx::TryInitializeBuiltinD2HD(HMODULE hModule)
+bool d2dx::TryInitializeBuiltinD2HD(HMODULE hModule)
 {
-    if (UseBuiltInD2HD())
-    {
-        EnsureD2HDMpqExists(hModule);
-        SDHD_Initialize();
-    }
-}
+    static bool initialized = false;
 
-static bool UseBuiltInD2HD()
-{
-    const char* commandLine = GetCommandLineA();
-    if (strstr(commandLine, "-dxnoresmod"))
+    if (initialized)
+    {
+        return true;
+    }
+
+    initialized = true;
+
+#ifndef D2DX_UNITTEST
+    if (IsBuiltInD2HDCompatible())
+    {
+        ALWAYS_PRINT("Writing MPQ.");
+        EnsureD2HDMpqExists(hModule);
+
+        ALWAYS_PRINT("Initializing built-in D2HD.");
+        SDHD_Initialize();
+
+        return true;
+    }
+    else
     {
         return false;
     }
+#endif
+}
 
+static bool IsBuiltInD2HDCompatible()
+{
     GameHelper gameHelper;
     auto gameVersion = gameHelper.GetVersion();
 
@@ -52,11 +69,13 @@ static bool UseBuiltInD2HD()
         gameVersion != d2dx::GameVersion::Lod113c &&
         gameVersion != d2dx::GameVersion::Lod113d)
     {
+        ALWAYS_PRINT("Unsupported game version, won't use built-in D2HD.");
         return false;
     }
 
     if (LoadLibraryA("D2Sigma.dll"))
     {
+        ALWAYS_PRINT("Detected Median XL, won't use built-in D2HD.");
         return false;
     }
 

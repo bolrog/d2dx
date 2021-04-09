@@ -20,5 +20,5 @@
 
 namespace d2dx
 {
-    void TryInitializeBuiltinD2HD(HMODULE hModule);
+    bool TryInitializeBuiltinD2HD(HMODULE hModule);
 }

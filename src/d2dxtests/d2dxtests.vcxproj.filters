@@ -53,6 +53,9 @@
       <Filter>d2dx</Filter>
     </ClCompile>
     <ClCompile Include="TestMetrics.cpp" />
+    <ClCompile Include="..\d2dx\BuiltinD2HD.cpp">
+      <Filter>d2dx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\d2dx\Batch.h">

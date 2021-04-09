@@ -18,6 +18,7 @@
 */
 #include "pch.h"
 #include "D2DXContext.h"
+#include "BuiltinD2HD.h"
 #include "D3D11Context.h"
 #include "GameHelper.h"
 #include "GlideHelpers.h"
@@ -71,6 +72,7 @@ D2DXContext::D2DXContext() :
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
+	_options.noBuiltinD2HD = strstr(commandLine, "-dxnoresmod") != nullptr;
 	_options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
 	_options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
 	_options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
@@ -83,6 +85,14 @@ D2DXContext::D2DXContext() :
 		1;
 
 	_options.screenMode = windowed ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
+
+	if (!_options.noBuiltinD2HD)
+	{
+		if (!TryInitializeBuiltinD2HD(GetModuleHandleA("glide3x.dll")))
+		{
+			_options.noBuiltinD2HD = true;
+		}
+	}
 }
 
 D2DXContext::~D2DXContext()

@@ -97,6 +97,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\d2dx\BuiltinD2HD.cpp" />
     <ClCompile Include="..\d2dx\D2DXConfigurator.cpp" />
     <ClCompile Include="..\d2dx\D2DXContext.cpp" />
     <ClCompile Include="..\d2dx\D3D11Context.cpp" />

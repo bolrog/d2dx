@@ -20,7 +20,6 @@
 #include "D2DXContext.h"
 #include "Detours.h"
 #include "GameHelper.h"
-#include "BuiltinD2HD.h"
 
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -42,7 +41,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         printf("DLL_PROCESS_ATTACH\n");        
         SetProcessDPIAware();
         AttachDetours();
-        TryInitializeBuiltinD2HD(hModule);
         break;
     }
     case DLL_THREAD_ATTACH:

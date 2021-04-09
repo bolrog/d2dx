@@ -1018,7 +1018,9 @@ void D3D11Context::AdjustWindowPlacement(
 
 	char newWindowText[256];
 	sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
-		_gameSize.width, _gameSize.height, (int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
+		_gameSize.width,
+		_gameSize.height,
+		(int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
 	SetWindowTextA(hWnd, newWindowText);
 
 	ALWAYS_PRINT("Desktop size %ix%i", _desktopSize.width, _desktopSize.height);
