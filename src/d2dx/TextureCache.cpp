@@ -141,7 +141,7 @@ ID3D11Texture2D* TextureCache::GetTexture(
 ID3D11ShaderResourceView* TextureCache::GetSrv(
 	uint32_t textureAtlas) const
 {
-	assert(textureAtlas >= 0 && textureAtlas < _atlasCount);
+	assert(textureAtlas >= 0 && textureAtlas < (uint32_t)_atlasCount);
 	return _srvs[textureAtlas].Get();
 }
 
