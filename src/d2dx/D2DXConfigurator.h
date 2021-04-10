@@ -100,7 +100,7 @@ namespace d2dx
 				return _d2dxGetConfiguratorFunc ? _d2dxGetConfiguratorFunc() : nullptr;
 			}
 		private:
-			typedef ID2DXConfigurator* (*__stdcall D2DXGetConfiguratorFunc)();
+			typedef ID2DXConfigurator* (__stdcall *D2DXGetConfiguratorFunc)();
 			D2DXGetConfiguratorFunc _d2dxGetConfiguratorFunc;
 		};
 	}
