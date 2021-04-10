@@ -19,27 +19,44 @@
 #include "pch.h"
 #include "Utils.h"
 #include "TextureCachePolicyBitPmru.h"
-#include "Simd.h"
+#include "ISimd.h"
 
 using namespace d2dx;
 
-TextureCachePolicyBitPmru::TextureCachePolicyBitPmru(uint32_t capacity, std::shared_ptr<Simd> simd) :
-	_capacity(capacity),
-	_contentKeys(capacity),
-	_usedInFrameBits(capacity >> 5),
-	_mruBits(capacity >> 5),
-	_simd(simd)
+_Use_decl_annotations_
+HRESULT TextureCachePolicyBitPmru::RuntimeClassInitialize(
+	uint32_t capacity,
+	ISimd* simd)
 {
 	assert(!(capacity & 63));
+	if (capacity & 63)
+	{
+		return E_INVALIDARG;
+	}
+
+	if (!simd)
+	{
+		return E_INVALIDARG;
+	}
+
+	_capacity = capacity;
+	_contentKeys = capacity;
+	_usedInFrameBits = capacity >> 5;
+	_mruBits = capacity >> 5;
+	_simd = simd;
+	
 	memset(_contentKeys.items, 0, sizeof(uint32_t) * _contentKeys.capacity);
 	memset(_usedInFrameBits.items, 0, sizeof(uint32_t) * _usedInFrameBits.capacity);
 	memset(_mruBits.items, 0, sizeof(uint32_t) * _mruBits.capacity);
+	
+	return S_OK;
 }
 
 TextureCachePolicyBitPmru::~TextureCachePolicyBitPmru()
 {
 }
 
+_Use_decl_annotations_
 int32_t TextureCachePolicyBitPmru::Find(
 	uint32_t contentKey,
 	int32_t lastIndex)
@@ -66,9 +83,10 @@ int32_t TextureCachePolicyBitPmru::Find(
 	return -1;
 }
 
+_Use_decl_annotations_
 int32_t TextureCachePolicyBitPmru::Insert(
 	uint32_t contentKey,
-	_Out_ bool& evicted)
+	bool& evicted)
 {
 	int32_t replacementIndex = -1;
 

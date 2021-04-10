@@ -16,14 +16,16 @@
 	You should have received a copy of the GNU General Public License
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include "pch.h"
-#include "Simd.h"
-#include "SimdSse2.h"
+#pragma once
 
-using namespace d2dx;
-using namespace std;
-
-shared_ptr<Simd> Simd::Create()
+namespace d2dx
 {
-	return make_shared<SimdSse2>();
+	MIDL_INTERFACE("D071E3C6-03D3-4C4C-A498-92C0A6C13447") 
+		ISimd abstract : public IUnknown
+	{
+		virtual int32_t IndexOfUInt32(
+			_In_reads_(itemsCount) const uint32_t* __restrict items,
+			_In_ uint32_t itemsCount,
+			_In_ uint32_t item) = 0;
+	};
 }

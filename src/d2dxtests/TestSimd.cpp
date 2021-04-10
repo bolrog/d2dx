@@ -19,8 +19,9 @@
 #include "pch.h"
 #include <array>
 #include "CppUnitTest.h"
-#include "../d2dx/Simd.h"
+#include "../d2dx/SimdSse2.h"
 
+using namespace Microsoft::WRL;
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace d2dx;
 
@@ -31,12 +32,12 @@ namespace d2dxtests
 	public:
 		TEST_METHOD(Create)
 		{
-			auto simd = Simd::Create();
+			auto simd = Make<SimdSse2>();
 		}
 
 		TEST_METHOD(FindUInt32)
 		{
-			auto simd = Simd::Create();
+			auto simd = Make<SimdSse2>();
 
 			alignas(64) std::array<uint32_t, 1024> items;
 

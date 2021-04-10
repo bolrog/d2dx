@@ -161,28 +161,33 @@
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Version.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\TemplateIncludes.h" />
-    <ClInclude Include="BuiltinD2HD.h" />
+    <ClInclude Include="BuiltinResMod.h" />
+    <ClInclude Include="D2DXContextFactory.h" />
     <ClInclude Include="Detours.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="dx256_bmp.h" />
+    <ClInclude Include="IBuiltinResMod.h" />
+    <ClInclude Include="ID2DXContext.h" />
+    <ClInclude Include="IGameHelper.h" />
+    <ClInclude Include="IGlide3x.h" />
+    <ClInclude Include="IRenderContext.h" />
+    <ClInclude Include="ITextureCache.h" />
     <ClInclude Include="Metrics.h" />
     <ClInclude Include="TextureCache.h" />
-    <ClInclude Include="D3D11Context.h" />
+    <ClInclude Include="RenderContext.h" />
     <ClInclude Include="Batch.h" />
     <ClInclude Include="GameHelper.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Simd.h" />
+    <ClInclude Include="ISimd.h" />
     <ClInclude Include="SimdSse2.h" />
-    <ClInclude Include="TextureCachePolicy.h" />
+    <ClInclude Include="ITextureCachePolicy.h" />
     <ClInclude Include="TextureCachePolicyBitPmru.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="Vertex.h" />
-    <ClInclude Include="GlideHelpers.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DXContext.h" />
-    <ClInclude Include="TextureProcessor.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
@@ -250,15 +255,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="BuiltinD2HD.cpp" />
+    <ClCompile Include="BuiltinResMod.cpp" />
+    <ClCompile Include="D2DXContextFactory.cpp" />
     <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="Metrics.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="D3D11Context.cpp" />
+    <ClCompile Include="RenderContext.cpp" />
     <ClCompile Include="GameHelper.cpp" />
-    <ClCompile Include="Simd.cpp" />
     <ClCompile Include="SimdSse2.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AssemblyAndSourceCode</AssemblerOutput>
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyAndSourceCode</AssemblerOutput>
@@ -272,7 +277,6 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyAndSourceCode</AssemblerOutput>
     </ClCompile>
     <ClCompile Include="TextureCachePolicyBitPmru.cpp" />
-    <ClCompile Include="TextureProcessor.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>

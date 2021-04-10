@@ -26,23 +26,29 @@ using namespace d2dx;
 using namespace std;
 
 _Use_decl_annotations_
-TextureCache::TextureCache(
+HRESULT TextureCache::RuntimeClassInitialize(
 	int32_t width,
 	int32_t height,
 	uint32_t capacity,
 	uint32_t texturesPerAtlas,
 	ID3D11Device* device,
-	shared_ptr<Simd> simd,
-	shared_ptr<TextureProcessor> textureProcessor) :
-	_width{ width },
-	_height{ height },
-	_capacity{ capacity },
-	_texturesPerAtlas{ texturesPerAtlas },
-	_atlasCount{ (int32_t)max(1, capacity / texturesPerAtlas) },
-	_textureProcessor(textureProcessor),
-	_policy(make_unique<TextureCachePolicyBitPmru>(capacity, simd))
+	ISimd* simd)
 { 
 	assert(_atlasCount <= 4);
+
+	_width = width;
+	_height = height;
+	_capacity= capacity;
+	_texturesPerAtlas = texturesPerAtlas;
+	_atlasCount = (int32_t)max(1, capacity / texturesPerAtlas);
+	
+	HRESULT hr = S_OK;
+
+	hr = MakeAndInitialize<TextureCachePolicyBitPmru>(&_policy, capacity, simd);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 
 #ifndef D2DX_UNITTEST
 
@@ -57,18 +63,31 @@ TextureCache::TextureCache(
 		D3D11_USAGE_DEFAULT
 	};
 
-	HRESULT hr = S_OK;
 	uint32_t capacityPerPartition = _capacity;
 
 	for (int32_t partition = 0; partition < 4; ++partition)
 	{
-		D2DX_RELEASE_CHECK_HR(device->CreateTexture2D(&desc, nullptr, &_textures[partition]));
-		D2DX_RELEASE_CHECK_HR(device->CreateShaderResourceView(_textures[partition].Get(), NULL, _srvs[partition].GetAddressOf()));
+		hr = device->CreateTexture2D(&desc, nullptr, &_textures[partition]);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+		hr = device->CreateShaderResourceView(_textures[partition].Get(), NULL, _srvs[partition].GetAddressOf());
+		if (FAILED(hr))
+		{
+			return hr;
+		}
 	}
 
 	device->GetImmediateContext(&_deviceContext);
 	assert(_deviceContext);
 #endif
+	return hr;
+}
+
+TextureCache::~TextureCache()
+{
 }
 
 uint32_t TextureCache::GetMemoryFootprint() const
@@ -76,7 +95,10 @@ uint32_t TextureCache::GetMemoryFootprint() const
 	return _width * _height * _texturesPerAtlas * _atlasCount;
 }
 
-TextureCacheLocation TextureCache::FindTexture(uint32_t contentKey, int32_t lastIndex)
+_Use_decl_annotations_
+TextureCacheLocation TextureCache::FindTexture(
+	uint32_t contentKey,
+	int32_t lastIndex)
 {
 	const int32_t index = _policy->Find(contentKey, lastIndex);
 
@@ -122,22 +144,7 @@ TextureCacheLocation TextureCache::InsertTexture(
 	return { (int16_t)(replacementIndex / _texturesPerAtlas), (int16_t)(replacementIndex & (_texturesPerAtlas - 1)) };
 }
 
-uint32_t TextureCache::GetCapacity() const
-{
-	return _capacity;
-}
-
-uint32_t TextureCache::GetTexturesPerAtlas() const
-{
-	return _texturesPerAtlas;
-}
-
-ID3D11Texture2D* TextureCache::GetTexture(
-	uint32_t atlasIndex) const
-{
-	return _textures[atlasIndex / _texturesPerAtlas].Get();
-}
-
+_Use_decl_annotations_
 ID3D11ShaderResourceView* TextureCache::GetSrv(
 	uint32_t textureAtlas) const
 {
@@ -148,4 +155,30 @@ ID3D11ShaderResourceView* TextureCache::GetSrv(
 void TextureCache::OnNewFrame()
 {
 	_policy->OnNewFrame();
+}
+
+_Use_decl_annotations_
+void TextureCache::CopyPixels(
+	int32_t srcWidth,
+	int32_t srcHeight,
+	const uint8_t* __restrict srcPixels,
+	uint32_t srcPitch,
+	uint8_t* __restrict dstPixels,
+	uint32_t dstPitch)
+{
+	const int32_t srcSkip = srcPitch - srcWidth;
+	const int32_t dstSkip = dstPitch - srcWidth;
+
+	assert(srcSkip >= 0);
+	assert(dstSkip >= 0);
+
+	for (int32_t y = 0; y < srcHeight; ++y)
+	{
+		for (int32_t x = 0; x < srcWidth; ++x)
+		{
+			*dstPixels++ = *srcPixels++;
+		}
+		srcPixels += srcSkip;
+		dstPixels += dstSkip;
+	}
 }

@@ -46,7 +46,7 @@
 
 */
 MIDL_INTERFACE("B11C5FA4-983F-4E34-9E43-BD82F9CCDB65")
-ID2DXConfigurator : public IUnknown
+	ID2DXConfigurator : public IUnknown
 {
 public:
 	/*

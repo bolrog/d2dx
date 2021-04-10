@@ -17,7 +17,7 @@
     along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "pch.h"
-#include "BuiltinD2HD.h"
+#include "BuiltinResMod.h"
 #include "Utils.h"
 #include "resource.h"
 #include "GameHelper.h"
@@ -28,61 +28,65 @@ using namespace d2dx;
 bool SDHD_Initialize();
 #endif
 
-static bool IsCompatible();
-static void EnsureMpqExists(HMODULE hModule);
-
-bool d2dx::BuiltinResMod::TryInitialize(HMODULE hModule)
+_Use_decl_annotations_
+HRESULT BuiltinResMod::RuntimeClassInitialize(
+    HMODULE hModule,
+    IGameHelper* gameHelper)
 {
-    static bool initialized = false;
-
-    if (initialized)
+    if (!hModule || !gameHelper)
     {
-        return true;
+        return E_INVALIDARG;
     }
 
-    initialized = true;
-
 #ifndef D2DX_UNITTEST
-    if (IsCompatible())
+    if (IsCompatible(gameHelper))
     {
         ALWAYS_PRINT("Writing MPQ.");
         EnsureMpqExists(hModule);
 
-        ALWAYS_PRINT("Initializing built-in D2HD.");
+        ALWAYS_PRINT("Initializing built-in resolution mod.");
         SDHD_Initialize();
 
-        return true;
-    }
-    else
-    {
-        return false;
+        _isActive = true;
+        return S_OK;
     }
 #endif
+
+    _isActive = false;
+    return S_OK;
 }
 
-static bool IsCompatible()
+bool BuiltinResMod::IsActive() const
 {
-    GameHelper gameHelper;
-    auto gameVersion = gameHelper.GetVersion();
+    return _isActive;
+}
+
+_Use_decl_annotations_
+bool BuiltinResMod::IsCompatible(
+    IGameHelper* gameHelper)
+{
+    auto gameVersion = gameHelper->GetVersion();
 
     if (gameVersion != d2dx::GameVersion::Lod112 &&
         gameVersion != d2dx::GameVersion::Lod113c &&
         gameVersion != d2dx::GameVersion::Lod113d)
     {
-        ALWAYS_PRINT("Unsupported game version, won't use built-in D2HD.");
+        ALWAYS_PRINT("Unsupported game version, won't use built-in resolution mod.");
         return false;
     }
 
     if (LoadLibraryA("D2Sigma.dll"))
     {
-        ALWAYS_PRINT("Detected Median XL, won't use built-in D2HD.");
+        ALWAYS_PRINT("Detected Median XL, won't use built-in resolution mod.");
         return false;
     }
 
     return true;
 }
 
-static void EnsureMpqExists(HMODULE hModule)
+_Use_decl_annotations_
+void BuiltinResMod::EnsureMpqExists(
+    HMODULE hModule)
 {
     void* d2HDMpqPtr = nullptr;
     DWORD d2HDMpqSize = 0;

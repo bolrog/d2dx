@@ -18,164 +18,171 @@
 */
 #pragma once
 
-#include "Buffer.h"
-#include "Types.h"
 #include "Batch.h"
+#include "Buffer.h"
+#include "IBuiltinResMod.h"
+#include "ID2DXContext.h"
+#include "IGameHelper.h"
+#include "IGlide3x.h"
+#include "IRenderContext.h"
 
 namespace d2dx
 {
-	class D3D11Context;
 	class Vertex;
 
-	class D2DXContext final
+	class D2DXContext final : public RuntimeClass<
+		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
+		ID2DXContext
+	>
 	{
 	public:
-		static D2DXContext* Instance();
-		static void Destroy();
-
-		D2DXContext();
-		~D2DXContext();
+		D2DXContext(
+			_In_ IGameHelper* gameHelper,
+			_In_ ISimd* simd);
 		
-		void OnGlideInit();
+		virtual ~D2DXContext();
 
-		void OnGlideShutdown();
+#pragma region IGlide3x
 
-		const char* OnGetString(
-			uint32_t pname);
+		virtual const char* OnGetString(
+			_In_ uint32_t pname);
 		
-		uint32_t OnGet(
-			uint32_t pname,
-			uint32_t plength,
+		virtual uint32_t OnGet(
+			_In_ uint32_t pname,
+			_In_ uint32_t plength,
 			_Out_writes_(plength) int32_t* params);
 		
-		void OnSstWinOpen(
-			uint32_t hWnd,
-			int32_t width,
-			int32_t height);
+		virtual void OnSstWinOpen(
+			_In_ uint32_t hWnd,
+			_In_ int32_t width,
+			_In_ int32_t height);
 		
-		void OnVertexLayout(
-			uint32_t param,
-			int32_t offset);
+		virtual void OnVertexLayout(
+			_In_ uint32_t param,
+			_In_ int32_t offset);
 		
-		void OnTexDownload(
-			uint32_t tmu,
+		virtual void OnTexDownload(
+			_In_ uint32_t tmu,
 			_In_reads_(width * height) const uint8_t* sourceAddress,
-			uint32_t startAddress,
-			int32_t width,
-			int32_t height);
+			_In_ uint32_t startAddress,
+			_In_ int32_t width,
+			_In_ int32_t height);
 		
-		void OnTexSource(
-			uint32_t tmu,
-			uint32_t startAddress,
-			int32_t width,
-			int32_t height);
+		virtual void OnTexSource(
+			_In_ uint32_t tmu,
+			_In_ uint32_t startAddress,
+			_In_ int32_t width,
+			_In_ int32_t height);
 		
-		void OnConstantColorValue(
-			uint32_t color);
+		virtual void OnConstantColorValue(
+			_In_ uint32_t color);
 		
-		void OnAlphaBlendFunction(
-			GrAlphaBlendFnc_t rgb_sf,
-			GrAlphaBlendFnc_t rgb_df,
-			GrAlphaBlendFnc_t alpha_sf,
-			GrAlphaBlendFnc_t alpha_df);
+		virtual void OnAlphaBlendFunction(
+			_In_ GrAlphaBlendFnc_t rgb_sf,
+			_In_ GrAlphaBlendFnc_t rgb_df,
+			_In_ GrAlphaBlendFnc_t alpha_sf,
+			_In_ GrAlphaBlendFnc_t alpha_df);
 		
-		void OnColorCombine(
-			GrCombineFunction_t function,
-			GrCombineFactor_t factor,
-			GrCombineLocal_t local,
-			GrCombineOther_t other,
-			bool invert);
+		virtual void OnColorCombine(
+			_In_ GrCombineFunction_t function,
+			_In_ GrCombineFactor_t factor,
+			_In_ GrCombineLocal_t local,
+			_In_ GrCombineOther_t other,
+			_In_ bool invert);
 		
-		void OnAlphaCombine(
-			GrCombineFunction_t function,
-			GrCombineFactor_t factor,
-			GrCombineLocal_t local,
-			GrCombineOther_t other,
-			bool invert);
+		virtual void OnAlphaCombine(
+			_In_ GrCombineFunction_t function,
+			_In_ GrCombineFactor_t factor,
+			_In_ GrCombineLocal_t local,
+			_In_ GrCombineOther_t other,
+			_In_ bool invert);
 		
-		void OnDrawLine(
+		virtual void OnDrawLine(
 			_In_ const void* v1,
 			_In_ const void* v2,
-			uint32_t gameContext);
+			_In_ uint32_t gameContext);
 		
-		void OnDrawVertexArray(
-			uint32_t mode,
-			uint32_t count,
+		virtual void OnDrawVertexArray(
+			_In_ uint32_t mode,
+			_In_ uint32_t count,
 			_In_reads_(count) uint8_t** pointers,
-			uint32_t gameContext);
+			_In_ uint32_t gameContext);
 		
-		void OnDrawVertexArrayContiguous(
-			uint32_t mode,
-			uint32_t count,
+		virtual void OnDrawVertexArrayContiguous(
+			_In_ uint32_t mode,
+			_In_ uint32_t count,
 			_In_reads_(count * stride) uint8_t* vertex,
-			uint32_t stride,
-			uint32_t gameContext);
+			_In_ uint32_t stride,
+			_In_ uint32_t gameContext);
 		
-		void OnTexDownloadTable(
-			GrTexTable_t type,
+		virtual void OnTexDownloadTable(
+			_In_ GrTexTable_t type,
 			_In_reads_bytes_(256 * 4) void* data);
 		
-		void OnLoadGammaTable(
-			uint32_t nentries, 
+		virtual void OnLoadGammaTable(
+			_In_ uint32_t nentries,
 			_In_reads_(nentries) uint32_t* red, 
 			_In_reads_(nentries) uint32_t* green,
 			_In_reads_(nentries) uint32_t* blue);
 		
-		void OnChromakeyMode(
-			GrChromakeyMode_t mode);
+		virtual void OnChromakeyMode(
+			_In_ GrChromakeyMode_t mode);
 		
-		void OnLfbUnlock(
+		virtual void OnLfbUnlock(
 			_In_reads_bytes_(strideInBytes * 480) const uint32_t* lfbPtr,
-			uint32_t strideInBytes);
+			_In_ uint32_t strideInBytes);
 		
-		void OnGammaCorrectionRGB(
-			float red,
-			float green,
-			float blue);
+		virtual void OnGammaCorrectionRGB(
+			_In_ float red,
+			_In_ float green,
+			_In_ float blue);
 		
-		void OnBufferSwap();
-		
-		void OnMousePosChanged(
-			int32_t x,
-			int32_t y);
+		virtual void OnBufferSwap();
 
-		void SetCustomResolution(
-			int32_t width,
-			int32_t height);
+#pragma endregion IGlide3x
+
+#pragma region ID2DXContext
+
+		virtual void OnMousePosChanged(
+			_In_ int32_t x,
+			_In_ int32_t y);
+
+		virtual void SetCustomResolution(
+			_In_ int32_t width,
+			_In_ int32_t height);
 		
-		void GetSuggestedCustomResolution(
+		virtual void GetSuggestedCustomResolution(
 			_Out_ int32_t* width,
 			_Out_ int32_t* height);
 
-		void LogGlideCall(
-			_In_z_ const char* s);
+		virtual GameVersion GetGameVersion() const;
 
-		GameVersion GetGameVersion() const;
+		virtual void DisableBuiltinResMod();
 
-		void DisableBuiltinD2HD();
+#pragma endregion ID2DXContext
 
 	private:
 		void CheckMajorGameState();
 		void PrepareLogoTextureBatch();
 		void InsertLogoOnTitleScreen();
 		void DrawBatches();
-		const Batch PrepareBatchForSubmit(
-			Batch batch,
-			PrimitiveType primitiveType,
-			uint32_t vertexCount,
-			uint32_t gameContext) const;
-		
-		Vertex ReadVertex(
-			const uint8_t* vertex,
-			uint32_t vertexLayout,
-			const Batch& batch);
-		
 		void FixIngameMousePosition();
 
+		const Batch PrepareBatchForSubmit(
+			_In_ Batch batch,
+			_In_ PrimitiveType primitiveType,
+			_In_ uint32_t vertexCount,
+			_In_ uint32_t gameContext) const;
+		
+		Vertex ReadVertex(
+			_In_ const uint8_t* vertex,
+			_In_ uint32_t vertexLayout,
+			_In_ const Batch& batch);
+		
 		Batch _scratchBatch;
 
 		int32_t _frame;
-		std::unique_ptr<D3D11Context> _d3d11Context;
+		ComPtr<IRenderContext> _renderContext;
 		MajorGameState _majorGameState;
 
 		Buffer<uint32_t> _paletteKeys;
@@ -193,7 +200,10 @@ namespace d2dx
 		int32_t _vertexCount;
 		Buffer<Vertex> _vertices;
 
-		GameHelper _gameHelper;
+		ComPtr<IGameHelper> _gameHelper;
+		ComPtr<ISimd> _simd;
+		ComPtr<IBuiltinResMod> _builtinResMod;
+
 		Options _options;
 		Batch _logoTextureBatch;
 

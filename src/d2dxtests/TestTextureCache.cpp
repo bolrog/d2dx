@@ -21,7 +21,7 @@
 #include "CppUnitTest.h"
 
 #include "../d2dx/Batch.h"
-#include "../d2dx/Simd.h"
+#include "../d2dx/SimdSse2.h"
 #include "../d2dx/Types.h"
 #include "../d2dx/TextureCache.h"
 
@@ -35,49 +35,50 @@ namespace d2dxtests
 	public:
 		TEST_METHOD(CreateAtlas)
 		{
-			auto simd = Simd::Create();
-			auto textureProcessor = std::make_shared<TextureProcessor>();
+			auto simd = Make<SimdSse2>();
 			for (int32_t h = 3; h <= 8; ++h)
 			{
 				for (int32_t w = 3; w <= 8; ++w)
 				{
-					TextureCache textureCache(1 << w, 1 << h, 1024, 512, NULL, simd, textureProcessor);
+					ComPtr<TextureCache> textureCache;
+					MakeAndInitialize<TextureCache>(&textureCache,
+						1 << w, 1 << h, 1024, 512, (ID3D11Device*)nullptr, simd.Get());
 				}
 			}
 		}
 
 		TEST_METHOD(FindNonExistentTexture)
 		{
-			auto simd = Simd::Create();
-			auto textureProcessor = std::make_shared<TextureProcessor>();
-			TextureCache textureCache(256, 128, 2048, 512, NULL, simd, textureProcessor);
-			auto tcl = textureCache.FindTexture(0x12345678, -1);
+			auto simd = Make<SimdSse2>();
+			ComPtr<TextureCache> textureCache;
+			MakeAndInitialize<TextureCache>(&textureCache, 256, 128, 2048, 512, (ID3D11Device*)nullptr, simd.Get());
+			auto tcl = textureCache->FindTexture(0x12345678, -1);
 			Assert::AreEqual((int16_t)-1, tcl._textureAtlas);
 			Assert::AreEqual((int16_t)-1, tcl._textureIndex);
 		}
 
 		TEST_METHOD(InsertAndFindTextures)
 		{
-			auto simd = Simd::Create();
-			auto textureProcessor = std::make_shared<TextureProcessor>();
+			auto simd = Make<SimdSse2>();
 			std::array<uint32_t, 2 * 256 * 128> tmuData;
 
 			Batch batch;
 			batch.SetTextureStartAddress(0);
 			batch.SetTextureSize(256, 128);
 
-			TextureCache textureCache(256, 128, 64, 512, NULL, simd, textureProcessor);
+			ComPtr<ITextureCache> textureCache;
+			MakeAndInitialize<TextureCache>(&textureCache, 256, 128, 64, 512, (ID3D11Device*)nullptr, simd.Get());
 
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
+				textureCache->InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
 			}
 
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto tcl = textureCache.FindTexture(hash, -1);
+				auto tcl = textureCache->FindTexture(hash, -1);
 				Assert::AreEqual((int16_t)0, tcl._textureAtlas);
 				Assert::AreEqual((int16_t)i, tcl._textureIndex);
 			}
@@ -85,20 +86,20 @@ namespace d2dxtests
 
 		TEST_METHOD(FirstInsertedTextureIsReplaced)
 		{
-			auto simd = Simd::Create();
-			auto textureProcessor = std::make_shared<TextureProcessor>();
+			auto simd = Make<SimdSse2>();
 			std::array<uint32_t, 2 * 256 * 128> tmuData;
 
 			Batch batch;
 			batch.SetTextureStartAddress(0);
 			batch.SetTextureSize(256, 128);
 
-			TextureCache textureCache(256, 128, 64, 512, NULL, simd, textureProcessor);
+			ComPtr<ITextureCache> textureCache;
+			MakeAndInitialize<TextureCache>(&textureCache, 256, 128, 64, 512, (ID3D11Device*)nullptr, simd.Get());
 
 			for (uint32_t i = 0; i < 65; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
+				auto tcl = textureCache->InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
 
 				if (i == 64)
 				{
@@ -115,7 +116,7 @@ namespace d2dxtests
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto tcl = textureCache.FindTexture(hash, -1);
+				auto tcl = textureCache->FindTexture(hash, -1);
 				
 				int16_t expectedTextureAtlas = 0;
 				int16_t expectedTextureIndex = i;
@@ -137,15 +138,15 @@ namespace d2dxtests
 
 		TEST_METHOD(SecondInsertedTextureIsReplacedIfFirstOneWasUsedInFrame)
 		{
-			auto simd = Simd::Create();
-			auto textureProcessor = std::make_shared<TextureProcessor>();
+			auto simd = Make<SimdSse2>();
 			std::array<uint32_t, 2 * 256 * 128> tmuData;
 
 			Batch batch;
 			batch.SetTextureStartAddress(0);
 			batch.SetTextureSize(256, 128);
 
-			TextureCache textureCache(256, 128, 64, 512, NULL, simd, textureProcessor);
+			ComPtr<ITextureCache> textureCache;
+			MakeAndInitialize<TextureCache>(&textureCache, 256, 128, 64, 512, (ID3D11Device*)nullptr, simd.Get());
 
 			for (uint32_t i = 0; i < 65; ++i)
 			{
@@ -154,13 +155,13 @@ namespace d2dxtests
 				if (i == 64)
 				{
 					// Simulate new frame and use of texture in slot 0
-					textureCache.OnNewFrame();
-					auto tcl = textureCache.FindTexture(0xFF000000, -1);
+					textureCache->OnNewFrame();
+					auto tcl = textureCache->FindTexture(0xFF000000, -1);
 					Assert::AreEqual((int16_t)0, tcl._textureAtlas);
 					Assert::AreEqual((int16_t)0, tcl._textureIndex);
 				}
 
-				auto tcl = textureCache.InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
+				auto tcl = textureCache->InsertTexture(hash, batch, (const uint8_t*)tmuData.data(), (uint32_t)tmuData.size());
 
 				if (i == 64)
 				{
@@ -177,7 +178,7 @@ namespace d2dxtests
 			for (uint32_t i = 0; i < 64; ++i)
 			{
 				uint32_t hash = (0xFF << 24) | (i << 16) | (i << 8) | i;
-				auto tcl = textureCache.FindTexture(hash, -1);
+				auto tcl = textureCache->FindTexture(hash, -1);
 
 				int16_t expectedTextureAtlas = 0;
 				int16_t expectedTextureIndex = i;

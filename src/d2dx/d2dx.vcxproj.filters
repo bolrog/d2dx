@@ -23,15 +23,13 @@
   <ItemGroup>
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="D3D11Context.cpp" />
+    <ClCompile Include="RenderContext.cpp" />
     <ClCompile Include="GameHelper.cpp" />
-    <ClCompile Include="Simd.cpp" />
     <ClCompile Include="SimdSse2.cpp" />
     <ClCompile Include="Glide3x.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="D2DXContext.cpp" />
     <ClCompile Include="TextureCachePolicyBitPmru.cpp" />
-    <ClCompile Include="TextureProcessor.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
       <Filter>thirdparty\fnv</Filter>
@@ -83,26 +81,25 @@
     <ClCompile Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.cpp">
       <Filter>thirdparty\SlashDiablo-HD</Filter>
     </ClCompile>
-    <ClCompile Include="BuiltinD2HD.cpp" />
+    <ClCompile Include="BuiltinResMod.cpp" />
     <ClCompile Include="Metrics.cpp" />
+    <ClCompile Include="D2DXContextFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="TextureCache.h" />
-    <ClInclude Include="D3D11Context.h" />
+    <ClInclude Include="RenderContext.h" />
     <ClInclude Include="Batch.h" />
     <ClInclude Include="GameHelper.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Simd.h" />
+    <ClInclude Include="ISimd.h" />
     <ClInclude Include="SimdSse2.h" />
-    <ClInclude Include="TextureCachePolicy.h" />
+    <ClInclude Include="ITextureCachePolicy.h" />
     <ClInclude Include="TextureCachePolicyBitPmru.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="Vertex.h" />
-    <ClInclude Include="GlideHelpers.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DXContext.h" />
-    <ClInclude Include="TextureProcessor.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="..\..\thirdparty\glide3\3DFX.H">
       <Filter>thirdparty\glide3</Filter>
@@ -219,8 +216,15 @@
     </ClInclude>
     <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dllmain.h" />
-    <ClInclude Include="BuiltinD2HD.h" />
+    <ClInclude Include="BuiltinResMod.h" />
     <ClInclude Include="Metrics.h" />
+    <ClInclude Include="ITextureCache.h" />
+    <ClInclude Include="IRenderContext.h" />
+    <ClInclude Include="IGameHelper.h" />
+    <ClInclude Include="ID2DXContext.h" />
+    <ClInclude Include="IGlide3x.h" />
+    <ClInclude Include="D2DXContextFactory.h" />
+    <ClInclude Include="IBuiltinResMod.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

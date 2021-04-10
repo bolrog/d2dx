@@ -22,7 +22,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define __MSC__
 
-#include <memory>
 #include <array>
 #include <stdexcept>
 #include <cstdio>
@@ -32,6 +31,7 @@
 #include <windows.h>
 #include <CommCtrl.h>
 #include <combaseapi.h>
+#include <wrl/implements.h>
 #include <wrl.h>
 #include <emmintrin.h>
 #include <string.h>
@@ -48,5 +48,20 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include <DirectXPackedVector.h>
+
+template<typename T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+template<typename ...TInterfaces>
+using RuntimeClass = Microsoft::WRL::RuntimeClass<TInterfaces...>;
+
+template<unsigned int flags>
+using RuntimeClassFlags = Microsoft::WRL::RuntimeClassFlags<flags>;
+
+using RuntimeClassType = Microsoft::WRL::RuntimeClassType;
+
+using Microsoft::WRL::Details::Make;
+
+using Microsoft::WRL::Details::MakeAndInitialize;
 
 #endif //PCH_H

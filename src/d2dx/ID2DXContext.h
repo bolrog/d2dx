@@ -18,18 +18,27 @@
 */
 #pragma once
 
-#include "ISimd.h"
+#include "IGlide3x.h"
 
 namespace d2dx
 {
-	class SimdSse2 final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		ISimd>
+	MIDL_INTERFACE("89F801A7-BB81-4729-BD97-AE9090E5612A")
+		ID2DXContext : public IGlide3x
 	{
-	public:
-		virtual int32_t IndexOfUInt32(
-			_In_reads_(itemsCount) const uint32_t* __restrict items,
-			_In_ uint32_t itemsCount,
-			_In_ uint32_t item) override;
+		virtual void OnMousePosChanged(
+			_In_ int32_t x,
+			_In_ int32_t y) = 0;
+
+		virtual void SetCustomResolution(
+			_In_ int32_t width,
+			_In_ int32_t height) = 0;
+
+		virtual void GetSuggestedCustomResolution(
+			_Out_ int32_t* width,
+			_Out_ int32_t* height) = 0;
+
+		virtual GameVersion GetGameVersion() const = 0;
+
+		virtual void DisableBuiltinResMod() = 0;
 	};
 }

@@ -97,19 +97,11 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\d2dx\BuiltinD2HD.cpp" />
-    <ClCompile Include="..\d2dx\D2DXConfigurator.cpp" />
-    <ClCompile Include="..\d2dx\D2DXContext.cpp" />
-    <ClCompile Include="..\d2dx\D3D11Context.cpp" />
     <ClCompile Include="..\d2dx\Detours.cpp" />
-    <ClCompile Include="..\d2dx\GameHelper.cpp" />
-    <ClCompile Include="..\d2dx\glide3x.cpp" />
-    <ClCompile Include="..\d2dx\Simd.cpp" />
     <ClCompile Include="..\d2dx\SimdSse2.cpp" />
     <ClCompile Include="..\d2dx\Metrics.cpp" />
     <ClCompile Include="..\d2dx\TextureCache.cpp" />
     <ClCompile Include="..\d2dx\TextureCachePolicyBitPmru.cpp" />
-    <ClCompile Include="..\d2dx\TextureProcessor.cpp" />
     <ClCompile Include="..\d2dx\Utils.cpp" />
     <ClCompile Include="TestBatch.cpp" />
     <ClCompile Include="TestMetrics.cpp" />
@@ -124,15 +116,14 @@
     <ClInclude Include="..\d2dx\Batch.h" />
     <ClInclude Include="..\d2dx\Buffer.h" />
     <ClInclude Include="..\d2dx\D2DXContext.h" />
-    <ClInclude Include="..\d2dx\D3D11Context.h" />
     <ClInclude Include="..\d2dx\Detours.h" />
     <ClInclude Include="..\d2dx\dx256_bmp.h" />
-    <ClInclude Include="..\d2dx\GameHelper.h" />
+    <ClInclude Include="..\d2dx\IGameHelper.h" />
     <ClInclude Include="..\d2dx\Metrics.h" />
+    <ClInclude Include="..\d2dx\RenderContext.h" />
     <ClInclude Include="..\d2dx\TextureCache.h" />
     <ClInclude Include="..\d2dx\TextureCachePolicy.h" />
     <ClInclude Include="..\d2dx\TextureCachePolicyBitPmru.h" />
-    <ClInclude Include="..\d2dx\TextureProcessor.h" />
     <ClInclude Include="..\d2dx\Types.h" />
     <ClInclude Include="..\d2dx\Utils.h" />
     <ClInclude Include="..\d2dx\Vertex.h" />

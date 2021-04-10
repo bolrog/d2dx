@@ -17,9 +17,9 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "pch.h"
-#include "D2DXContext.h"
-#include "D3D11Context.h"
-#include "GlideHelpers.h"
+#include "Batch.h"
+#include "D2DXContextFactory.h"
+#include "RenderContext.h"
 #include "DisplayVS_cso.h"
 #include "DisplayNonintegerScalePS_cso.h"
 #include "DisplayIntegerScalePS_cso.h"
@@ -27,12 +27,12 @@
 #include "GamePS_cso.h"
 #include "GameVS_cso.h"
 #include "VideoPS_cso.h"
+#include "TextureCache.h"
 #include "Vertex.h"
 #include "Utils.h"
 
 using namespace d2dx;
 using namespace std;
-using namespace Microsoft::WRL;
 
 extern int (WINAPI* ShowCursor_Real)(
 	_In_ BOOL bShow);
@@ -49,21 +49,19 @@ extern BOOL(WINAPI* SetWindowPos_Real)(
 static LRESULT CALLBACK d2dxSubclassWndProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 	LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 
-D3D11Context::D3D11Context(
+RenderContext::RenderContext(
 	HWND hWnd,
 	Size gameSize,
 	Size windowSize,
 	Options& options,
-	shared_ptr<Simd> simd,
-	shared_ptr<TextureProcessor> textureProcessor) :
+	ISimd* simd) :
 	_hWnd{ hWnd },
 	_vbWriteIndex{ 0 },
 	_vbCapacity{ 0 },
 	_options{ options },
 	_constants{ 0 },
 	_frameLatencyWaitableObject{ nullptr },
-	_simd{ simd },
-	_textureProcessor{ textureProcessor }
+	_simd{ simd }
 {
 	memset(&_shadowState, 0, sizeof(_shadowState));
 
@@ -101,13 +99,13 @@ D3D11Context::D3D11Context(
 	{
 		if (_dxgiAllowTearingFlagSupported)
 		{
-			_syncStrategy = D3D11SyncStrategy::AllowTearing;
+			_syncStrategy = RenderContextSyncStrategy::AllowTearing;
 			_swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 			ALWAYS_PRINT("Using 'AllowTearing' sync strategy.")
 		}
 		else
 		{
-			_syncStrategy = D3D11SyncStrategy::Interval0;
+			_syncStrategy = RenderContextSyncStrategy::Interval0;
 			ALWAYS_PRINT("Using 'Interval0' sync strategy.")
 		}
 	}
@@ -115,25 +113,25 @@ D3D11Context::D3D11Context(
 	{
 		if (_frameLatencyWaitableObjectSupported)
 		{
-			_syncStrategy = D3D11SyncStrategy::FrameLatencyWaitableObject;
+			_syncStrategy = RenderContextSyncStrategy::FrameLatencyWaitableObject;
 			_swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 			ALWAYS_PRINT("Using 'FrameLatencyWaitableObject' sync strategy.")
 		}
 		else
 		{
-			_syncStrategy = D3D11SyncStrategy::Interval1;
+			_syncStrategy = RenderContextSyncStrategy::Interval1;
 			ALWAYS_PRINT("Using 'Interval1' sync strategy.")
 		}
 	}
 
 	if (GetWindowsVersion().major >= 10)
 	{
-		_swapStrategy = D3D11SwapStrategy::FlipDiscard;
+		_swapStrategy = RenderContextSwapStrategy::FlipDiscard;
 		ALWAYS_PRINT("Using 'FlipDiscard' swap strategy.")
 	}
 	else
 	{
-		_swapStrategy = D3D11SwapStrategy::Discard;
+		_swapStrategy = RenderContextSwapStrategy::Discard;
 		ALWAYS_PRINT("Using 'Discard' swap strategy.")
 	}
 
@@ -148,7 +146,7 @@ D3D11Context::D3D11Context(
 	swapChainDesc.OutputWindow = hWnd;
 	swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 0;
-	swapChainDesc.SwapEffect = _swapStrategy == D3D11SwapStrategy::FlipDiscard ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
+	swapChainDesc.SwapEffect = _swapStrategy == RenderContextSwapStrategy::FlipDiscard ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_DISCARD;
 	swapChainDesc.Flags = _swapChainCreateFlags;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
@@ -189,7 +187,7 @@ D3D11Context::D3D11Context(
 
 	if (SUCCEEDED(_swapChain1.As(&_swapChain2)))
 	{
-		_backbufferSizingStrategy = D3D11BackbufferSizingStrategy::SetSourceSize;
+		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::SetSourceSize;
 		ALWAYS_PRINT("Using 'SetSourceSize' backbuffer sizing strategy.")
 
 		if (!_options.noVSync && _frameLatencyWaitableObjectSupported)
@@ -200,7 +198,7 @@ D3D11Context::D3D11Context(
 	}
 	else
 	{
-		_backbufferSizingStrategy = D3D11BackbufferSizingStrategy::ResizeBuffers;
+		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::ResizeBuffers;
 		ALWAYS_PRINT("Using 'ResizeBuffers' backbuffer sizing strategy.")
 	}
 
@@ -253,7 +251,7 @@ D3D11Context::D3D11Context(
 	AdjustWindowPlacement(hWnd, false);
 }
 
-D3D11Context::~D3D11Context()
+RenderContext::~RenderContext()
 {
 	if (_frameLatencyWaitableObject)
 	{
@@ -262,7 +260,7 @@ D3D11Context::~D3D11Context()
 	}
 }
 
-void D3D11Context::CreateRasterizerState()
+void RenderContext::CreateRasterizerState()
 {
 	CD3D11_RASTERIZER_DESC rasterizerDesc{ CD3D11_DEFAULT() };
 
@@ -281,7 +279,7 @@ void D3D11Context::CreateRasterizerState()
 	_deviceContext->RSSetState(_rasterizerState.Get());
 }
 
-void D3D11Context::CreateVertexAndIndexBuffers()
+void RenderContext::CreateVertexAndIndexBuffers()
 {
 	_vbCapacity = 1024 * 1024;
 
@@ -300,7 +298,7 @@ void D3D11Context::CreateVertexAndIndexBuffers()
 	_deviceContext->IASetVertexBuffers(0, 1, _vb.GetAddressOf(), &stride, &offset);
 }
 
-void D3D11Context::CreateShadersAndInputLayout()
+void RenderContext::CreateShadersAndInputLayout()
 {
 	D2DX_RELEASE_CHECK_HR(_device->CreateVertexShader(GameVS_cso, ARRAYSIZE(GameVS_cso), NULL, &_gameVS));
 	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(GamePS_cso, ARRAYSIZE(GamePS_cso), NULL, &_gamePS));
@@ -322,7 +320,7 @@ void D3D11Context::CreateShadersAndInputLayout()
 	_deviceContext->IASetInputLayout(_inputLayout.Get());
 }
 
-void D3D11Context::CreateConstantBuffers()
+void RenderContext::CreateConstantBuffers()
 {
 	CD3D11_BUFFER_DESC cb1Desc
 	{
@@ -335,7 +333,7 @@ void D3D11Context::CreateConstantBuffers()
 	D2DX_RELEASE_CHECK_HR(_device->CreateBuffer(&cb1Desc, NULL, _cb.GetAddressOf()));
 }
 
-void D3D11Context::CreateSamplerStates()
+void RenderContext::CreateSamplerStates()
 {
 	CD3D11_SAMPLER_DESC samplerDesc{ CD3D11_DEFAULT() };
 
@@ -349,14 +347,16 @@ void D3D11Context::CreateSamplerStates()
 	_deviceContext->PSSetSamplers(0, 2, samplerState);
 }
 
-void D3D11Context::Draw(const Batch& batch)
+_Use_decl_annotations_
+void RenderContext::Draw(
+	const Batch& batch)
 {
 	SetVS(_gameVS.Get());
 	SetPS(_gamePS.Get());
 
 	SetBlendState(batch.GetAlphaBlend());
 
-	TextureCache* atlas = GetTextureCache(batch);
+	ITextureCache* atlas = GetTextureCache(batch);
 	ID3D11ShaderResourceView* srvs[2] = { atlas->GetSrv(batch.GetTextureAtlas()), _paletteTextureSrv.Get() };
 	SetPSShaderResourceViews(srvs);
 
@@ -380,7 +380,7 @@ void D3D11Context::Draw(const Batch& batch)
 	}
 }
 
-bool D3D11Context::IsIntegerScale() const
+bool RenderContext::IsIntegerScale() const
 {
 	float scaleX = ((float)_renderRect.size.width / _gameSize.width);
 	float scaleY = ((float)_renderRect.size.height / _gameSize.height);
@@ -388,7 +388,7 @@ bool D3D11Context::IsIntegerScale() const
 	return fabs(scaleX - floor(scaleX)) < 0.01 && fabs(scaleY - floor(scaleY)) < 0.01;
 }
 
-void D3D11Context::Present()
+void RenderContext::Present()
 {
 	_deviceContext->RSSetState(_rasterizerStateNoScissor.Get());
 
@@ -422,17 +422,17 @@ void D3D11Context::Present()
 
 	switch (_syncStrategy)
 	{
-	case D3D11SyncStrategy::AllowTearing:
+	case RenderContextSyncStrategy::AllowTearing:
 		D2DX_RELEASE_CHECK_HR(_swapChain1->Present(0, DXGI_PRESENT_ALLOW_TEARING));
 		break;
-	case D3D11SyncStrategy::Interval0:
+	case RenderContextSyncStrategy::Interval0:
 		D2DX_RELEASE_CHECK_HR(_swapChain1->Present(0, 0));
 		break;
-	case D3D11SyncStrategy::FrameLatencyWaitableObject:
+	case RenderContextSyncStrategy::FrameLatencyWaitableObject:
 		D2DX_RELEASE_CHECK_HR(_swapChain1->Present(0, 0));
 		::WaitForSingleObjectEx(_frameLatencyWaitableObject, 1000, true);
 		break;
-	case D3D11SyncStrategy::Interval1:
+	case RenderContextSyncStrategy::Interval1:
 		D2DX_RELEASE_CHECK_HR(_swapChain1->Present(1, 0));
 		break;
 	}
@@ -460,7 +460,7 @@ void D3D11Context::Present()
 	SetPS(_gamePS.Get());
 }
 
-void D3D11Context::CreateRenderTarget()
+void RenderContext::CreateRenderTarget()
 {
 	DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -501,7 +501,7 @@ void D3D11Context::CreateRenderTarget()
 	_deviceContext->OMSetRenderTargets(1, _gameTextureRtv.GetAddressOf(), NULL);
 }
 
-void D3D11Context::CreateGammaTexture()
+void RenderContext::CreateGammaTexture()
 {
 	CD3D11_TEXTURE1D_DESC desc{
 		DXGI_FORMAT_B8G8R8A8_UNORM,
@@ -516,7 +516,7 @@ void D3D11Context::CreateGammaTexture()
 	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_gammaTexture.Get(), nullptr, &_gammaTextureSrv));
 }
 
-void D3D11Context::CreatePaletteTexture()
+void RenderContext::CreatePaletteTexture()
 {
 	CD3D11_TEXTURE1D_DESC desc{
 		DXGI_FORMAT_B8G8R8A8_UNORM,
@@ -532,13 +532,14 @@ void D3D11Context::CreatePaletteTexture()
 }
 
 _Use_decl_annotations_
-void D3D11Context::LoadGammaTable(
-	const uint32_t* gammaTable)
+void RenderContext::LoadGammaTable(
+	_In_reads_(valueCount) const uint32_t* values,
+	_In_ uint32_t valueCount)
 {
-	_deviceContext->UpdateSubresource(_gammaTexture.Get(), 0, nullptr, gammaTable, 1024, 0);
+	_deviceContext->UpdateSubresource(_gammaTexture.Get(), 0, nullptr, values, valueCount * sizeof(uint32_t), 0);
 }
 
-void D3D11Context::CreateVideoTextures()
+void RenderContext::CreateVideoTextures()
 {
 	CD3D11_TEXTURE2D_DESC desc
 	{
@@ -557,7 +558,7 @@ void D3D11Context::CreateVideoTextures()
 }
 
 _Use_decl_annotations_
-void D3D11Context::WriteToScreen(
+void RenderContext::WriteToScreen(
 	const uint32_t* pixels,
 	int32_t width,
 	int32_t height)
@@ -585,7 +586,7 @@ void D3D11Context::WriteToScreen(
 	Present();
 }
 
-void D3D11Context::SetBlendState(
+void RenderContext::SetBlendState(
 	AlphaBlend alphaBlend)
 {
 	ComPtr<ID3D11BlendState> blendState = _blendStates[(int32_t)alphaBlend];
@@ -653,7 +654,7 @@ void D3D11Context::SetBlendState(
 }
 
 _Use_decl_annotations_
-void D3D11Context::BulkWriteVertices(
+void RenderContext::BulkWriteVertices(
 	const Vertex* vertices,
 	uint32_t vertexCount)
 {
@@ -674,7 +675,7 @@ void D3D11Context::BulkWriteVertices(
 	_vbWriteIndex += vertexCount;
 }
 
-uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(
+uint32_t RenderContext::UpdateVerticesWithFullScreenQuad(
 	Size srcSize,
 	Rect dstRect)
 {
@@ -709,15 +710,16 @@ uint32_t D3D11Context::UpdateVerticesWithFullScreenQuad(
 }
 
 _Use_decl_annotations_
-TextureCacheLocation D3D11Context::UpdateTexture(
+TextureCacheLocation RenderContext::UpdateTexture(
 	const Batch& batch,
 	const uint8_t* tmuData,
 	uint32_t tmuDataSize)
 {
 	assert(batch.IsValid() && "Batch has no texture set.");
-	const uint32_t contentKey = batch.GetHash() ^ batch.GetPaletteIndex();
+	const uint32_t contentKey = batch.GetHash();
 
-	TextureCache* atlas = GetTextureCache(batch);
+	ITextureCache* atlas = GetTextureCache(batch);
+
 	auto tcl = atlas->FindTexture(contentKey, -1);
 
 	if (tcl._textureAtlas < 0)
@@ -728,7 +730,7 @@ TextureCacheLocation D3D11Context::UpdateTexture(
 	return tcl;
 }
 
-void D3D11Context::UpdateViewport(Rect rect)
+void RenderContext::UpdateViewport(Rect rect)
 {
 	CD3D11_VIEWPORT viewport{ (float)rect.offset.x, (float)rect.offset.y, (float)rect.size.width, (float)rect.size.height };
 	_deviceContext->RSSetViewports(1, &viewport);
@@ -748,7 +750,8 @@ void D3D11Context::UpdateViewport(Rect rect)
 	}
 }
 
-void D3D11Context::SetGamma(
+_Use_decl_annotations_
+void RenderContext::SetGamma(
 	float red,
 	float green,
 	float blue)
@@ -767,18 +770,18 @@ void D3D11Context::SetGamma(
 		gammaTable[i] = (ri << 16) | (gi << 8) | bi;
 	}
 
-	LoadGammaTable(gammaTable);
+	LoadGammaTable(gammaTable, ARRAYSIZE(gammaTable));
 }
 
 _Use_decl_annotations_
-void D3D11Context::SetPalette(
+void RenderContext::SetPalette(
 	int32_t paletteIndex,
 	const uint32_t* palette)
 {
 	_deviceContext->UpdateSubresource(_paletteTexture.Get(), paletteIndex, nullptr, palette, 1024, 0);
 }
 
-const Options& D3D11Context::GetOptions() const
+const Options& RenderContext::GetOptions() const
 {
 	return _options;
 }
@@ -791,7 +794,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 	UINT_PTR uIdSubclass,
 	DWORD_PTR dwRefData)
 {
-	D3D11Context* d3d11Context = (D3D11Context*)dwRefData;
+	RenderContext* d3d11Context = (RenderContext*)dwRefData;
 
 	if (uMsg == WM_SYSKEYDOWN || uMsg == WM_KEYDOWN)
 	{
@@ -804,7 +807,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 	else if (uMsg == WM_DESTROY)
 	{
 		RemoveWindowSubclass(hWnd, d2dxSubclassWndProc, 1234);
-		D2DXContext::Destroy();
+		D2DXContextFactory::DestroyInstance();
 	}
 	else if (uMsg == WM_NCMOUSEMOVE)
 	{
@@ -819,9 +822,11 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 		uint32_t x = LOWORD(lParam);
 		uint32_t y = HIWORD(lParam);
 
-		auto gameSize = d3d11Context->GetGameSize();
-		auto renderRect = d3d11Context->GetRenderRect();
-		auto desktopSize = d3d11Context->GetDesktopSize();
+		Size gameSize;
+		Rect renderRect;
+		Size desktopSize;
+
+		d3d11Context->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
 
 		const bool isFullscreen = d3d11Context->GetOptions().screenMode == ScreenMode::FullscreenDefault;
 		const float scale = (float)renderRect.size.height / gameSize.height;
@@ -831,7 +836,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 		x = (uint32_t)(max(0, x - mouseOffsetX) / scale);
 		y = (uint32_t)(y / scale);
 
-		D2DXContext::Instance()->OnMousePosChanged(x, y);
+		D2DXContextFactory::GetInstance()->OnMousePosChanged(x, y);
 
 		lParam = x;
 		lParam |= y << 16;
@@ -840,7 +845,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-uint32_t D3D11Context::DetermineMaxTextureArraySize()
+uint32_t RenderContext::DetermineMaxTextureArraySize()
 {
 	HRESULT hr = E_FAIL;
 
@@ -869,7 +874,7 @@ uint32_t D3D11Context::DetermineMaxTextureArraySize()
 	return 512;
 }
 
-void D3D11Context::CreateTextureCaches()
+void RenderContext::CreateTextureCaches()
 {
 	static const uint32_t capacities[6] = { 2048, 2048, 2048, 2048, 2048, 2048 };
 
@@ -881,7 +886,8 @@ void D3D11Context::CreateTextureCaches()
 	{
 		int32_t width = 1U << (i + 3);
 
-		_textureCaches[i] = make_unique<TextureCache>(width, width, capacities[i], texturesPerAtlas, _device.Get(), _simd, _textureProcessor);
+		MakeAndInitialize<TextureCache, ITextureCache>(&_textureCaches[i],
+			width, width, capacities[i], texturesPerAtlas, _device.Get(), _simd.Get());
 
 		DEBUG_PRINT("Creating texture cache for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
 
@@ -892,7 +898,7 @@ void D3D11Context::CreateTextureCaches()
 }
 
 _Use_decl_annotations_
-void D3D11Context::SetVS(
+void RenderContext::SetVS(
 	ID3D11VertexShader* vs)
 {
 	if (vs != _shadowState._lastVS)
@@ -903,7 +909,7 @@ void D3D11Context::SetVS(
 }
 
 _Use_decl_annotations_
-void D3D11Context::SetPS(
+void RenderContext::SetPS(
 	ID3D11PixelShader* ps)
 {
 	if (ps != _shadowState._lastPS)
@@ -914,7 +920,7 @@ void D3D11Context::SetPS(
 }
 
 _Use_decl_annotations_
-void D3D11Context::SetBlendState(
+void RenderContext::SetBlendState(
 	ID3D11BlendState* blendState)
 {
 	if (blendState != _shadowState._lastBlendState)
@@ -927,7 +933,7 @@ void D3D11Context::SetBlendState(
 }
 
 _Use_decl_annotations_
-void D3D11Context::SetPSShaderResourceViews(
+void RenderContext::SetPSShaderResourceViews(
 	ID3D11ShaderResourceView* srvs[2])
 {
 	if (srvs[0] != _shadowState._psSrvs[0] ||
@@ -939,7 +945,7 @@ void D3D11Context::SetPSShaderResourceViews(
 	}
 }
 
-void D3D11Context::SetPrimitiveTopology(
+void RenderContext::SetPrimitiveTopology(
 	D3D11_PRIMITIVE_TOPOLOGY pt)
 {
 	if (pt != _shadowState._primitiveTopology)
@@ -951,7 +957,7 @@ void D3D11Context::SetPrimitiveTopology(
 
 #define MAX_DIMS 6
 
-TextureCache* D3D11Context::GetTextureCache(const Batch& batch) const
+ITextureCache* RenderContext::GetTextureCache(const Batch& batch) const
 {
 	const int32_t longest = max(batch.GetWidth(), batch.GetHeight());
 	assert(longest >= 8);
@@ -959,11 +965,11 @@ TextureCache* D3D11Context::GetTextureCache(const Batch& batch) const
 	BitScanForward((DWORD*)&log2Longest, (DWORD)longest);
 	log2Longest -= 3;
 	assert(log2Longest <= 5);
-	return _textureCaches[log2Longest].get();
+	return _textureCaches[log2Longest].Get();
 }
 
 _Use_decl_annotations_
-void D3D11Context::AdjustWindowPlacement(
+void RenderContext::AdjustWindowPlacement(
 	HWND hWnd,
 	bool centerOnCurrentPosition)
 {
@@ -1035,15 +1041,15 @@ void D3D11Context::AdjustWindowPlacement(
 	Present();
 }
 
-void D3D11Context::ResizeBackbuffer()
+void RenderContext::ResizeBackbuffer()
 {
-	if (_backbufferSizingStrategy == D3D11BackbufferSizingStrategy::SetSourceSize)
+	if (_backbufferSizingStrategy == RenderContextBackbufferSizingStrategy::SetSourceSize)
 	{
 		_swapChain2->SetSourceSize(
 			_renderRect.offset.x * 2 + _renderRect.size.width,
 			_renderRect.offset.y * 2 + _renderRect.size.height);
 	}
-	else if (_backbufferSizingStrategy == D3D11BackbufferSizingStrategy::ResizeBuffers)
+	else if (_backbufferSizingStrategy == RenderContextBackbufferSizingStrategy::ResizeBuffers)
 	{
 		ID3D11RenderTargetView* nullRtv = nullptr;
 		_deviceContext->OMSetRenderTargets(1, &nullRtv, nullptr);
@@ -1057,7 +1063,10 @@ void D3D11Context::ResizeBackbuffer()
 	}
 }
 
-void D3D11Context::SetSizes(Size gameSize, Size windowSize)
+_Use_decl_annotations_
+void RenderContext::SetSizes(
+	Size gameSize,
+	Size windowSize)
 {
 	_gameSize = gameSize;
 	_windowSize = windowSize;
@@ -1072,13 +1081,13 @@ void D3D11Context::SetSizes(Size gameSize, Size windowSize)
 	AdjustWindowPlacement(_hWnd, true);
 }
 
-bool D3D11Context::IsFrameLatencyWaitableObjectSupported() const
+bool RenderContext::IsFrameLatencyWaitableObjectSupported() const
 {
 	auto windowsVersion = GetWindowsVersion();
 	return (windowsVersion.major == 6 && windowsVersion.minor >= 3) || windowsVersion.major > 6;
 }
 
-bool D3D11Context::IsAllowTearingFlagSupported() const
+bool RenderContext::IsAllowTearingFlagSupported() const
 {
 	ComPtr<IDXGIFactory4> dxgiFactory4;
 
@@ -1104,7 +1113,7 @@ bool D3D11Context::IsAllowTearingFlagSupported() const
 	return false;
 }
 
-void D3D11Context::ToggleFullscreen()
+void RenderContext::ToggleFullscreen()
 {
 	if (_options.screenMode == ScreenMode::FullscreenDefault)
 	{
@@ -1118,17 +1127,14 @@ void D3D11Context::ToggleFullscreen()
 	}
 }
 
-Size D3D11Context::GetGameSize() const
+_Use_decl_annotations_
+void RenderContext::GetCurrentMetrics(
+	Size* gameSize,
+	Rect* renderRect,
+	Size* desktopSize) const
 {
-	return _gameSize;
-}
-
-Rect D3D11Context::GetRenderRect() const
-{
-	return _renderRect;
-}
-
-Size D3D11Context::GetDesktopSize() const
-{
-	return _desktopSize;
+	assert(gameSize && renderRect && desktopSize);
+	*gameSize = _gameSize;
+	*renderRect = _renderRect;
+	*desktopSize = _desktopSize;
 }

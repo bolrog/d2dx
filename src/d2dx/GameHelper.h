@@ -18,39 +18,43 @@
 */
 #pragma once
 
+#include "IGameHelper.h"
 #include "Types.h"
 
 namespace d2dx 
 {
-	class GameHelper final
+	class GameHelper final : public RuntimeClass<
+		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
+		IGameHelper
+	>
 	{
 	public:
 		GameHelper();
-		~GameHelper();
+		virtual ~GameHelper();
 
-		GameVersion GetVersion() const;
+		virtual GameVersion GetVersion() const override;
 		
-		_Ret_z_ const char* GetVersionString() const;
+		virtual _Ret_z_ const char* GetVersionString() const override;
 
-		uint32_t ScreenOpenMode() const;
+		virtual uint32_t ScreenOpenMode() const override;
 		
-		void GetConfiguredGameSize(
+		virtual void GetConfiguredGameSize(
 			_Out_ int32_t* width,
-			_Out_ int32_t* height) const;
+			_Out_ int32_t* height) const override;
 		
-		void SetIngameMousePos(
+		virtual void SetIngameMousePos(
 			int32_t x,
-			int32_t y);
+			int32_t y) override;
 
-		GameAddress IdentifyGameAddress(
-			uint32_t returnAddress) const;
+		virtual GameAddress IdentifyGameAddress(
+			uint32_t returnAddress) const override;
 
-		TextureCategory GetTextureCategoryFromHash(
-			uint32_t textureHash) const;
+		virtual TextureCategory GetTextureCategoryFromHash(
+			uint32_t textureHash) const override;
 		
-		TextureCategory RefineTextureCategoryFromGameAddress(
+		virtual TextureCategory RefineTextureCategoryFromGameAddress(
 			TextureCategory previousCategory,
-			GameAddress gameAddress) const;
+			GameAddress gameAddress) const override;
 
 	private:
 		uint32_t ReadU32(HANDLE module, uint32_t offset) const;

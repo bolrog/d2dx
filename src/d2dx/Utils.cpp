@@ -57,7 +57,7 @@ typedef LONG NTSTATUS, * PNTSTATUS;
 
 typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
-static std::unique_ptr<WindowsVersion> windowsVersion;
+static WindowsVersion* windowsVersion = nullptr;
 
 WindowsVersion d2dx::GetWindowsVersion()
 {
@@ -76,7 +76,7 @@ WindowsVersion d2dx::GetWindowsVersion()
             rovi.dwOSVersionInfoSize = sizeof(rovi);
             if (STATUS_SUCCESS == fxPtr(&rovi))
             {
-                windowsVersion = std::make_unique<WindowsVersion>();
+                windowsVersion = new WindowsVersion();
                 windowsVersion->major = rovi.dwMajorVersion;
                 windowsVersion->minor = rovi.dwMinorVersion;
                 windowsVersion->build = rovi.dwBuildNumber;

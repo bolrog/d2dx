@@ -7,8 +7,15 @@ namespace d2dx
 {
 	namespace Metrics
 	{
-		Size GetSuggestedGameSize(Size desktopSize, bool wide);
-		Rect GetRenderRect(Size gameSize, Size desktopSize, bool wide);
+		Size GetSuggestedGameSize(
+			_In_ Size desktopSize,
+			_In_ bool wide);
+		
+		Rect GetRenderRect(
+			_In_ Size gameSize,
+			_In_ Size desktopSize,
+			_In_ bool wide);
+		
 		Buffer<Size> GetStandardDesktopSizes();
 	}
 }

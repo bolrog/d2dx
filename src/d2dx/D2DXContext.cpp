@@ -18,11 +18,10 @@
 */
 #include "pch.h"
 #include "D2DXContext.h"
-#include "BuiltinD2HD.h"
-#include "D3D11Context.h"
+#include "BuiltinResMod.h"
+#include "RenderContext.h"
 #include "GameHelper.h"
-#include "GlideHelpers.h"
-#include "Simd.h"
+#include "SimdSse2.h"
 #include "Metrics.h"
 #include "Utils.h"
 #include "Vertex.h"
@@ -32,28 +31,13 @@ using namespace d2dx;
 using namespace DirectX::PackedVector;
 using namespace std;
 
-static bool destroyed = false;
-static std::unique_ptr<D2DXContext> instance;
+#define D2DX_GLIDE_ALPHA_BLEND(rgb_sf, rgb_df, alpha_sf, alpha_df) \
+		(uint16_t)(((rgb_sf & 0xF) << 12) | ((rgb_df & 0xF) << 8) | ((alpha_sf & 0xF) << 4) | (alpha_df & 0xF))
 
-D2DXContext* D2DXContext::Instance()
-{
-	/* The game is single threaded and there's no worry about synchronization. */
-
-	if (!instance && !destroyed)
-	{
-		instance = make_unique<D2DXContext>();
-	}
-
-	return instance.get();
-}
-
-void D2DXContext::Destroy()
-{
-	instance = nullptr;
-	destroyed = true;
-}
-
-D2DXContext::D2DXContext() :
+_Use_decl_annotations_
+D2DXContext::D2DXContext(
+	IGameHelper* gameHelper,
+	ISimd* simd) :
 	_frame(0),
 	_majorGameState(MajorGameState::Unknown),
 	_vertexLayout(0xFF),
@@ -66,7 +50,9 @@ D2DXContext::D2DXContext() :
 	_batches(D2DX_MAX_BATCHES_PER_FRAME),
 	_vertexCount(0),
 	_vertices(D2DX_MAX_VERTICES_PER_FRAME),
-	_suggestedGameSize{ 0, 0 }
+	_suggestedGameSize{ 0, 0 },
+	_gameHelper{ gameHelper },
+	_simd{ simd }
 {
 	memset(_paletteKeys.items, 0, sizeof(uint32_t)* _paletteKeys.capacity);
 
@@ -88,7 +74,8 @@ D2DXContext::D2DXContext() :
 
 	if (!_options.noResMod)
 	{
-		if (!BuiltinResMod::TryInitialize(GetModuleHandleA("glide3x.dll")))
+		HRESULT hr = MakeAndInitialize<BuiltinResMod>(&_builtinResMod, GetModuleHandleA("glide3x.dll"), _gameHelper.Get());
+		if (FAILED(hr) || !_builtinResMod->IsActive())
 		{
 			_options.noResMod = true;
 		}
@@ -99,7 +86,9 @@ D2DXContext::~D2DXContext()
 {
 }
 
-const char* D2DXContext::OnGetString(uint32_t pname)
+_Use_decl_annotations_
+const char* D2DXContext::OnGetString(
+	uint32_t pname)
 {
 	switch (pname)
 	{
@@ -158,23 +147,13 @@ uint32_t D2DXContext::OnGet(
 }
 
 _Use_decl_annotations_
-void D2DXContext::LogGlideCall(
-	const char* s)
-{
-}
-
-void D2DXContext::OnGlideInit()
-{
-}
-
-void D2DXContext::OnGlideShutdown()
-{
-}
-
-void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
+void D2DXContext::OnSstWinOpen(
+	uint32_t hWnd,
+	int32_t width,
+	int32_t height)
 {
 	int32_t windowWidth, windowHeight;
-	_gameHelper.GetConfiguredGameSize(&windowWidth, &windowHeight);
+	_gameHelper->GetConfiguredGameSize(&windowWidth, &windowHeight);
 
 	Size gameSize{ width, height };
 
@@ -190,17 +169,14 @@ void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
 		windowHeight = gameSize.height;
 	}
 
-	if (!_d3d11Context)
+	if (!_renderContext)
 	{
-		auto simd = Simd::Create();
-		auto textureProcessor = make_shared<TextureProcessor>();
-		_d3d11Context = make_unique<D3D11Context>(
+		_renderContext = Make<RenderContext>(
 			(HWND)hWnd,
 			gameSize,
-			Size { (int32_t)(windowWidth * _options.defaultZoomLevel), (int32_t)(windowHeight * _options.defaultZoomLevel )},
+			Size{ (int32_t)(windowWidth * _options.defaultZoomLevel), (int32_t)(windowHeight * _options.defaultZoomLevel) },
 			_options,
-			simd,
-			textureProcessor);
+			_simd.Get());
 	}
 	else
 	{
@@ -209,7 +185,7 @@ void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
 			windowWidth = width;
 			windowHeight = height;
 		}
-		_d3d11Context->SetSizes(gameSize, { windowWidth, windowHeight });
+		_renderContext->SetSizes(gameSize, { windowWidth, windowHeight });
 	}
 
 	_batchCount = 0;
@@ -217,7 +193,10 @@ void D2DXContext::OnSstWinOpen(uint32_t hWnd, int32_t width, int32_t height)
 	_scratchBatch = Batch();
 }
 
-void D2DXContext::OnVertexLayout(uint32_t param, int32_t offset)
+_Use_decl_annotations_
+void D2DXContext::OnVertexLayout(
+	uint32_t param,
+	int32_t offset)
 {
 	switch (param) {
 	case GR_PARAM_XY:
@@ -242,6 +221,10 @@ void D2DXContext::OnTexDownload(
 	int32_t height)
 {
 	assert(tmu == 0 && (startAddress & 255) == 0);
+	if (!(tmu == 0 && (startAddress & 255) == 0))
+	{
+		return;
+	}
 
 	uint32_t memRequired = (uint32_t)(width * height);
 
@@ -251,6 +234,7 @@ void D2DXContext::OnTexDownload(
 	memcpy_s(pStart, _tmuMemory.capacity - startAddress, sourceAddress, memRequired);
 }
 
+_Use_decl_annotations_
 void D2DXContext::OnTexSource(
 	uint32_t tmu,
 	uint32_t startAddress,
@@ -258,6 +242,10 @@ void D2DXContext::OnTexSource(
 	int32_t height)
 {
 	assert(tmu == 0 && (startAddress & 255) == 0);
+	if (!(tmu == 0 && (startAddress & 255) == 0))
+	{
+		return;
+	}
 
 	uint8_t* pixels = _tmuMemory.items + startAddress;
 	const uint32_t pixelsSize = width * height;
@@ -275,7 +263,7 @@ void D2DXContext::OnTexSource(
 	_scratchBatch.SetTextureStartAddress(startAddress);
 	_scratchBatch.SetTextureHash(hash);
 	_scratchBatch.SetTextureSize(width, height);
-	_scratchBatch.SetTextureCategory(_gameHelper.GetTextureCategoryFromHash(hash));
+	_scratchBatch.SetTextureCategory(_gameHelper->GetTextureCategoryFromHash(hash));
 }
 
 void D2DXContext::CheckMajorGameState()
@@ -289,7 +277,7 @@ void D2DXContext::CheckMajorGameState()
 
 	_majorGameState = MajorGameState::Menus;
 
-	if (_gameHelper.ScreenOpenMode() == 3)
+	if (_gameHelper->ScreenOpenMode() == 3)
 	{
 		_majorGameState = MajorGameState::InGame;
 	}
@@ -346,13 +334,13 @@ void D2DXContext::DrawBatches()
 		}
 		else
 		{
-			if (_d3d11Context->GetTextureCache(batch) != _d3d11Context->GetTextureCache(mergedBatch) ||
+			if (_renderContext->GetTextureCache(batch) != _renderContext->GetTextureCache(mergedBatch) ||
 				(batch.GetTextureAtlas() != mergedBatch.GetTextureAtlas()) ||
 				batch.GetAlphaBlend() != mergedBatch.GetAlphaBlend() ||
 				batch.GetPrimitiveType() != mergedBatch.GetPrimitiveType() ||
 				((mergedBatch.GetVertexCount() + batch.GetVertexCount()) > 65535))
 			{
-				_d3d11Context->Draw(mergedBatch);
+				_renderContext->Draw(mergedBatch);
 				++drawCalls;
 				mergedBatch = batch;
 			}
@@ -365,7 +353,7 @@ void D2DXContext::DrawBatches()
 
 	if (mergedBatch.IsValid())
 	{
-		_d3d11Context->Draw(mergedBatch);
+		_renderContext->Draw(mergedBatch);
 		++drawCalls;
 	}
 
@@ -381,11 +369,11 @@ void D2DXContext::OnBufferSwap()
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
 
-	_d3d11Context->BulkWriteVertices(_vertices.items, _vertexCount);
+	_renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
 
 	DrawBatches();
 
-	_d3d11Context->Present();
+	_renderContext->Present();
 
 	++_frame;
 
@@ -393,7 +381,13 @@ void D2DXContext::OnBufferSwap()
 	_vertexCount = 0;
 }
 
-void D2DXContext::OnColorCombine(GrCombineFunction_t function, GrCombineFactor_t factor, GrCombineLocal_t local, GrCombineOther_t other, bool invert)
+_Use_decl_annotations_
+void D2DXContext::OnColorCombine(
+	GrCombineFunction_t function,
+	GrCombineFactor_t factor,
+	GrCombineLocal_t local,
+	GrCombineOther_t other,
+	bool invert)
 {
 	auto rgbCombine = RgbCombine::ColorMultipliedByTexture;
 
@@ -413,7 +407,13 @@ void D2DXContext::OnColorCombine(GrCombineFunction_t function, GrCombineFactor_t
 	_scratchBatch.SetRgbCombine(rgbCombine);
 }
 
-void D2DXContext::OnAlphaCombine(GrCombineFunction_t function, GrCombineFactor_t factor, GrCombineLocal_t local, GrCombineOther_t other, bool invert)
+_Use_decl_annotations_
+void D2DXContext::OnAlphaCombine(
+	GrCombineFunction_t function,
+	GrCombineFactor_t factor,
+	GrCombineLocal_t local,
+	GrCombineOther_t other,
+	bool invert)
 {
 	auto alphaCombine = AlphaCombine::One;
 
@@ -433,12 +433,19 @@ void D2DXContext::OnAlphaCombine(GrCombineFunction_t function, GrCombineFactor_t
 	_scratchBatch.SetAlphaCombine(alphaCombine);
 }
 
-void D2DXContext::OnConstantColorValue(uint32_t color)
+_Use_decl_annotations_
+void D2DXContext::OnConstantColorValue(
+	uint32_t color)
 {
 	_constantColor = (color >> 8) | (color << 24);
 }
 
-void D2DXContext::OnAlphaBlendFunction(GrAlphaBlendFnc_t rgb_sf, GrAlphaBlendFnc_t rgb_df, GrAlphaBlendFnc_t alpha_sf, GrAlphaBlendFnc_t alpha_df)
+_Use_decl_annotations_
+void D2DXContext::OnAlphaBlendFunction(
+	GrAlphaBlendFnc_t rgb_sf,
+	GrAlphaBlendFnc_t rgb_df,
+	GrAlphaBlendFnc_t alpha_sf,
+	GrAlphaBlendFnc_t alpha_df)
 {
 	auto alphaBlend = AlphaBlend::Opaque;
 
@@ -470,13 +477,13 @@ void D2DXContext::OnDrawLine(
 {
 	FixIngameMousePosition();
 
-	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
+	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
 
 	Batch batch = _scratchBatch;
 	batch.SetPrimitiveType(PrimitiveType::Triangles);
 	batch.SetGameAddress(gameAddress);
 	batch.SetStartVertex(_vertexCount);
-	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
+	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 
 	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch);
 	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch);
@@ -521,7 +528,11 @@ void D2DXContext::OnDrawLine(
 	_batches.items[_batchCount++] = batch;
 }
 
-Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, const Batch& batch)
+_Use_decl_annotations_
+Vertex D2DXContext::ReadVertex(
+	const uint8_t* vertex,
+	uint32_t vertexLayout,
+	const Batch& batch)
 {
 	uint32_t stShift = 0;
 	_BitScanReverse((DWORD*)&stShift, max(batch.GetWidth(), batch.GetHeight()));
@@ -543,19 +554,24 @@ Vertex D2DXContext::ReadVertex(const uint8_t* vertex, uint32_t vertexLayout, con
 	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.GetRgbCombine(), batch.GetAlphaCombine(), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), batch.GetPaletteIndex());
 }
 
-const Batch D2DXContext::PrepareBatchForSubmit(Batch batch, PrimitiveType primitiveType, uint32_t vertexCount, uint32_t gameContext) const
+_Use_decl_annotations_
+const Batch D2DXContext::PrepareBatchForSubmit(
+	Batch batch,
+	PrimitiveType primitiveType,
+	uint32_t vertexCount,
+	uint32_t gameContext) const
 {
-	auto gameAddress = _gameHelper.IdentifyGameAddress(gameContext);
+	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
 	batch.SetPrimitiveType(PrimitiveType::Triangles);
 
-	auto tcl = _d3d11Context->UpdateTexture(batch, _tmuMemory.items, _tmuMemory.capacity);
+	auto tcl = _renderContext->UpdateTexture(batch, _tmuMemory.items, _tmuMemory.capacity);
 	batch.SetTextureAtlas(tcl._textureAtlas);
 	batch.SetTextureIndex(tcl._textureIndex);
 
 	batch.SetGameAddress(gameAddress);
 	batch.SetStartVertex(_vertexCount);
 	batch.SetVertexCount(vertexCount);
-	batch.SetTextureCategory(_gameHelper.RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
+	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 	return batch;
 }
 
@@ -730,7 +746,7 @@ void D2DXContext::OnTexDownloadTable(
 		{
 			_paletteKeys.items[i] = hash;
 			_scratchBatch.SetPaletteIndex(i);
-			_d3d11Context->SetPalette(i, (const uint32_t*)data);
+			_renderContext->SetPalette(i, (const uint32_t*)data);
 			return;
 		}
 	}
@@ -739,6 +755,7 @@ void D2DXContext::OnTexDownloadTable(
 	ALWAYS_PRINT("Too many palettes.");
 }
 
+_Use_decl_annotations_
 void D2DXContext::OnChromakeyMode(
 	GrChromakeyMode_t mode)
 {
@@ -757,7 +774,7 @@ void D2DXContext::OnLoadGammaTable(
 		_gammaTable.items[i] = ((blue[i] & 0xFF) << 16) | ((green[i] & 0xFF) << 8) | (red[i] & 0xFF);
 	}
 
-	_d3d11Context->LoadGammaTable(_gammaTable.items);
+	_renderContext->LoadGammaTable(_gammaTable.items, _gammaTable.capacity);
 }
 
 _Use_decl_annotations_
@@ -765,15 +782,16 @@ void D2DXContext::OnLfbUnlock(
 	const uint32_t* lfbPtr,
 	uint32_t strideInBytes)
 {
-	_d3d11Context->WriteToScreen(lfbPtr, 640, 480);
+	_renderContext->WriteToScreen(lfbPtr, 640, 480);
 }
 
+_Use_decl_annotations_
 void D2DXContext::OnGammaCorrectionRGB(
 	float red,
 	float green,
 	float blue)
 {
-	_d3d11Context->SetGamma(red, green, blue);
+	_renderContext->SetGamma(red, green, blue);
 }
 
 void D2DXContext::PrepareLogoTextureBatch()
@@ -786,7 +804,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 	const uint8_t* srcPixels = dx_logo256 + 0x436;
 	const uint32_t* palette = (const uint32_t*)(dx_logo256 + 0x36);
 
-	_d3d11Context->SetPalette(15, palette);
+	_renderContext->SetPalette(15, palette);
 
 	uint32_t hash = fnv_32a_buf((void*)srcPixels, sizeof(uint8_t) * 81 * 40, FNV1_32A_INIT);
 
@@ -822,14 +840,19 @@ void D2DXContext::InsertLogoOnTitleScreen()
 
 	PrepareLogoTextureBatch();
 
-	auto tcl = _d3d11Context->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items, _sideTmuMemory.capacity);
+	auto tcl = _renderContext->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items, _sideTmuMemory.capacity);
 
 	_logoTextureBatch.SetTextureAtlas(tcl._textureAtlas);
 	_logoTextureBatch.SetTextureIndex(tcl._textureIndex);
 	_logoTextureBatch.SetStartVertex(_vertexCount);
 
-	const float x = (float)(_d3d11Context->GetGameSize().width - 90 - 16);
-	const float y = (float)(_d3d11Context->GetGameSize().height - 50 - 16);
+	Size gameSize;
+	Rect renderRect;
+	Size desktopSize;
+	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
+
+	const float x = (float)(gameSize.width - 90 - 16);
+	const float y = (float)(gameSize.height - 50 - 16);
 	const uint32_t color = 0xFFFFa090;
 
 	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15);
@@ -852,10 +875,13 @@ void D2DXContext::InsertLogoOnTitleScreen()
 
 GameVersion D2DXContext::GetGameVersion() const
 {
-	return _gameHelper.GetVersion();
+	return _gameHelper->GetVersion();
 }
 
-void D2DXContext::OnMousePosChanged(int32_t x, int32_t y)
+_Use_decl_annotations_
+void D2DXContext::OnMousePosChanged(
+	int32_t x,
+	int32_t y)
 {
 	_mouseX = x;
 	_mouseY = y;
@@ -869,10 +895,11 @@ void D2DXContext::FixIngameMousePosition()
 
 	if (_batchCount == 0)
 	{
-		_gameHelper.SetIngameMousePos(_mouseX, _mouseY);
+		_gameHelper->SetIngameMousePos(_mouseX, _mouseY);
 	}
 }
 
+_Use_decl_annotations_
 void D2DXContext::SetCustomResolution(
 	int32_t width,
 	int32_t height)
@@ -896,7 +923,7 @@ void D2DXContext::GetSuggestedCustomResolution(
 	*height = _suggestedGameSize.height;
 }
 
-void D2DXContext::DisableBuiltinD2HD()
+void D2DXContext::DisableBuiltinResMod()
 {
 	_options.noResMod = true;
 }

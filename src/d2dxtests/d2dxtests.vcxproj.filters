@@ -9,15 +9,6 @@
     <ClCompile Include="TestTextureCache.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="TestSimd.cpp" />
-    <ClCompile Include="..\d2dx\GameHelper.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\d2dx\glide3x.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\d2dx\Simd.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
     <ClCompile Include="..\d2dx\SimdSse2.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
@@ -27,25 +18,13 @@
     <ClCompile Include="..\d2dx\TextureCachePolicyBitPmru.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
-    <ClCompile Include="..\d2dx\TextureProcessor.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
     <ClCompile Include="..\d2dx\Utils.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\d2dx\D2DXContext.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
-    <ClCompile Include="..\d2dx\D3D11Context.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
     <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
       <Filter>d2dx</Filter>
     </ClCompile>
     <ClCompile Include="TestBatch.cpp" />
-    <ClCompile Include="..\d2dx\D2DXConfigurator.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
     <ClCompile Include="..\d2dx\Detours.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>
@@ -53,9 +32,6 @@
       <Filter>d2dx</Filter>
     </ClCompile>
     <ClCompile Include="TestMetrics.cpp" />
-    <ClCompile Include="..\d2dx\BuiltinD2HD.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\d2dx\Batch.h">
@@ -67,13 +43,7 @@
     <ClInclude Include="..\d2dx\D2DXContext.h">
       <Filter>d2dx</Filter>
     </ClInclude>
-    <ClInclude Include="..\d2dx\D3D11Context.h">
-      <Filter>d2dx</Filter>
-    </ClInclude>
     <ClInclude Include="..\d2dx\dx256_bmp.h">
-      <Filter>d2dx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\d2dx\GameHelper.h">
       <Filter>d2dx</Filter>
     </ClInclude>
     <ClInclude Include="..\d2dx\TextureCache.h">
@@ -83,9 +53,6 @@
       <Filter>d2dx</Filter>
     </ClInclude>
     <ClInclude Include="..\d2dx\TextureCachePolicyBitPmru.h">
-      <Filter>d2dx</Filter>
-    </ClInclude>
-    <ClInclude Include="..\d2dx\TextureProcessor.h">
       <Filter>d2dx</Filter>
     </ClInclude>
     <ClInclude Include="..\d2dx\Types.h">
@@ -101,6 +68,12 @@
       <Filter>d2dx</Filter>
     </ClInclude>
     <ClInclude Include="..\d2dx\Metrics.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\RenderContext.h">
+      <Filter>d2dx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\d2dx\IGameHelper.h">
       <Filter>d2dx</Filter>
     </ClInclude>
   </ItemGroup>

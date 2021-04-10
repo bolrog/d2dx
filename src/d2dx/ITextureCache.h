@@ -18,38 +18,38 @@
 */
 #pragma once
 
-#include "Buffer.h"
+#include "Utils.h"
 #include "ISimd.h"
 #include "ITextureCachePolicy.h"
 
 namespace d2dx
 {
-	class TextureCachePolicyBitPmru final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		ITextureCachePolicy>
+	class Batch;
+
+	struct TextureCacheLocation final
 	{
-	public:
-		HRESULT RuntimeClassInitialize(
-			_In_ uint32_t capacity,
-			_In_ ISimd* simd);
-		
-		virtual ~TextureCachePolicyBitPmru();
+		int16_t _textureAtlas;
+		int16_t _textureIndex;
+	};
 
-		virtual int32_t Find(
-			_In_ uint32_t contentKey,
-			_In_ int32_t lastIndex) override;
-		
-		virtual int32_t Insert(
-			_In_ uint32_t contentKey,
-			_Out_ bool& evicted) override;
-		
-		virtual void OnNewFrame() override;
+	MIDL_INTERFACE("64DBFE90-2B5D-4E58-AFD1-6E876928B81F")
+		ITextureCache abstract : public IUnknown
+	{
+		virtual void OnNewFrame() = 0;
 
-	private:
-		uint32_t _capacity = 0;
-		ComPtr<ISimd> _simd;
-		Buffer<uint32_t> _contentKeys;
-		Buffer<uint32_t> _usedInFrameBits;
-		Buffer<uint32_t> _mruBits;
+		virtual TextureCacheLocation FindTexture(
+			_In_ uint32_t contentKey,
+			_In_ int32_t lastIndex) = 0;
+
+		virtual TextureCacheLocation InsertTexture(
+			_In_ uint32_t contentKey,
+			_In_ const Batch& batch,
+			_In_reads_(tmuDataSize) const uint8_t* tmuData,
+			_In_ uint32_t tmuDataSize) = 0;
+
+		virtual ID3D11ShaderResourceView* GetSrv(
+			_In_ uint32_t atlasIndex) const = 0;
+
+		virtual uint32_t GetMemoryFootprint() const = 0;
 	};
 }

@@ -16,18 +16,33 @@
 	You should have received a copy of the GNU General Public License
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
-#pragma once
+#include "pch.h"
+#include "D2DXContextFactory.h"
+#include "GameHelper.h"
+#include "SimdSse2.h"
+#include "D2DXContext.h"
 
-namespace d2dx
+using namespace d2dx;
+
+static bool destroyed = false;
+static ComPtr<ID2DXContext> instance;
+
+ID2DXContext* D2DXContextFactory::GetInstance()
 {
-	class Simd abstract
-	{
-	public:
-		static std::shared_ptr<Simd> Create();
+	/* The game is single threaded and there's no worry about synchronization. */
 
-		virtual int32_t IndexOfUInt32(
-			_In_reads_(itemsCount) const uint32_t* __restrict items,
-			uint32_t itemsCount,
-			uint32_t item) = 0;
-	};
+	if (!instance && !destroyed)
+	{
+		auto gameHelper = Make<GameHelper>();
+		auto simd = Make<SimdSse2>();
+		instance = Make<D2DXContext>(gameHelper.Get(), simd.Get());
+	}
+
+	return instance.Get();
+}
+
+void D2DXContextFactory::DestroyInstance()
+{
+	instance = nullptr;
+	destroyed = true;
 }

@@ -18,10 +18,30 @@
 */
 #pragma once
 
+#include "IBuiltinResMod.h"
+#include "IGameHelper.h"
+
 namespace d2dx
 {
-    namespace BuiltinResMod
+    class BuiltinResMod final : public RuntimeClass<
+        RuntimeClassFlags<RuntimeClassType::ClassicCom>,
+        IBuiltinResMod
+    >
     {
-        bool TryInitialize(HMODULE hModule);
-    }
+    public:
+        HRESULT RuntimeClassInitialize(
+            _In_ HMODULE hModule,
+            _In_ IGameHelper* gameHelper);
+
+        virtual bool IsActive() const override;
+
+    private:
+        bool IsCompatible(
+            _In_ IGameHelper* gameHelper);
+
+        void EnsureMpqExists(
+            _In_ HMODULE hModule);
+
+        bool _isActive = false;
+    };
 }

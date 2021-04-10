@@ -18,67 +18,59 @@
 */
 #pragma once
 
-#include "Utils.h"
-#include "TextureProcessor.h"
-#include "Simd.h"
-#include "TextureCachePolicy.h"
+#include "ITextureCache.h"
 
 namespace d2dx
 {
-	class Batch;
-
-	struct TextureCacheLocation final
-	{
-		int16_t _textureAtlas;
-		int16_t _textureIndex;
-	};
-
-	class TextureCache final
+	class TextureCache final : public RuntimeClass<
+		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
+		ITextureCache>
 	{
 	public:
-		TextureCache(
-			int32_t width,
-			int32_t height,
-			uint32_t capacity,
-			uint32_t texturesPerAtlas,
+		HRESULT RuntimeClassInitialize(
+			_In_ int32_t width,
+			_In_ int32_t height,
+			_In_ uint32_t capacity,
+			_In_ uint32_t texturesPerAtlas,
 			_In_ ID3D11Device* device,
-			std::shared_ptr<Simd> simd,
-			std::shared_ptr<TextureProcessor> textureProcessor);
+			_In_ ISimd* simd);
 
-		void OnNewFrame();
+		virtual ~TextureCache();
 
-		TextureCacheLocation FindTexture(
-			uint32_t contentKey,
-			int32_t lastIndex);
+		virtual void OnNewFrame() override;
 
-		TextureCacheLocation InsertTexture(
-			uint32_t contentKey,
-			const Batch& batch,
+		virtual TextureCacheLocation FindTexture(
+			_In_ uint32_t contentKey,
+			_In_ int32_t lastIndex) override;
+
+		virtual TextureCacheLocation InsertTexture(
+			_In_ uint32_t contentKey,
+			_In_ const Batch& batch,
 			_In_reads_(tmuDataSize) const uint8_t* tmuData,
-			uint32_t tmuDataSize);
-
-		uint32_t GetCapacity() const;
-
-		uint32_t GetTexturesPerAtlas() const;
+			_In_ uint32_t tmuDataSize) override;
 		
-		ID3D11Texture2D* GetTexture(
-			uint32_t atlasIndex) const;
+		virtual ID3D11ShaderResourceView* GetSrv(
+			_In_ uint32_t atlasIndex) const override;
 		
-		ID3D11ShaderResourceView* GetSrv(
-			uint32_t atlasIndex) const;
-		
-		uint32_t GetMemoryFootprint() const;
+		virtual uint32_t GetMemoryFootprint() const override;
 
 	private:
-		int32_t _width;
-		int32_t _height;
-		uint32_t _capacity;
-		uint32_t _texturesPerAtlas;
-		int32_t _atlasCount;
-		Microsoft::WRL::ComPtr<ID3D11DeviceContext> _deviceContext;
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> _textures[4];
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> _srvs[4];
-		std::shared_ptr<TextureProcessor> _textureProcessor;
-		std::unique_ptr<TextureCachePolicy> _policy;
+		void CopyPixels(
+			_In_ int32_t srcWidth,
+			_In_ int32_t srcHeight,
+			_In_reads_(srcPitch* srcHeight) const uint8_t* __restrict srcPixels,
+			_In_ uint32_t srcPitch,
+			_Out_writes_all_(dstPitch* srcHeight) uint8_t* __restrict dstPixels,
+			_In_ uint32_t dstPitch);
+
+		int32_t _width = 0;
+		int32_t _height = 0;
+		uint32_t _capacity = 0;
+		uint32_t _texturesPerAtlas = 0;
+		int32_t _atlasCount = 0;
+		ComPtr<ID3D11DeviceContext> _deviceContext;
+		ComPtr<ID3D11Texture2D> _textures[4];
+		ComPtr<ID3D11ShaderResourceView> _srvs[4];
+		ComPtr<ITextureCachePolicy> _policy;
 	};
 }

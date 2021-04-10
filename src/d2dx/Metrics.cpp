@@ -4,7 +4,7 @@
 using namespace d2dx;
 using namespace DirectX;
 
-struct MetricsTableEntry
+struct MetricsTableEntry final
 {
 	Size desktopSize;
 	Size gameSize;
@@ -145,7 +145,10 @@ static const struct MetricsTableEntry metricsTable[] =
 	},
 };
 
-Size d2dx::Metrics::GetSuggestedGameSize(Size desktopSize, bool wide)
+_Use_decl_annotations_
+Size d2dx::Metrics::GetSuggestedGameSize(
+	Size desktopSize,
+	bool wide)
 {
 	for (int32_t i = 0; i < ARRAYSIZE(metricsTable); ++i)
 	{
@@ -169,7 +172,11 @@ Size d2dx::Metrics::GetSuggestedGameSize(Size desktopSize, bool wide)
 	return size;
 }
 
-Rect d2dx::Metrics::GetRenderRect(Size gameSize, Size desktopSize, bool wide)
+_Use_decl_annotations_
+Rect d2dx::Metrics::GetRenderRect(
+	Size gameSize,
+	Size desktopSize,
+	bool wide)
 {
 	int32_t scaleFactor = 1;
 

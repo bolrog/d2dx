@@ -18,18 +18,20 @@
 */
 #pragma once
 
-#include "ISimd.h"
-
 namespace d2dx
 {
-	class SimdSse2 final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		ISimd>
+	MIDL_INTERFACE("7F374C16-390A-4247-889F-8867E4C7B894")
+		ITextureCachePolicy abstract : public IUnknown
 	{
 	public:
-		virtual int32_t IndexOfUInt32(
-			_In_reads_(itemsCount) const uint32_t* __restrict items,
-			_In_ uint32_t itemsCount,
-			_In_ uint32_t item) override;
+		virtual void OnNewFrame() = 0;
+
+		virtual int32_t Find(
+			_In_ uint32_t contentKey,
+			_In_ int32_t lastIndex) = 0;
+		
+		virtual int32_t Insert(
+			_In_ uint32_t contentKey,
+			_Out_ bool& evicted) = 0;
 	};
 }

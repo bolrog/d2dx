@@ -17,7 +17,7 @@
     along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "pch.h"
-#include "D2DXContext.h"
+#include "D2DXContextFactory.h"
 #include "D2DXConfigurator.h"
 
 using namespace d2dx;
@@ -68,7 +68,7 @@ public:
         int32_t width,
         int32_t height) noexcept
     {
-        auto d2dxContext = D2DXContext::Instance();
+        auto d2dxContext = D2DXContextFactory::GetInstance();
 
         if (!d2dxContext)
         {
@@ -89,7 +89,7 @@ public:
             return E_INVALIDARG;
         }
 
-        auto d2dxContext = D2DXContext::Instance();
+        auto d2dxContext = D2DXContextFactory::GetInstance();
 
         if (!d2dxContext)
         {
@@ -115,7 +115,7 @@ extern "C"
 {
     D2DX_EXPORTED ID2DXConfigurator* __stdcall D2DXGetConfigurator()
     {
-        D2DXContext::Instance()->DisableBuiltinD2HD();
+        D2DXContextFactory::GetInstance()->DisableBuiltinResMod();
         return GetConfiguratorInternal();
     }
 }
