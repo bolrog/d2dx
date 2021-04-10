@@ -34,6 +34,29 @@ using namespace std;
 #define D2DX_GLIDE_ALPHA_BLEND(rgb_sf, rgb_df, alpha_sf, alpha_df) \
 		(uint16_t)(((rgb_sf & 0xF) << 12) | ((rgb_df & 0xF) << 8) | ((alpha_sf & 0xF) << 4) | (alpha_df & 0xF))
 
+static Options GetCommandLineOptions()
+{
+	Options options;
+
+	const char* commandLine = GetCommandLineA();
+	bool windowed = strstr(commandLine, "-w") != nullptr;
+	options.noResMod = strstr(commandLine, "-dxnoresmod") != nullptr;
+	options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
+	options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
+	options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
+
+	bool dxscale2 = strstr(commandLine, "-dxscale2") != nullptr || strstr(commandLine, "-gxscale2") != nullptr;
+	bool dxscale3 = strstr(commandLine, "-dxscale3") != nullptr || strstr(commandLine, "-gxscale3") != nullptr;
+	options.defaultZoomLevel =
+		dxscale3 ? 3 :
+		dxscale2 ? 2 :
+		1;
+
+	options.screenMode = windowed ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
+
+	return options;
+}
+
 _Use_decl_annotations_
 D2DXContext::D2DXContext(
 	IGameHelper* gameHelper,
@@ -50,27 +73,13 @@ D2DXContext::D2DXContext(
 	_batches(D2DX_MAX_BATCHES_PER_FRAME),
 	_vertexCount(0),
 	_vertices(D2DX_MAX_VERTICES_PER_FRAME),
+	_customGameSize{ 0,0 },
 	_suggestedGameSize{ 0, 0 },
 	_gameHelper{ gameHelper },
-	_simd{ simd }
+	_simd{ simd },
+	_options{ GetCommandLineOptions() }
 {
 	memset(_paletteKeys.items, 0, sizeof(uint32_t)* _paletteKeys.capacity);
-
-	const char* commandLine = GetCommandLineA();
-	bool windowed = strstr(commandLine, "-w") != nullptr;
-	_options.noResMod = strstr(commandLine, "-dxnoresmod") != nullptr;
-	_options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
-	_options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
-	_options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
-
-	bool dxscale2 = strstr(commandLine, "-dxscale2") != nullptr || strstr(commandLine, "-gxscale2") != nullptr;
-	bool dxscale3 = strstr(commandLine, "-dxscale3") != nullptr || strstr(commandLine, "-gxscale3") != nullptr;
-	_options.defaultZoomLevel =
-		dxscale3 ? 3 :
-		dxscale2 ? 2 :
-		1;
-
-	_options.screenMode = windowed ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
 
 	if (!_options.noResMod)
 	{
@@ -152,21 +161,18 @@ void D2DXContext::OnSstWinOpen(
 	int32_t width,
 	int32_t height)
 {
-	int32_t windowWidth, windowHeight;
-	_gameHelper->GetConfiguredGameSize(&windowWidth, &windowHeight);
+	Size windowSize = _gameHelper->GetConfiguredGameSize();
 
 	Size gameSize{ width, height };
 
-	if (_customWidth > 0)
+	if (_customGameSize.width > 0)
 	{
-		gameSize.width = _customWidth;
-		gameSize.height = _customHeight;
+		gameSize = _customGameSize;
 	}
 
 	if (gameSize.width != 640 || gameSize.height != 480)
 	{
-		windowWidth = gameSize.width;
-		windowHeight = gameSize.height;
+		windowSize = gameSize;
 	}
 
 	if (!_renderContext)
@@ -174,18 +180,18 @@ void D2DXContext::OnSstWinOpen(
 		_renderContext = Make<RenderContext>(
 			(HWND)hWnd,
 			gameSize,
-			Size{ (int32_t)(windowWidth * _options.defaultZoomLevel), (int32_t)(windowHeight * _options.defaultZoomLevel) },
+			windowSize * _options.defaultZoomLevel,
 			_options,
 			_simd.Get());
 	}
 	else
 	{
-		if (width > windowWidth || height > windowHeight)
+		if (width > windowSize.width || height > windowSize.height)
 		{
-			windowWidth = width;
-			windowHeight = height;
+			windowSize.width = width;
+			windowSize.height = height;
 		}
-		_renderContext->SetSizes(gameSize, { windowWidth, windowHeight });
+		_renderContext->SetSizes(gameSize, windowSize);
 	}
 
 	_batchCount = 0;
@@ -880,11 +886,9 @@ GameVersion D2DXContext::GetGameVersion() const
 
 _Use_decl_annotations_
 void D2DXContext::OnMousePosChanged(
-	int32_t x,
-	int32_t y)
+	Offset pos)
 {
-	_mouseX = x;
-	_mouseY = y;
+	_mousePos = pos;
 }
 
 void D2DXContext::FixIngameMousePosition()
@@ -895,23 +899,19 @@ void D2DXContext::FixIngameMousePosition()
 
 	if (_batchCount == 0)
 	{
-		_gameHelper->SetIngameMousePos(_mouseX, _mouseY);
+		_gameHelper->SetIngameMousePos(_mousePos);
 	}
 }
 
 _Use_decl_annotations_
 void D2DXContext::SetCustomResolution(
-	int32_t width,
-	int32_t height)
+	Size size)
 {
-	_customWidth = width;
-	_customHeight = height;
+	_customGameSize = size;
 }
 
 _Use_decl_annotations_
-void D2DXContext::GetSuggestedCustomResolution(
-	int32_t* width,
-	int32_t* height)
+Size D2DXContext::GetSuggestedCustomResolution()
 {
 	if (_suggestedGameSize.width == 0)
 	{
@@ -919,8 +919,8 @@ void D2DXContext::GetSuggestedCustomResolution(
 		_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, !_options.noWide);
 		ALWAYS_PRINT("Suggesting game size %ix%i.", _suggestedGameSize.width, _suggestedGameSize.height);
 	}
-	*width = _suggestedGameSize.width;
-	*height = _suggestedGameSize.height;
+
+	return _suggestedGameSize;
 }
 
 void D2DXContext::DisableBuiltinResMod()

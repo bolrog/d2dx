@@ -75,7 +75,7 @@ public:
             return E_POINTER;
         }
 
-        d2dxContext->SetCustomResolution(width, height);
+        d2dxContext->SetCustomResolution({ width, height });
 
         return S_OK;
     }
@@ -96,7 +96,9 @@ public:
             return E_POINTER;
         }
 
-        d2dxContext->GetSuggestedCustomResolution(width, height);
+        Size size = d2dxContext->GetSuggestedCustomResolution();
+        *width = size.width;
+        *height = size.height;
 
         return S_OK;
     }

@@ -20,30 +20,30 @@
 
 #include "Buffer.h"
 #include "ISimd.h"
-#include "ITextureCachePolicy.h"
 
 namespace d2dx
 {
-	class TextureCachePolicyBitPmru final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		ITextureCachePolicy>
+	class TextureCachePolicyBitPmru final
 	{
 	public:
-		HRESULT RuntimeClassInitialize(
+		TextureCachePolicyBitPmru() = default;
+		TextureCachePolicyBitPmru& operator=(TextureCachePolicyBitPmru&& rhs) = default;
+
+		TextureCachePolicyBitPmru(
 			_In_ uint32_t capacity,
 			_In_ ISimd* simd);
-		
-		virtual ~TextureCachePolicyBitPmru();
+		 
+		~TextureCachePolicyBitPmru();
 
-		virtual int32_t Find(
+		int32_t Find(
 			_In_ uint32_t contentKey,
-			_In_ int32_t lastIndex) override;
+			_In_ int32_t lastIndex);
 		
-		virtual int32_t Insert(
+		int32_t Insert(
 			_In_ uint32_t contentKey,
-			_Out_ bool& evicted) override;
+			_Out_ bool& evicted);
 		
-		virtual void OnNewFrame() override;
+		void OnNewFrame();
 
 	private:
 		uint32_t _capacity = 0;

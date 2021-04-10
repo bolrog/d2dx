@@ -10,7 +10,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommand>C:\games\Diablo II\Game.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-3dfx -w -ns -dxnoresmod</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-3dfx -ns -w -dxnoresmod</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>C:\games\Diablo II\</LocalDebuggerWorkingDirectory>
     <LocalDebuggerDebuggerType>NativeOnly</LocalDebuggerDebuggerType>
   </PropertyGroup>

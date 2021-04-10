@@ -38,13 +38,10 @@ namespace d2dx
 
 		virtual uint32_t ScreenOpenMode() const override;
 		
-		virtual void GetConfiguredGameSize(
-			_Out_ int32_t* width,
-			_Out_ int32_t* height) const override;
+		virtual Size GetConfiguredGameSize() const override;
 		
 		virtual void SetIngameMousePos(
-			int32_t x,
-			int32_t y) override;
+			Offset pos) override;
 
 		virtual GameAddress IdentifyGameAddress(
 			uint32_t returnAddress) const override;

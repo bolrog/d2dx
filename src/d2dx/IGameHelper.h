@@ -31,13 +31,10 @@ namespace d2dx
 
 		virtual uint32_t ScreenOpenMode() const = 0;
 
-		virtual void GetConfiguredGameSize(
-			_Out_ int32_t* width,
-			_Out_ int32_t* height) const = 0;
+		virtual Size GetConfiguredGameSize() const = 0;
 
 		virtual void SetIngameMousePos(
-			_In_ int32_t x,
-			_In_ int32_t y) = 0;
+			_In_ Offset pos) = 0;
 
 		virtual GameAddress IdentifyGameAddress(
 			_In_ uint32_t returnAddress) const = 0;

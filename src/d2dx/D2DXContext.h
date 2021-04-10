@@ -144,20 +144,16 @@ namespace d2dx
 #pragma region ID2DXContext
 
 		virtual void OnMousePosChanged(
-			_In_ int32_t x,
-			_In_ int32_t y);
+			_In_ Offset pos) override;
 
 		virtual void SetCustomResolution(
-			_In_ int32_t width,
-			_In_ int32_t height);
+			_In_ Size size) override;
 		
-		virtual void GetSuggestedCustomResolution(
-			_Out_ int32_t* width,
-			_Out_ int32_t* height);
+		virtual Size GetSuggestedCustomResolution() override;
 
-		virtual GameVersion GetGameVersion() const;
+		virtual GameVersion GetGameVersion() const override;
 
-		virtual void DisableBuiltinResMod();
+		virtual void DisableBuiltinResMod() override;
 
 #pragma endregion ID2DXContext
 
@@ -210,10 +206,8 @@ namespace d2dx
 		Buffer<uint8_t> _tmuMemory;
 		Buffer<uint8_t> _sideTmuMemory;
 
-		int32_t _mouseX;
-		int32_t _mouseY;
-		int32_t _customWidth;
-		int32_t _customHeight;
+		Offset _mousePos;
+		Size _customGameSize;
 		Size _suggestedGameSize;
 	};
 }

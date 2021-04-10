@@ -90,67 +90,66 @@ uint32_t GameHelper::ScreenOpenMode() const
 }
 
 _Use_decl_annotations_
-void GameHelper::GetConfiguredGameSize(
-	int32_t* width,
-	int32_t* height) const
+Size GameHelper::GetConfiguredGameSize() const
 {
 	HKEY hKey;
 	LPCTSTR diablo2Key = TEXT("SOFTWARE\\Blizzard Entertainment\\Diablo II");
 	LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, diablo2Key, 0, KEY_READ, &hKey);
 	if (openRes != ERROR_SUCCESS)
 	{
-		*width = 800;
-		*height = 600;
-		return;
+		return { 800, 600 };
 	}
 
 	DWORD type = REG_DWORD;
 	DWORD size = 4;
-	DWORD value;
+	DWORD value = 0;
 	auto queryRes = RegQueryValueExA(hKey, "Resolution", NULL, &type, (LPBYTE)&value, &size);
 	assert(queryRes == ERROR_SUCCESS || queryRes == ERROR_MORE_DATA);
 
+	RegCloseKey(hKey);
+
 	if (value == 0)
 	{
-		*width = 640;
-		*height = 480;
+		return { 640, 480 };
 	}
 	else
 	{
-		*width = 800;
-		*height = 600;
+		return { 800, 600 };
 	}
-
-	RegCloseKey(hKey);
 }
 
-void GameHelper::SetIngameMousePos(int32_t x, int32_t y)
+_Use_decl_annotations_
+void GameHelper::SetIngameMousePos(
+	Offset pos)
 {
+	pos.x = max(0, pos.x);
+	pos.y = max(0, pos.y);
+
 	switch (_version)
 	{
 	case GameVersion::Lod109d:
-		WriteU32(_hD2ClientDll, 0x12B168, (uint32_t)x);
-		WriteU32(_hD2ClientDll, 0x12B16C, (uint32_t)y);		
+		WriteU32(_hD2ClientDll, 0x12B168, (uint32_t)pos.x);
+		WriteU32(_hD2ClientDll, 0x12B16C, (uint32_t)pos.y);
 		break;
 	case GameVersion::Lod110:
-		WriteU32(_hD2ClientDll, 0x121AE4, (uint32_t)x);
-		WriteU32(_hD2ClientDll, 0x121AE8, (uint32_t)y);		
+		WriteU32(_hD2ClientDll, 0x121AE4, (uint32_t)pos.x);
+		WriteU32(_hD2ClientDll, 0x121AE8, (uint32_t)pos.y);
 		break;
 	case GameVersion::Lod112:
-		WriteU32(_hD2ClientDll, 0x101638, (uint32_t)x);
-		WriteU32(_hD2ClientDll, 0x101634, (uint32_t)y);
+		WriteU32(_hD2ClientDll, 0x101638, (uint32_t)pos.x);
+		WriteU32(_hD2ClientDll, 0x101634, (uint32_t)pos.y);
 		break;
 	case GameVersion::Lod113c:
-		WriteU32(_hD2ClientDll, 0x11B828, (uint32_t)x);
-		WriteU32(_hD2ClientDll, 0x11B824, (uint32_t)y);
+		WriteU32(_hD2ClientDll, 0x11B828, (uint32_t)pos.x);
+		WriteU32(_hD2ClientDll, 0x11B824, (uint32_t)pos.y);
 		break;
 	case GameVersion::Lod113d:
-		WriteU32(_hD2ClientDll, 0x11C950, (uint32_t)x);
-		WriteU32(_hD2ClientDll, 0x11C94C, (uint32_t)y);
+		WriteU32(_hD2ClientDll, 0x11C950, (uint32_t)pos.x);
+		WriteU32(_hD2ClientDll, 0x11C94C, (uint32_t)pos.y);
 		break;
 	case GameVersion::Lod114d:
-		WriteU32(_hGameExe, 0x3A6AB0, (uint32_t)x);
-		WriteU32(_hGameExe, 0x3A6AAC, (uint32_t)y);
+		WriteU32(_hGameExe, 0x3A6AB0, (uint32_t)pos.x);
+		WriteU32(_hGameExe, 0x3A6AAC, (uint32_t)pos.y);
 		break;
 	}
 }

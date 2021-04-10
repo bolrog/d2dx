@@ -26,16 +26,12 @@ namespace d2dx
 		ID2DXContext : public IGlide3x
 	{
 		virtual void OnMousePosChanged(
-			_In_ int32_t x,
-			_In_ int32_t y) = 0;
+			_In_ Offset pos) = 0;
 
 		virtual void SetCustomResolution(
-			_In_ int32_t width,
-			_In_ int32_t height) = 0;
+			_In_ Size size) = 0;
 
-		virtual void GetSuggestedCustomResolution(
-			_Out_ int32_t* width,
-			_Out_ int32_t* height) = 0;
+		virtual Size GetSuggestedCustomResolution() = 0;
 
 		virtual GameVersion GetGameVersion() const = 0;
 

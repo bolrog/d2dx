@@ -819,8 +819,8 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 #ifdef NDEBUG
 		ShowCursor_Real(FALSE);
 #endif
-		uint32_t x = LOWORD(lParam);
-		uint32_t y = HIWORD(lParam);
+		int32_t x = LOWORD(lParam);
+		int32_t y = HIWORD(lParam);
 
 		Size gameSize;
 		Rect renderRect;
@@ -833,10 +833,10 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 		const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
 		const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
 
-		x = (uint32_t)(max(0, x - mouseOffsetX) / scale);
-		y = (uint32_t)(y / scale);
+		x = (int32_t)(max(0, x - mouseOffsetX) / scale);
+		y = (int32_t)(y / scale);
 
-		D2DXContextFactory::GetInstance()->OnMousePosChanged(x, y);
+		D2DXContextFactory::GetInstance()->OnMousePosChanged({ x, y });
 
 		lParam = x;
 		lParam |= y << 16;

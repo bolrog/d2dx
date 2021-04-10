@@ -37,12 +37,12 @@ namespace d2dx
 
 	struct Options
 	{
-		ScreenMode screenMode;
-		bool noWide;
-		bool noLogo;
-		bool noVSync;
-		bool noResMod;
-		uint32_t defaultZoomLevel;
+		ScreenMode screenMode = ScreenMode::Windowed;
+		bool noWide = false;
+		bool noLogo = false;
+		bool noVSync = false;
+		bool noResMod = false;
+		uint32_t defaultZoomLevel = 0;
 	};
 
 	enum class MajorGameState
@@ -124,8 +124,8 @@ namespace d2dx
 
 	struct Offset final
 	{
-		int32_t x;
-		int32_t y;
+		int32_t x = 0;
+		int32_t y = 0;
 
 		bool operator==(const Offset& rhs) const
 		{
@@ -135,8 +135,18 @@ namespace d2dx
 
 	struct Size final
 	{
-		int32_t width;
-		int32_t height;
+		int32_t width = 0;
+		int32_t height = 0;
+
+		Size operator*(int32_t value)
+		{
+			return { width * value, height * value };
+		}
+
+		Size operator*(uint32_t value)
+		{
+			return { width * (int32_t)value, height * (int32_t)value };
+		}
 
 		bool operator==(const Size& rhs) const
 		{

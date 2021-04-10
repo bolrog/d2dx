@@ -24,20 +24,12 @@
 using namespace d2dx;
 
 _Use_decl_annotations_
-HRESULT TextureCachePolicyBitPmru::RuntimeClassInitialize(
+TextureCachePolicyBitPmru::TextureCachePolicyBitPmru(
 	uint32_t capacity,
 	ISimd* simd)
 {
 	assert(!(capacity & 63));
-	if (capacity & 63)
-	{
-		return E_INVALIDARG;
-	}
-
-	if (!simd)
-	{
-		return E_INVALIDARG;
-	}
+	assert(simd);
 
 	_capacity = capacity;
 	_contentKeys = capacity;
@@ -48,8 +40,6 @@ HRESULT TextureCachePolicyBitPmru::RuntimeClassInitialize(
 	memset(_contentKeys.items, 0, sizeof(uint32_t) * _contentKeys.capacity);
 	memset(_usedInFrameBits.items, 0, sizeof(uint32_t) * _usedInFrameBits.capacity);
 	memset(_mruBits.items, 0, sizeof(uint32_t) * _mruBits.capacity);
-	
-	return S_OK;
 }
 
 TextureCachePolicyBitPmru::~TextureCachePolicyBitPmru()
@@ -62,6 +52,11 @@ int32_t TextureCachePolicyBitPmru::Find(
 	int32_t lastIndex)
 {
 	assert(contentKey != 0);
+
+	if (_capacity == 0)
+	{
+		return -1;
+	}
 
 	if (lastIndex >= 0 && lastIndex < (int32_t)_capacity &&
 		contentKey == _contentKeys.items[lastIndex])
@@ -88,6 +83,11 @@ int32_t TextureCachePolicyBitPmru::Insert(
 	uint32_t contentKey,
 	bool& evicted)
 {
+	if (_capacity == 0)
+	{
+		return -1;
+	}
+
 	int32_t replacementIndex = -1;
 
 	for (uint32_t i = 0; i < _mruBits.capacity; ++i)

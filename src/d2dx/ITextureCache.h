@@ -20,7 +20,6 @@
 
 #include "Utils.h"
 #include "ISimd.h"
-#include "ITextureCachePolicy.h"
 
 namespace d2dx
 {

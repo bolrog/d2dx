@@ -33,22 +33,17 @@ HRESULT TextureCache::RuntimeClassInitialize(
 	uint32_t texturesPerAtlas,
 	ID3D11Device* device,
 	ISimd* simd)
-{ 
+{
 	assert(_atlasCount <= 4);
 
 	_width = width;
 	_height = height;
-	_capacity= capacity;
+	_capacity = capacity;
 	_texturesPerAtlas = texturesPerAtlas;
 	_atlasCount = (int32_t)max(1, capacity / texturesPerAtlas);
-	
-	HRESULT hr = S_OK;
+	_policy = TextureCachePolicyBitPmru(capacity, simd);
 
-	hr = MakeAndInitialize<TextureCachePolicyBitPmru>(&_policy, capacity, simd);
-	if (FAILED(hr))
-	{
-		return hr;
-	}
+	HRESULT hr = S_OK;
 
 #ifndef D2DX_UNITTEST
 
@@ -83,6 +78,7 @@ HRESULT TextureCache::RuntimeClassInitialize(
 	device->GetImmediateContext(&_deviceContext);
 	assert(_deviceContext);
 #endif
+
 	return hr;
 }
 
@@ -100,7 +96,7 @@ TextureCacheLocation TextureCache::FindTexture(
 	uint32_t contentKey,
 	int32_t lastIndex)
 {
-	const int32_t index = _policy->Find(contentKey, lastIndex);
+	const int32_t index = _policy.Find(contentKey, lastIndex);
 
 	if (index < 0)
 	{
@@ -120,7 +116,7 @@ TextureCacheLocation TextureCache::InsertTexture(
 	assert(batch.IsValid() && batch.GetWidth() > 0 && batch.GetHeight() > 0);
 
 	bool evicted = false;
-	int32_t replacementIndex = _policy->Insert(contentKey, evicted);
+	int32_t replacementIndex = _policy.Insert(contentKey, evicted);
 
 	if (evicted)
 	{
@@ -154,7 +150,7 @@ ID3D11ShaderResourceView* TextureCache::GetSrv(
 
 void TextureCache::OnNewFrame()
 {
-	_policy->OnNewFrame();
+	_policy.OnNewFrame();
 }
 
 _Use_decl_annotations_

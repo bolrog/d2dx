@@ -182,7 +182,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ISimd.h" />
     <ClInclude Include="SimdSse2.h" />
-    <ClInclude Include="ITextureCachePolicy.h" />
     <ClInclude Include="TextureCachePolicyBitPmru.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="Vertex.h" />

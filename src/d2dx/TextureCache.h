@@ -19,6 +19,7 @@
 #pragma once
 
 #include "ITextureCache.h"
+#include "TextureCachePolicyBitPmru.h"
 
 namespace d2dx
 {
@@ -71,6 +72,6 @@ namespace d2dx
 		ComPtr<ID3D11DeviceContext> _deviceContext;
 		ComPtr<ID3D11Texture2D> _textures[4];
 		ComPtr<ID3D11ShaderResourceView> _srvs[4];
-		ComPtr<ITextureCachePolicy> _policy;
+		TextureCachePolicyBitPmru _policy;
 	};
 }
