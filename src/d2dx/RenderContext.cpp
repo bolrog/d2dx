@@ -88,7 +88,13 @@ RenderContext::RenderContext(
 	const int32_t heightFromClientRect = clientRect.bottom - clientRect.top;
 
 	_featureLevel = D3D_FEATURE_LEVEL_11_0;
-	D3D_FEATURE_LEVEL requestedFeatureLevels[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1 };
+	D3D_FEATURE_LEVEL requestedFeatureLevels[] = 
+	{
+		D3D_FEATURE_LEVEL_10_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_11_1
+	};
 
 	_dxgiAllowTearingFlagSupported = IsAllowTearingFlagSupported();
 	_frameLatencyWaitableObjectSupported = IsFrameLatencyWaitableObjectSupported();
@@ -869,7 +875,7 @@ uint32_t RenderContext::DetermineMaxTextureArraySize()
 			return arraySize;
 		}
 
-	} while (FAILED(hr));
+	}
 
 	return 512;
 }
