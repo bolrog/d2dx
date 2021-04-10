@@ -164,11 +164,19 @@ Size d2dx::Metrics::GetSuggestedGameSize(
 	{
 		size.width = desktopSize.width / scaleFactor;
 		size.height = desktopSize.height / scaleFactor;
-		if ((desktopSize.height / (scaleFactor + 1)) <= 480)
+		if ((desktopSize.height / (scaleFactor + 1)) <= 600)
 		{
 			break;
 		}
 	}
+
+	if (size.height > 720)
+	{
+		const float aspect = (float)desktopSize.width / desktopSize.height;
+		size.width = (int32_t)(aspect * 720);
+		size.height = 720;
+	}
+
 	return size;
 }
 
