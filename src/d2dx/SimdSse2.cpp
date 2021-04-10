@@ -24,7 +24,7 @@ using namespace std;
 
 _Use_decl_annotations_
 int32_t SimdSse2::IndexOfUInt32(
-	const uint32_t* items,
+	const uint32_t* __restrict items,
 	uint32_t itemsCount,
 	uint32_t item)
 {
