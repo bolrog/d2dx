@@ -2,7 +2,7 @@
 
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
-Version 0.99.408
+Version 0.99.410
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
@@ -19,18 +19,18 @@ Version 0.99.408
   - Fixes various glitches in the supported game versions.
 
 ## Upcoming
-  - Better scaling.
+  - Suggestions welcome!
 
 ## Requirements
   - Diablo 2: LoD (see Compatibility section below).
-  - Windows 7 SP1 and above (10 recommended).
+  - Windows 7 SP1 and above (10 recommended for latency improvements).
   - A CPU with SSE2 support.
   - Integrated graphics or discrete GPU with DirectX 11 support (feature level 10.0 required).
 
 ## Compatibility
 Game versions supported:
   - All features: 1.12, 1.13c and 1.13d.
-  - No widescreen: 1.09d, 1.10 and 1.14d.
+  - All features except widescreen: 1.09d, 1.10 and 1.14d.
   - Other versions are unsupported, will display a warning at startup and exhibit glitches.
 
 D2DX has been tested working with the following mods:
@@ -63,9 +63,14 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   -dxnologo
   ``` 
   
-  Disable widescreen mode (note: may lead to worse image quality in fullscreen)
+  Disable widescreen mode
   ```
   -dxnowide 
+  ```
+
+  Disable built-in resolution mod entirely
+  ```
+  -dxnoresmod
   ```
   
   Disable v-sync (may be useful on G-Sync/FreeSync displays)
@@ -93,8 +98,8 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   The goal of this is to achieve proper fullscreen scaling without artifacts when displaying the game on modern PCs.
 
   - For a 1920x1080 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
-  - For a 2560×1440 monitor, this is 853x480 (in fullscreen: 3x integer scaling).
-  - For a 3840x2160 monitor, this is 960x540 (in fullscreen: 4x integer scaling).
+  - For a 2560×1440 monitor, this is 1280x720 (in fullscreen: 2x integer scaling).
+  - For a 3840x2160 monitor, this is 1280x720 (in fullscreen: 3x integer scaling).
 
 ## Troubleshooting
 
@@ -111,6 +116,13 @@ This project uses the following third party libraries:
 - SlashDiablo-HD/D2HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
 
 ## Release history
+
+### 0.99.410
+  - Improved non-integer scaling quality, using "anti-aliased nearest" sampling (similar to sharp-bilinear).
+  - Specifying -dxnowide will now select a custom screen mode that gives integer scaling, but with ~4:3 aspect ratio.
+  - Added -dxnoresmod option, which turns off the built-in SlashDiablo-HD (no custom resolutions).
+  - (For res mod authors) Tuned configurator API to disable the built-in SlashDiablo-HD automatically when used.
+  - Other internal improvements.
 
 ### 0.99.408
   - Fix window size being squashed vertically after alt-entering from fullscreen mode.
