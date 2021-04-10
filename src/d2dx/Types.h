@@ -41,7 +41,7 @@ namespace d2dx
 		bool noWide;
 		bool noLogo;
 		bool noVSync;
-		bool noBuiltinD2HD;
+		bool noResMod;
 		uint32_t defaultZoomLevel;
 	};
 

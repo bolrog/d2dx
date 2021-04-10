@@ -20,5 +20,8 @@
 
 namespace d2dx
 {
-    bool TryInitializeBuiltinD2HD(HMODULE hModule);
+    namespace BuiltinResMod
+    {
+        bool TryInitialize(HMODULE hModule);
+    }
 }

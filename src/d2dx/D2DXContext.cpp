@@ -72,7 +72,7 @@ D2DXContext::D2DXContext() :
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
-	_options.noBuiltinD2HD = strstr(commandLine, "-dxnoresmod") != nullptr;
+	_options.noResMod = strstr(commandLine, "-dxnoresmod") != nullptr;
 	_options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
 	_options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
 	_options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
@@ -86,11 +86,11 @@ D2DXContext::D2DXContext() :
 
 	_options.screenMode = windowed ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
 
-	if (!_options.noBuiltinD2HD)
+	if (!_options.noResMod)
 	{
-		if (!TryInitializeBuiltinD2HD(GetModuleHandleA("glide3x.dll")))
+		if (!BuiltinResMod::TryInitialize(GetModuleHandleA("glide3x.dll")))
 		{
-			_options.noBuiltinD2HD = true;
+			_options.noResMod = true;
 		}
 	}
 }
@@ -898,5 +898,5 @@ void D2DXContext::GetSuggestedCustomResolution(
 
 void D2DXContext::DisableBuiltinD2HD()
 {
-	_options.noBuiltinD2HD = true;
+	_options.noResMod = true;
 }

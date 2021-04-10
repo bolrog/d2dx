@@ -28,10 +28,10 @@ using namespace d2dx;
 bool SDHD_Initialize();
 #endif
 
-static bool IsBuiltInD2HDCompatible();
-static void EnsureD2HDMpqExists(HMODULE hModule);
+static bool IsCompatible();
+static void EnsureMpqExists(HMODULE hModule);
 
-bool d2dx::TryInitializeBuiltinD2HD(HMODULE hModule)
+bool d2dx::BuiltinResMod::TryInitialize(HMODULE hModule)
 {
     static bool initialized = false;
 
@@ -43,10 +43,10 @@ bool d2dx::TryInitializeBuiltinD2HD(HMODULE hModule)
     initialized = true;
 
 #ifndef D2DX_UNITTEST
-    if (IsBuiltInD2HDCompatible())
+    if (IsCompatible())
     {
         ALWAYS_PRINT("Writing MPQ.");
-        EnsureD2HDMpqExists(hModule);
+        EnsureMpqExists(hModule);
 
         ALWAYS_PRINT("Initializing built-in D2HD.");
         SDHD_Initialize();
@@ -60,7 +60,7 @@ bool d2dx::TryInitializeBuiltinD2HD(HMODULE hModule)
 #endif
 }
 
-static bool IsBuiltInD2HDCompatible()
+static bool IsCompatible()
 {
     GameHelper gameHelper;
     auto gameVersion = gameHelper.GetVersion();
@@ -82,7 +82,7 @@ static bool IsBuiltInD2HDCompatible()
     return true;
 }
 
-static void EnsureD2HDMpqExists(HMODULE hModule)
+static void EnsureMpqExists(HMODULE hModule)
 {
     void* d2HDMpqPtr = nullptr;
     DWORD d2HDMpqSize = 0;
