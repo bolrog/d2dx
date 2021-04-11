@@ -35,6 +35,9 @@
 
 	Note that the object is not really refcounted and there's no need to call AddRef/Release.
 
+	Note also that the built-in resolution mod in D2DX will be disabled if D2DXGetConfigurator
+	is called prior to the first Glide call made.
+
 	Example use:
 
 		ID2DXConfigurator* d2dxConfigurator = d2dx::TryGetConfigurator();
