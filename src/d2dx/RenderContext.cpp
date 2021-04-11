@@ -88,7 +88,7 @@ RenderContext::RenderContext(
 	const int32_t heightFromClientRect = clientRect.bottom - clientRect.top;
 
 	_featureLevel = D3D_FEATURE_LEVEL_11_0;
-	D3D_FEATURE_LEVEL requestedFeatureLevels[] = 
+	D3D_FEATURE_LEVEL requestedFeatureLevels[] =
 	{
 		D3D_FEATURE_LEVEL_10_0,
 		D3D_FEATURE_LEVEL_10_1,
@@ -247,7 +247,7 @@ RenderContext::RenderContext(
 	CreateShadersAndInputLayout();
 	CreateSamplerStates();
 	CreateConstantBuffers();
-	CreateRenderTarget();
+	CreateGameTexture();
 
 	_deviceContext->VSSetConstantBuffers(0, 1, _cb.GetAddressOf());
 	_deviceContext->PSSetConstantBuffers(0, 1, _cb.GetAddressOf());
@@ -466,7 +466,7 @@ void RenderContext::Present()
 	SetPS(_gamePS.Get());
 }
 
-void RenderContext::CreateRenderTarget()
+void RenderContext::CreateGameTexture()
 {
 	DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -757,29 +757,6 @@ void RenderContext::UpdateViewport(Rect rect)
 }
 
 _Use_decl_annotations_
-void RenderContext::SetGamma(
-	float red,
-	float green,
-	float blue)
-{
-	uint32_t gammaTable[256];
-
-	for (int32_t i = 0; i < 256; ++i)
-	{
-		float v = i / 255.0f;
-		float r = powf(v, 1.0f / red);
-		float g = powf(v, 1.0f / green);
-		float b = powf(v, 1.0f / blue);
-		uint32_t ri = (uint32_t)(r * 255.0f);
-		uint32_t gi = (uint32_t)(g * 255.0f);
-		uint32_t bi = (uint32_t)(b * 255.0f);
-		gammaTable[i] = (ri << 16) | (gi << 8) | bi;
-	}
-
-	LoadGammaTable(gammaTable, ARRAYSIZE(gammaTable));
-}
-
-_Use_decl_annotations_
 void RenderContext::SetPalette(
 	int32_t paletteIndex,
 	const uint32_t* palette)
@@ -1001,7 +978,7 @@ void RenderContext::AdjustWindowPlacement(
 		//	_renderRect.size.width = _windowSize.width;
 		//	_renderRect.size.height = _windowSize.height;
 		//}
-		
+
 		const DWORD windowStyle = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
 		RECT windowRect = { 0, 0, _windowSize.width, _windowSize.height };
 		AdjustWindowRect(&windowRect, windowStyle, FALSE);
@@ -1076,11 +1053,11 @@ void RenderContext::SetSizes(
 {
 	_gameSize = gameSize;
 	_windowSize = windowSize;
-	
+
 	auto displaySize = _options.screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
-	
+
 	_renderRect = Metrics::GetRenderRect(
-		_gameSize, 
+		_gameSize,
 		displaySize,
 		!_options.noWide);
 

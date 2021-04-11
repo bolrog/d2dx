@@ -52,11 +52,6 @@ namespace d2dx
 			_In_ int32_t width,
 			_In_ int32_t height) = 0;
 
-		virtual void SetGamma(
-			_In_ float red,
-			_In_ float green,
-			_In_ float blue) = 0;
-
 		virtual void SetPalette(
 			_In_ int32_t paletteIndex,
 			_In_reads_(256) const uint32_t* palette) = 0;

@@ -519,14 +519,12 @@ void D2DXContext::OnDrawLine(
 	vertex3.SetY(vertex3.GetY() + dy);
 
 	assert((_vertexCount + 6) < _vertices.capacity);
-	int32_t vertexWriteIndex = _vertexCount;
-	_vertices.items[vertexWriteIndex++] = vertex0;
-	_vertices.items[vertexWriteIndex++] = vertex1;
-	_vertices.items[vertexWriteIndex++] = vertex2;
-	_vertices.items[vertexWriteIndex++] = vertex1;
-	_vertices.items[vertexWriteIndex++] = vertex2;
-	_vertices.items[vertexWriteIndex++] = vertex3;
-	_vertexCount = vertexWriteIndex;
+	_vertices.items[_vertexCount++] = vertex0;
+	_vertices.items[_vertexCount++] = vertex1;
+	_vertices.items[_vertexCount++] = vertex2;
+	_vertices.items[_vertexCount++] = vertex1;
+	_vertices.items[_vertexCount++] = vertex2;
+	_vertices.items[_vertexCount++] = vertex3;
 
 	batch.SetVertexCount(6);
 
@@ -605,11 +603,9 @@ void D2DXContext::OnDrawVertexArray(
 			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch);
 
 			assert((_vertexCount + 3) < _vertices.capacity);
-			int32_t vertexWriteIndex = _vertexCount;
-			_vertices.items[vertexWriteIndex++] = firstVertex;
-			_vertices.items[vertexWriteIndex++] = prevVertex;
-			_vertices.items[vertexWriteIndex++] = currentVertex;
-			_vertexCount = vertexWriteIndex;
+			_vertices.items[_vertexCount++] = firstVertex;
+			_vertices.items[_vertexCount++] = prevVertex;
+			_vertices.items[_vertexCount++] = currentVertex;
 
 			prevVertex = currentVertex;
 		}
@@ -625,11 +621,9 @@ void D2DXContext::OnDrawVertexArray(
 			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch);
 
 			assert((_vertexCount + 3) < _vertices.capacity);
-			int32_t vertexWriteIndex = _vertexCount;
-			_vertices.items[vertexWriteIndex++] = prevPrevVertex;
-			_vertices.items[vertexWriteIndex++] = prevVertex;
-			_vertices.items[vertexWriteIndex++] = currentVertex;
-			_vertexCount = vertexWriteIndex;
+			_vertices.items[_vertexCount++] = prevPrevVertex;
+			_vertices.items[_vertexCount++] = prevVertex;
+			_vertices.items[_vertexCount++] = currentVertex;
 
 			prevPrevVertex = prevVertex;
 			prevVertex = currentVertex;
@@ -797,7 +791,21 @@ void D2DXContext::OnGammaCorrectionRGB(
 	float green,
 	float blue)
 {
-	_renderContext->SetGamma(red, green, blue);
+	uint32_t gammaTable[256];
+
+	for (int32_t i = 0; i < 256; ++i)
+	{
+		float v = i / 255.0f;
+		float r = powf(v, 1.0f / red);
+		float g = powf(v, 1.0f / green);
+		float b = powf(v, 1.0f / blue);
+		uint32_t ri = (uint32_t)(r * 255.0f);
+		uint32_t gi = (uint32_t)(g * 255.0f);
+		uint32_t bi = (uint32_t)(b * 255.0f);
+		gammaTable[i] = (ri << 16) | (gi << 8) | bi;
+	}
+
+	_renderContext->LoadGammaTable(gammaTable, ARRAYSIZE(gammaTable));
 }
 
 void D2DXContext::PrepareLogoTextureBatch()

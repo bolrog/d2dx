@@ -85,12 +85,7 @@ namespace d2dx
 			_In_reads_(width* height) const uint32_t* pixels,
 			_In_ int32_t width,
 			_In_ int32_t height) override;
-
-		virtual void SetGamma(
-			_In_ float red,
-			_In_ float green,
-			_In_ float blue) override;
-
+		
 		virtual void SetPalette(
 			_In_ int32_t paletteIndex,
 			_In_reads_(256) const uint32_t* palette) override;
@@ -118,7 +113,7 @@ namespace d2dx
 		void CreateGammaTexture();
 		void CreatePaletteTexture();
 		void CreateVideoTextures();
-		void CreateRenderTarget();
+		void CreateGameTexture();
 		void CreateSamplerStates();
 		void CreateTextureCaches();
 		uint32_t DetermineMaxTextureArraySize();
