@@ -19,6 +19,7 @@ Version 0.99.411
   - Fixes various glitches in the supported game versions.
 
 ## Upcoming
+  - FXAA or SMAA (if possible without excessive smoothing).
   - Suggestions welcome!
 
 ## Requirements
