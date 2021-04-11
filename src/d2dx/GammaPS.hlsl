@@ -18,6 +18,8 @@
 */
 #include "Constants.hlsli"
 
+// #define SHOW_EDGES
+
 Texture2D sceneTexture : register(t0);
 Texture1D gammaTexture : register(t1);
 
@@ -27,9 +29,6 @@ Texture1D gammaTexture : register(t1);
 
 half4 gammaCorrect(half4 c)
 {
-	c.r = gammaTexture.Sample(BilinearSampler, c.r).r;
-	c.g = gammaTexture.Sample(BilinearSampler, c.g).g;
-	c.b = gammaTexture.Sample(BilinearSampler, c.b).b;
 	return c;
 }
 
@@ -37,8 +36,10 @@ half4 gammaCorrect(half4 c)
 
 half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
 {
-	//half4 color = sceneTexture.Load(float3(tc, 0));
-	//return half4(color.a, color.a, color.a, 1);
+#ifdef SHOW_EDGES
+	half4 color = sceneTexture.Load(float3(tc, 0));
+	return half4(color.a, color.a, color.a, 1);
+#endif
 
 	float2 invTextureSize;
 	sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
@@ -47,6 +48,11 @@ half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
 	FxaaTex ftx;
 	ftx.smpl = BilinearSampler;
 	ftx.tex = sceneTexture;
+	half4 c = FxaaPixelShader(tc * invTextureSize, 0, ftx, ftx, ftx, invTextureSize, 0, 0, 0, 0.0, 0.05, 0/*.0833*/, 0, 0, 0, 0);
 
-	return FxaaPixelShader(tc * invTextureSize, 0, ftx, ftx, ftx, invTextureSize, 0, 0, 0, 0.0, 0.05, 0/*.0833*/, 0, 0, 0, 0);
+	c.r = gammaTexture.Sample(BilinearSampler, c.r).r;
+	c.g = gammaTexture.Sample(BilinearSampler, c.g).g;
+	c.b = gammaTexture.Sample(BilinearSampler, c.b).b;
+	return c;
+
 }
