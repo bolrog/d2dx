@@ -2,7 +2,7 @@
 
 D2DX is a preservation project for running classic Diablo II/LoD on modern PCs. 
 
-Version 0.99.411
+Version 0.99.412
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
@@ -79,6 +79,11 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   -dxnovsync
   ```
   
+  Disable anti-aliasing
+  ```
+  -dxnoaa
+  ```
+  
   In windowed mode, scale the size by 2 or 3:
   ```
   -dxscale2
@@ -117,6 +122,9 @@ This project uses the following third party libraries:
 - SlashDiablo-HD/D2HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
 
 ## Release history
+
+### 0.99.412
+  - Added (tasteful) FXAA, which is enabled by default since it looked so nice. (It doesn't destroy any detail.)
 
 ### 0.99.411
   - D2DX should now work on DirectX 10/10.1 graphics cards.
