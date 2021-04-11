@@ -342,6 +342,7 @@ void D2DXContext::DrawBatches()
 		{
 			if (_renderContext->GetTextureCache(batch) != _renderContext->GetTextureCache(mergedBatch) ||
 				(batch.GetTextureAtlas() != mergedBatch.GetTextureAtlas()) ||
+				(batch.GetTextureCategory()) != (mergedBatch.GetTextureCategory()) ||
 				batch.GetAlphaBlend() != mergedBatch.GetAlphaBlend() ||
 				batch.GetPrimitiveType() != mergedBatch.GetPrimitiveType() ||
 				((mergedBatch.GetVertexCount() + batch.GetVertexCount()) > 65535))
@@ -918,7 +919,6 @@ void D2DXContext::SetCustomResolution(
 	_customGameSize = size;
 }
 
-_Use_decl_annotations_
 Size D2DXContext::GetSuggestedCustomResolution()
 {
 	if (_suggestedGameSize.width == 0)

@@ -19,7 +19,6 @@
 #include "Constants.hlsli"
 
 Texture2D sceneTexture : register(t0);
-Texture1D gammaTexture : register(t1);
 
 /* Anti-aliased nearest-neighbor sampling, taken from https://www.shadertoy.com/view/WtjyWy by user Amarcoli. */
 float2 nearestSampleUV_AA(float2 tileUv, float sharpness) {
@@ -43,9 +42,5 @@ float2 nearestSampleUV_AA(float2 tileUv, float sharpness) {
 
 half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
 {
-	half3 c = sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(tc, 2.0));
-	c.r = gammaTexture.Sample(BilinearSampler, c.r).r;
-	c.g = gammaTexture.Sample(BilinearSampler, c.g).g;
-	c.b = gammaTexture.Sample(BilinearSampler, c.b).b;
-	return half4(c, 1);
+	return sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(tc, 2.0));
 }

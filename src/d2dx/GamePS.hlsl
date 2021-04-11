@@ -44,7 +44,7 @@ half4 main(PixelShaderInput psInput) : SV_TARGET
 	
 	half a =
 		(alphaCombine == MISC_ALPHA_ONE) ? 1 :
-		(alphaCombine == MISC_ALPHA_TEXTURE) ? psInput.color.a : 0;
+		(alphaCombine == MISC_ALPHA_TEXTURE) ? psInput.color.a : 1;
 
 	return half4(c, a);
 }

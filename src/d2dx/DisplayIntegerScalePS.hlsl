@@ -19,13 +19,9 @@
 #include "Constants.hlsli"
 
 Texture2D sceneTexture : register(t0);
-Texture1D gammaTexture : register(t1);
 
-half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
+half4 main(
+    in float2 tc : TEXCOORD0) : SV_TARGET
 {
-	half3 c = sceneTexture.Load(float3(tc, 0)).rgb;
-	c.r = gammaTexture.Sample(BilinearSampler, c.r).r;
-	c.g = gammaTexture.Sample(BilinearSampler, c.g).g;
-	c.b = gammaTexture.Sample(BilinearSampler, c.b).b;
-	return half4(c, 1);
+	return sceneTexture.Load(float3(tc, 0));
 }

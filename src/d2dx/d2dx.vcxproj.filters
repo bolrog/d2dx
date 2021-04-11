@@ -19,6 +19,9 @@
     <FxCompile Include="DisplayNonintegerScalePS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
+    <FxCompile Include="GammaPS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureCache.cpp" />
@@ -260,6 +263,9 @@
     </None>
     <None Include="..\..\thirdparty\SlashDiablo-HD\Resources\SlashDiabloHD.mpq">
       <Filter>thirdparty\SlashDiablo-HD</Filter>
+    </None>
+    <None Include="FXAA.hlsli">
+      <Filter>shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
