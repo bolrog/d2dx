@@ -15,11 +15,11 @@ Version 0.99.412
   - Improved fullscreen mode: instant ALT-TAB and low latency.
   - Improved windowed mode.
   - Widescreen support (in vanilla D2/LoD).
+  - Anti-aliasing (customized FXAA only where it matters).
   - Seamless windowed/fullscreen switching with (ALT-Enter).
   - Fixes various glitches in the supported game versions.
 
 ## Upcoming
-  - FXAA or SMAA (if possible without excessive smoothing).
   - Suggestions welcome!
 
 ## Requirements
