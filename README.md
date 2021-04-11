@@ -120,6 +120,7 @@ This project uses the following third party libraries:
 - FNV1a hash reference implementation, which is in the public domain.
 - Detours by Microsoft.
 - SlashDiablo-HD/D2HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
+- FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
 ## Release history
 
