@@ -38,11 +38,12 @@ namespace d2dx
 	struct Options
 	{
 		ScreenMode screenMode = ScreenMode::Windowed;
+		uint32_t defaultZoomLevel = 0;
 		bool noWide = false;
 		bool noLogo = false;
 		bool noVSync = false;
 		bool noResMod = false;
-		uint32_t defaultZoomLevel = 0;
+		bool noAA = false;
 	};
 
 	enum class MajorGameState

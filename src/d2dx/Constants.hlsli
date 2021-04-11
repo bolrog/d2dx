@@ -20,7 +20,7 @@
 cbuffer Constants : register(b0)
 {
 	float2 screenSize;
-	float2 dummy;
+	uint2 flags;
 };
 
 struct PixelShaderInput

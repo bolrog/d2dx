@@ -781,6 +781,8 @@ void RenderContext::Present()
 
 		_constants.screenSize[0] = (float)rect.size.width;
 		_constants.screenSize[1] = (float)rect.size.height;
+		_constants.flags[0] = _options.noAA ? 0 : 1;
+		_constants.flags[1] = 0;
 		if (memcmp(&_constants, &_shadowState._constants, sizeof(Constants)) != 0)
 		{
 			D3D11_MAPPED_SUBRESOURCE mappedSubResource = { 0 };

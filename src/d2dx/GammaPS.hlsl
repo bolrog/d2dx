@@ -41,14 +41,23 @@ half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
 	return half4(color.a, color.a, color.a, 1);
 #endif
 
-	float2 invTextureSize;
-	sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
-	invTextureSize = 1.0 / invTextureSize;
+	half4 c;
 
-	FxaaTex ftx;
-	ftx.smpl = BilinearSampler;
-	ftx.tex = sceneTexture;
-	half4 c = FxaaPixelShader(tc * invTextureSize, 0, ftx, ftx, ftx, invTextureSize, 0, 0, 0, 0.0, 0.05, 0/*.0833*/, 0, 0, 0, 0);
+	if ((flags.x & 1) != 0)
+	{
+		float2 invTextureSize;
+		sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
+		invTextureSize = 1.0 / invTextureSize;
+
+		FxaaTex ftx;
+		ftx.smpl = BilinearSampler;
+		ftx.tex = sceneTexture;
+		c = FxaaPixelShader(tc * invTextureSize, 0, ftx, ftx, ftx, invTextureSize, 0, 0, 0, 0.0, 0.05, 0/*.0833*/, 0, 0, 0, 0);
+	}
+	else
+	{
+		c = sceneTexture.Load(float3(tc, 0));
+	}
 
 	c.r = gammaTexture.Sample(BilinearSampler, c.r).r;
 	c.g = gammaTexture.Sample(BilinearSampler, c.g).g;

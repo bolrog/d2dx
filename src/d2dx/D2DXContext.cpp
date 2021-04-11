@@ -44,6 +44,7 @@ static Options GetCommandLineOptions()
 	options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
 	options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
 	options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
+	options.noAA = strstr(commandLine, "-dxnoaa") != nullptr;
 
 	bool dxscale2 = strstr(commandLine, "-dxscale2") != nullptr || strstr(commandLine, "-gxscale2") != nullptr;
 	bool dxscale3 = strstr(commandLine, "-dxscale3") != nullptr || strstr(commandLine, "-gxscale3") != nullptr;

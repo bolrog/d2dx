@@ -155,7 +155,7 @@ namespace d2dx
 		struct Constants
 		{
 			float screenSize[2];
-			float dummy[2];
+			uint32_t flags[2];
 		};
 
 		static_assert(sizeof(Constants) == 4 * 4, "size of Constants");
