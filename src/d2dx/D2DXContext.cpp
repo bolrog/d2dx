@@ -163,6 +163,10 @@ void D2DXContext::OnSstWinOpen(
 	int32_t height)
 {
 	Size windowSize = _gameHelper->GetConfiguredGameSize();
+	if (!_options.noResMod)
+	{
+		windowSize = { 800,600 };
+	}
 
 	Size gameSize{ width, height };
 
