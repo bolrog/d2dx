@@ -29,6 +29,7 @@
 #include <cassert>
 
 #include <windows.h>
+#include <PathCch.h>
 #include <CommCtrl.h>
 #include <combaseapi.h>
 #include <wrl/implements.h>

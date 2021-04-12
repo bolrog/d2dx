@@ -29,6 +29,8 @@
 using namespace d2dx;
 using namespace std;
 
+static void FixCompatibilityMode(HKEY hRootKey);
+
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -37,6 +39,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
+        FixCompatibilityMode(HKEY_LOCAL_MACHINE);
+        FixCompatibilityMode(HKEY_CURRENT_USER);
         SetProcessDPIAware();
         AttachDetours();
         break;
@@ -49,4 +53,76 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         break;
     }
     return TRUE;
+}
+
+static bool HasIncompatibleCompatibilityOptions(const wchar_t* str)
+{
+    return
+        wcsstr(str, L"WIN95") != nullptr ||
+        wcsstr(str, L"WIN98") != nullptr ||
+        wcsstr(str, L"WINXP") != nullptr ||
+        wcsstr(str, L"VISTA") != nullptr ||
+        wcsstr(str, L"WIN7") != nullptr ||
+        wcsstr(str, L"WIN8") != nullptr;
+}
+
+static void FixCompatibilityMode(HKEY hRootKey)
+{
+    HKEY hKey;
+    LPCTSTR compatibilityLayersKey = L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers";
+    LONG result = RegOpenKeyEx(hRootKey, compatibilityLayersKey, 0, KEY_READ | KEY_WRITE, &hKey);
+    if (result != ERROR_SUCCESS)
+    {
+        return;
+    }
+     
+    Buffer<wchar_t> filename(2048);
+    uint32_t numChars = GetModuleFileName(GetModuleHandle(nullptr), filename.items, filename.capacity);
+    if (numChars < 1 || numChars >= filename.capacity)
+    {
+        return;
+    }
+
+    Buffer<wchar_t> value(2048);
+    uint32_t type = REG_SZ;
+    uint32_t size = value.capacity;
+    result = RegGetValue(hKey, NULL, filename.items, RRF_RT_REG_SZ, (LPDWORD)&type, (LPBYTE)value.items, (LPDWORD)&size);
+    if (result != ERROR_SUCCESS)
+    {
+        return;
+    }
+
+    bool hasFixed = false;
+
+    if (HasIncompatibleCompatibilityOptions(value.items))
+    {
+        RegDeleteValue(hKey, filename.items);
+        hasFixed = true;
+    }
+
+    HRESULT hr = PathCchRemoveFileSpec(filename.items, filename.capacity);
+    if (FAILED(hr))
+    {
+        return;
+    }
+
+    wcscat_s(filename.items, filename.capacity, L"\\Diablo II.exe");
+
+    result = RegGetValue(hKey, NULL, filename.items, RRF_RT_REG_SZ, (LPDWORD)&type, (LPBYTE)value.items, (LPDWORD)&size);
+    if (result != ERROR_SUCCESS)
+    {
+        return;
+    }
+
+    if (HasIncompatibleCompatibilityOptions(value.items))
+    {
+        RegDeleteValue(hKey, filename.items);
+        hasFixed = true; 
+    }
+
+    if (hasFixed)
+    {
+        MessageBox(NULL, L"D2DX detected that 'compatibility mode' was set for the game, but this isn't necessary for D2DX and will cause problems.\n\nThis has now been fixed for you. Please re-launch the game.", L"D2DX", MB_OK);
+        TerminateProcess(GetCurrentProcess(), -1);
+    }
 }
