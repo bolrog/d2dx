@@ -32,6 +32,8 @@
 #include "Vertex.h"
 #include "Utils.h"
 
+#define MAX_FRAME_LATENCY 2
+
 using namespace d2dx;
 using namespace std;
 
@@ -218,13 +220,22 @@ RenderContext::RenderContext(
 		ALWAYS_PRINT("Device context does not support ID3D11DeviceContext1.");
 	}
 
-	if (_swapChain2)
+	if (_syncStrategy == RenderContextSyncStrategy::FrameLatencyWaitableObject)
+	{
+		assert(_swapChain2);
+		if (_swapChain2)
+		{
+			ALWAYS_PRINT("Setting maximum frame latency to %i.", MAX_FRAME_LATENCY);
+			_swapChain2->SetMaximumFrameLatency(MAX_FRAME_LATENCY);
+		}
+	}
+	else
 	{
 		ComPtr<IDXGIDevice1> dxgiDevice1;
 		if (SUCCEEDED(_swapChain1->GetDevice(IID_PPV_ARGS(&dxgiDevice1))))
 		{
-			ALWAYS_PRINT("Setting maximum frame latency to 2.");
-			D2DX_RELEASE_CHECK_HR(dxgiDevice1->SetMaximumFrameLatency(2));
+			ALWAYS_PRINT("Setting maximum frame latency to %i.", MAX_FRAME_LATENCY);
+			D2DX_RELEASE_CHECK_HR(dxgiDevice1->SetMaximumFrameLatency(MAX_FRAME_LATENCY));
 		}
 	}
 
