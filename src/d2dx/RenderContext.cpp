@@ -34,6 +34,7 @@
 
 #define MAX_FRAME_LATENCY 2
 #undef ALLOW_SET_SOURCE_SIZE
+#undef ALLOW_10_10_10_2
 
 using namespace d2dx;
 using namespace std;
@@ -508,16 +509,18 @@ void RenderContext::CreateGameTexture()
 {
 	DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
+#ifdef ALLOW_10_10_10_2
 	UINT formatSupport;
 	D2DX_RELEASE_CHECK_HR(_device->CheckFormatSupport(DXGI_FORMAT_R10G10B10A2_UNORM, &formatSupport));
-	//if ((formatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) &&
-	//	(formatSupport & D3D11_FORMAT_SUPPORT_SHADER_LOAD) &&
-	//	(formatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET))
-	//{
-	//	ALWAYS_PRINT("Using DXGI_FORMAT_R10G10B10A2_UNORM for the render buffer.");
-	//	renderTargetFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
-	//}
-	//else
+	if ((formatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) &&
+		(formatSupport & D3D11_FORMAT_SUPPORT_SHADER_LOAD) &&
+		(formatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET))
+	{
+		ALWAYS_PRINT("Using DXGI_FORMAT_R10G10B10A2_UNORM for the render buffer.");
+		renderTargetFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+	}
+	else
+#endif
 	{
 		ALWAYS_PRINT("Using DXGI_FORMAT_R8G8B8A8_UNORM for the render buffer.");
 	}
@@ -987,8 +990,6 @@ void RenderContext::SetPrimitiveTopology(
 	}
 }
 
-#define MAX_DIMS 6
-
 ITextureCache* RenderContext::GetTextureCache(const Batch& batch) const
 {
 	const int32_t longest = max(batch.GetWidth(), batch.GetHeight());
@@ -1016,17 +1017,6 @@ void RenderContext::AdjustWindowPlacement(
 		const int32_t oldWindowHeight = oldWindowRect.bottom - oldWindowRect.top;
 		const int32_t oldWindowCenterX = (oldWindowRect.left + oldWindowRect.right) / 2;
 		const int32_t oldWindowCenterY = (oldWindowRect.top + oldWindowRect.bottom) / 2;
-
-		//_windowSize.width = _renderRect.size.width;
-		//_windowSize.height = _renderRect.size.height;
-
-		//if (_windowSize.height > _desktopClientMaxHeight)
-		//{
-		//	_windowSize.width *= (int32_t)((float)_desktopClientMaxHeight / _windowSize.height);
-		//	_windowSize.height = _desktopClientMaxHeight;
-		//	_renderRect.size.width = _windowSize.width;
-		//	_renderRect.size.height = _windowSize.height;
-		//}
 
 		const DWORD windowStyle = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
 		RECT windowRect = { 0, 0, _windowSize.width, _windowSize.height };
