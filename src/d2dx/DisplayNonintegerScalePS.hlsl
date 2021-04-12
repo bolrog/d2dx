@@ -40,7 +40,8 @@ float2 nearestSampleUV_AA(float2 tileUv, float sharpness) {
 	return uv - texelDelta * clamp(aa_factor, 0.0, 1.0) / textureSize;
 }
 
-half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
+half4 main(
+	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
 	return sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(tc, 2.0));
 }

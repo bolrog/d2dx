@@ -25,9 +25,9 @@ cbuffer Constants : register(b0)
 
 struct PixelShaderInput
 {
-	float4 pos : SV_POSITION;
-	float2 tc : TEXCOORD0;
-	half4 color : COLOR0;
+	noperspective float4 pos : SV_POSITION;
+	noperspective float2 tc : TEXCOORD0;
+	noperspective half4 color : COLOR0;
 	nointerpolation uint2 misc : TEXCOORD1;
 };
 

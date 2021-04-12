@@ -22,8 +22,8 @@ void main(
 	in float2 pos : POSITION,
 	in int2 tc : TEXCOORD,
 	in float4 color : COLOR,
-	out float2 o_tc : TEXCOORD0,
-	out float4 o_pos : SV_POSITION)
+	out noperspective float2 o_tc : TEXCOORD0,
+	out noperspective float4 o_pos : SV_POSITION)
 {
 	float2 fpos = (2.0 * pos / screenSize) - 1.0;
 	

@@ -21,7 +21,7 @@
 Texture2D sceneTexture : register(t0);
 
 half4 main(
-    in float2 tc : TEXCOORD0) : SV_TARGET
+    in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
 	return sceneTexture.Load(float3(tc, 0));
 }

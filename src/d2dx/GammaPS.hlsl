@@ -34,7 +34,8 @@ half4 gammaCorrect(half4 c)
 
 #include "FXAA.hlsli"
 
-half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
+half4 main(
+	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
 #ifdef SHOW_EDGES
 	half4 color = sceneTexture.Load(float3(tc, 0));

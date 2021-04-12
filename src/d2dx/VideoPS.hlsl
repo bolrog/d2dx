@@ -20,7 +20,8 @@
 
 Texture2D tex : register(t0);
 
-half4 main(in float2 tc : TEXCOORD0) : SV_TARGET
+half4 main(
+	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
 	half3 c = tex.Sample(BilinearSampler, tc/screenSize).rgb;
 	return half4(c, 1);
