@@ -26,8 +26,8 @@ half4 main(PixelShaderInput psInput) : SV_TARGET
 	const uint atlasIndex = psInput.misc.x;
 	const bool chromaKeyEnabled = (psInput.misc.y & MISC_CHROMAKEY_ENABLED_MASK) != 0;
 
-	uint indexedColor = tex.Load(float4(psInput.tc, atlasIndex, 0));
-
+	uint indexedColor = tex.Load(int4(psInput.tc, atlasIndex, 0));
+	
 	if (chromaKeyEnabled && indexedColor == 0)
 		discard;
 

@@ -18,15 +18,15 @@
 */
 #include "Constants.hlsli"
 
-// #define SHOW_EDGES
+//#define SHOW_EDGES
 
 Texture2D sceneTexture : register(t0);
 Texture1D gammaTexture : register(t1);
 
 #define FXAA_PC 1
 #define FXAA_HLSL_4 1
-#define FXAA_QUALITY__PRESET 12
-
+#define FXAA_QUALITY__PRESET 23
+#define FXAA_GREEN_AS_LUMA 1
 half4 gammaCorrect(half4 c)
 {
 	return c;
@@ -46,14 +46,43 @@ half4 main(
 
 	if ((flags.x & 1) != 0)
 	{
-		float2 invTextureSize;
-		sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
-		invTextureSize = 1.0 / invTextureSize;
+		half4 senwLumas;
+		half4 temp = sceneTexture.Load(int3(tc, 0), int2(0, 1));
+		senwLumas.x = temp.g;
+		half s = temp.a;
 
-		FxaaTex ftx;
-		ftx.smpl = BilinearSampler;
-		ftx.tex = sceneTexture;
-		c = FxaaPixelShader(tc * invTextureSize, 0, ftx, ftx, ftx, invTextureSize, 0, 0, 0, 0.0, 0.05, 0/*.0833*/, 0, 0, 0, 0);
+		temp = sceneTexture.Load(int3(tc, 0), int2(1, 0));
+		senwLumas.y = temp.g;
+		half e = temp.a;
+
+		temp = sceneTexture.Load(int3(tc, 0), int2(0, -1));
+		senwLumas.z = temp.g;
+		half n = temp.a;
+
+		temp = sceneTexture.Load(int3(tc, 0), int2(-1, 0));
+		senwLumas.w = temp.g;
+		half w = temp.a;
+
+		half mins = min(min(s, e), min(n, w));
+		half maxs = max(max(s, e), max(n, w));
+		half diff = maxs - mins;
+		if (diff > 0.05)
+		{
+//			return half4(1, 0, 0, 1);
+			float2 invTextureSize;
+			sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
+			invTextureSize = 1.0 / invTextureSize;
+
+			FxaaTex ftx;
+			ftx.smpl = BilinearSampler;
+			ftx.tex = sceneTexture;
+			c = FxaaPixelShader(tc * invTextureSize, ftx, invTextureSize, 0.25, 0.125, 0.0, senwLumas);
+		}
+		else
+		{
+	//		return half4(0, 1, 0, 1);
+			c = sceneTexture.Load(float3(tc, 0));
+		}
 	}
 	else
 	{
