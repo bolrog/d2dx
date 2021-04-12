@@ -33,6 +33,7 @@
 #include "Utils.h"
 
 #define MAX_FRAME_LATENCY 2
+#undef ALLOW_SET_SOURCE_SIZE
 
 using namespace d2dx;
 using namespace std;
@@ -194,10 +195,11 @@ RenderContext::RenderContext(
 		dxgiFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_WINDOW_CHANGES);
 	}
 
+#ifdef ALLOW_SET_SOURCE_SIZE
 	if (SUCCEEDED(_swapChain1.As(&_swapChain2)))
 	{
 		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::SetSourceSize;
-		ALWAYS_PRINT("Using 'SetSourceSize' backbuffer sizing strategy.")
+		ALWAYS_PRINT("Using 'SetSourceSize' backbuffer sizing strategy.");
 
 		if (!_options.noVSync && _frameLatencyWaitableObjectSupported)
 		{
@@ -206,6 +208,7 @@ RenderContext::RenderContext(
 		}
 	}
 	else
+#endif
 	{
 		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::ResizeBuffers;
 		ALWAYS_PRINT("Using 'ResizeBuffers' backbuffer sizing strategy.")
