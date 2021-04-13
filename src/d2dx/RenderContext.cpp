@@ -444,27 +444,29 @@ void RenderContext::Present()
 
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
-	srvs[0] = nullptr;
-	srvs[1] = nullptr;
-	SetPSShaderResourceViews(srvs);
+	if (!_options.noAA)
+	{
+		srvs[0] = nullptr;
+		srvs[1] = nullptr;
+		SetPSShaderResourceViews(srvs);
 
-	rtvs[0] = _gameTextureRtv.Get();
-	_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
-	_deviceContext->ClearRenderTargetView(_gameTextureRtv.Get(), color);
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+		rtvs[0] = _gameTextureRtv.Get();
+		_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
+		_deviceContext->ClearRenderTargetView(_gameTextureRtv.Get(), color);
+		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 
-	srvs[0] = _gammaCorrectedTextureSrv.Get();
-	srvs[1] = _idBufferSrv.Get();
-	SetPSShaderResourceViews(srvs);
+		srvs[0] = _gammaCorrectedTextureSrv.Get();
+		srvs[1] = _idBufferSrv.Get();
+		SetPSShaderResourceViews(srvs);
 
-	SetVS(_displayVS.Get());
-	SetPS(_resolveAAPS.Get());
+		SetVS(_displayVS.Get());
+		SetPS(_resolveAAPS.Get());
 
-	startVertexLocation = _vbWriteIndex;
-	vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, { 0,0,_gameSize.width, _gameSize.height });
+		startVertexLocation = _vbWriteIndex;
+		vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, { 0,0,_gameSize.width, _gameSize.height });
 
-	_deviceContext->Draw(vertexCount, startVertexLocation);
-
+		_deviceContext->Draw(vertexCount, startVertexLocation);
+	}
 
 	_deviceContext->RSSetState(_rasterizerStateNoScissor.Get());
 
@@ -474,7 +476,7 @@ void RenderContext::Present()
 
 	const bool isIntegerScale = IsIntegerScale();
 
-	srvs[0] = _gameTextureSrv.Get();
+	srvs[0] = _options.noAA ? _gammaCorrectedTextureSrv.Get() : _gameTextureSrv.Get();
 	srvs[1] = nullptr;
 	SetPSShaderResourceViews(srvs);
 
