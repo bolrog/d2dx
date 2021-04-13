@@ -19,6 +19,7 @@
 #include "Constants.hlsli"
 
 //#define SHOW_EDGES
+//#define SHOW_MASK
 
 Texture2D sceneTexture : register(t0);
 Texture1D gammaTexture : register(t1);
@@ -27,11 +28,6 @@ Texture1D gammaTexture : register(t1);
 #define FXAA_HLSL_4 1
 #define FXAA_QUALITY__PRESET 23
 #define FXAA_GREEN_AS_LUMA 1
-half4 gammaCorrect(half4 c)
-{
-	return c;
-}
-
 #include "FXAA.hlsli"
 
 half4 main(
@@ -49,26 +45,30 @@ half4 main(
 		half4 senwLumas;
 		half4 temp = sceneTexture.Load(int3(tc, 0), int2(0, 1));
 		senwLumas.x = temp.g;
-		half s = temp.a;
+		half mins = temp.a;
+		half maxs = temp.a;
 
 		temp = sceneTexture.Load(int3(tc, 0), int2(1, 0));
 		senwLumas.y = temp.g;
-		half e = temp.a;
+		mins = min(mins, temp.a);
+		maxs = max(maxs, temp.a);
 
 		temp = sceneTexture.Load(int3(tc, 0), int2(0, -1));
 		senwLumas.z = temp.g;
-		half n = temp.a;
+		mins = min(mins, temp.a);
+		maxs = max(maxs, temp.a);
 
 		temp = sceneTexture.Load(int3(tc, 0), int2(-1, 0));
 		senwLumas.w = temp.g;
-		half w = temp.a;
+		mins = min(mins, temp.a);
+		maxs = max(maxs, temp.a);
 
-		half mins = min(min(s, e), min(n, w));
-		half maxs = max(max(s, e), max(n, w));
 		half diff = maxs - mins;
 		if (diff > 0.05)
 		{
-//			return half4(1, 0, 0, 1);
+#ifdef SHOW_MASK
+			return half4(1, 0, 0, 1);
+#else
 			float2 invTextureSize;
 			sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
 			invTextureSize = 1.0 / invTextureSize;
@@ -76,12 +76,16 @@ half4 main(
 			FxaaTex ftx;
 			ftx.smpl = BilinearSampler;
 			ftx.tex = sceneTexture;
-			c = FxaaPixelShader(tc * invTextureSize, ftx, invTextureSize, 0.25, 0.125, 0.0, senwLumas);
+			c = FxaaPixelShader(tc * invTextureSize, ftx, invTextureSize, 0.0, 0.063, 0.0, senwLumas);
+#endif
 		}
 		else
 		{
-	//		return half4(0, 1, 0, 1);
+#ifdef SHOW_MASK
+			return half4(0, 1, 0, 1);
+#else
 			c = sceneTexture.Load(float3(tc, 0));
+#endif
 		}
 	}
 	else
