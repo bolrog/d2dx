@@ -29,6 +29,8 @@ namespace d2dx
 	MIDL_INTERFACE("6446AA96-F9CD-4CF4-8401-F2EE6EC7082F")
 		IRenderContext : public IUnknown
 	{
+		virtual HWND GetHWnd() const = 0;
+
 		virtual void LoadGammaTable(
 			_In_reads_(valueCount) const uint32_t* values,
 			_In_ uint32_t valueCount) = 0;

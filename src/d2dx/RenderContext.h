@@ -63,6 +63,8 @@ namespace d2dx
 
 		virtual ~RenderContext();
 
+		virtual HWND GetHWnd() const override;
+
 		virtual void LoadGammaTable(
 			_In_reads_(valueCount) const uint32_t* values,
 			_In_ uint32_t valueCount) override;

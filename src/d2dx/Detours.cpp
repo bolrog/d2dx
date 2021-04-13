@@ -19,12 +19,28 @@
 #include "pch.h"
 #include "Detours.h"
 #include "Utils.h"
+#include "D2DXContextFactory.h"
+#include "IWin32InterceptionHandler.h"
 
 using namespace d2dx;
 
 #pragma comment(lib, "../../thirdparty/detours/detours.lib")
 
 bool hasDetoured = false;
+
+static ComPtr<IWin32InterceptionHandler> GetWin32InterceptionHandler()
+{
+    ID2DXContext* d2dxContext = D2DXContextFactory::GetInstance();
+
+    if (!d2dxContext)
+    {
+        return nullptr;
+    }
+
+    ComPtr<IWin32InterceptionHandler> handler;
+    d2dxContext->QueryInterface(IID_PPV_ARGS(&handler));
+    return handler;
+}
 
 COLORREF(WINAPI* GetPixel_real)(
     _In_ HDC hdc,
@@ -84,7 +100,21 @@ SetCursorPos_Hooked(
     _In_ int X,
     _In_ int Y)
 {
-    return FALSE;
+    auto win32InterceptionHandler = GetWin32InterceptionHandler();
+
+    if (!win32InterceptionHandler)
+    {
+        return FALSE;
+    }
+
+    auto adjustedPos = win32InterceptionHandler->OnSetCursorPos({ X, Y });
+    
+    if (adjustedPos.x < 0)
+    {
+        return FALSE;
+    }
+
+    return SetCursorPos_Real(adjustedPos.x, adjustedPos.y);
 }
 
 LRESULT

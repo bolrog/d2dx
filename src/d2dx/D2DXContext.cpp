@@ -78,7 +78,8 @@ D2DXContext::D2DXContext(
 	_suggestedGameSize{ 0, 0 },
 	_gameHelper{ gameHelper },
 	_simd{ simd },
-	_options{ GetCommandLineOptions() }
+	_options{ GetCommandLineOptions() },
+	_lastScreenOpenMode{ 0 }
 {
 	memset(_paletteKeys.items, 0, sizeof(uint32_t)* _paletteKeys.capacity);
 
@@ -391,6 +392,8 @@ void D2DXContext::OnBufferSwap()
 
 	_batchCount = 0;
 	_vertexCount = 0;
+
+	_lastScreenOpenMode = _gameHelper->ScreenOpenMode();
 }
 
 _Use_decl_annotations_
@@ -905,6 +908,44 @@ void D2DXContext::OnMousePosChanged(
 	_mousePos = pos;
 }
 
+Offset D2DXContext::OnSetCursorPos(Offset pos)
+{
+	auto currentScreenOpenMode = _gameHelper->ScreenOpenMode();
+
+	if (_lastScreenOpenMode != currentScreenOpenMode)
+	{
+		POINT originalPos;
+		GetCursorPos(&originalPos);
+
+		auto hWnd = _renderContext->GetHWnd();
+
+		ScreenToClient(hWnd, (LPPOINT)&pos);
+
+		Size gameSize;
+		Rect renderRect;
+		Size desktopSize;
+		_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
+
+		const bool isFullscreen = _options.screenMode == ScreenMode::FullscreenDefault;
+		const float scale = (float)renderRect.size.height / gameSize.height;
+		const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
+		const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
+
+		pos.x = (int32_t)(pos.x * scale + mouseOffsetX);
+		pos.y = (int32_t)(pos.y * scale);
+
+		ClientToScreen(hWnd, (LPPOINT)&pos);
+
+		pos.y = originalPos.y;
+
+		//OnMousePosChanged(mousePos);
+
+		return pos;
+	}
+
+	return { -1, -1 };
+}
+
 void D2DXContext::FixIngameMousePosition()
 {
 	/* When opening UI panels, the game will screw up the mouse position when
@@ -913,7 +954,7 @@ void D2DXContext::FixIngameMousePosition()
 
 	if (_batchCount == 0)
 	{
-		_gameHelper->SetIngameMousePos(_mousePos);
+//		_gameHelper->SetIngameMousePos(_mousePos);
 	}
 }
 

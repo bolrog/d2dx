@@ -25,9 +25,6 @@
       <Filter>d2dx</Filter>
     </ClCompile>
     <ClCompile Include="TestBatch.cpp" />
-    <ClCompile Include="..\d2dx\Detours.cpp">
-      <Filter>d2dx</Filter>
-    </ClCompile>
     <ClCompile Include="..\d2dx\Metrics.cpp">
       <Filter>d2dx</Filter>
     </ClCompile>

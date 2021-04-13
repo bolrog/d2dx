@@ -284,6 +284,11 @@ RenderContext::~RenderContext()
 	}
 }
 
+HWND RenderContext::GetHWnd() const
+{
+	return _hWnd;
+}
+
 void RenderContext::CreateRasterizerState()
 {
 	CD3D11_RASTERIZER_DESC rasterizerDesc{ CD3D11_DEFAULT() };
@@ -854,27 +859,24 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 #ifdef NDEBUG
 		ShowCursor_Real(FALSE);
 #endif
-		int32_t x = LOWORD(lParam);
-		int32_t y = HIWORD(lParam);
+		Offset mousePos = { LOWORD(lParam), HIWORD(lParam) };
 
 		Size gameSize;
 		Rect renderRect;
 		Size desktopSize;
-
 		d3d11Context->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
-
 		const bool isFullscreen = d3d11Context->GetOptions().screenMode == ScreenMode::FullscreenDefault;
 		const float scale = (float)renderRect.size.height / gameSize.height;
 		const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
 		const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
 
-		x = (int32_t)(max(0, x - mouseOffsetX) / scale);
-		y = (int32_t)(y / scale);
+		mousePos.x = (int32_t)(max(0, mousePos.x - mouseOffsetX) / scale);
+		mousePos.y = (int32_t)(mousePos.y / scale);
 
-		D2DXContextFactory::GetInstance()->OnMousePosChanged({ x, y });
+		D2DXContextFactory::GetInstance()->OnMousePosChanged(mousePos);
 
-		lParam = x;
-		lParam |= y << 16;
+		lParam = mousePos.x;
+		lParam |= mousePos.y << 16;
 	}
 
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);

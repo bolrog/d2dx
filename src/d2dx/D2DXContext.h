@@ -25,6 +25,7 @@
 #include "IGameHelper.h"
 #include "IGlide3x.h"
 #include "IRenderContext.h"
+#include "IWin32InterceptionHandler.h"
 
 namespace d2dx
 {
@@ -32,7 +33,8 @@ namespace d2dx
 
 	class D2DXContext final : public RuntimeClass<
 		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		ID2DXContext
+		ID2DXContext,
+		IWin32InterceptionHandler
 	>
 	{
 	public:
@@ -157,6 +159,12 @@ namespace d2dx
 
 #pragma endregion ID2DXContext
 
+#pragma region IWin32InterceptionHandler
+		
+		virtual Offset OnSetCursorPos(Offset pos) override;
+
+#pragma endregion IWin32InterceptionHandler
+
 	private:
 		void CheckMajorGameState();
 		void PrepareLogoTextureBatch();
@@ -209,5 +217,7 @@ namespace d2dx
 		Offset _mousePos;
 		Size _customGameSize;
 		Size _suggestedGameSize;
+
+		uint32_t _lastScreenOpenMode;
 	};
 }

@@ -227,6 +227,7 @@
     <ClInclude Include="IGlide3x.h" />
     <ClInclude Include="D2DXContextFactory.h" />
     <ClInclude Include="IBuiltinResMod.h" />
+    <ClInclude Include="IWin32InterceptionHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />
