@@ -554,18 +554,8 @@ NOTE the other tuning knobs are now in the shader function inputs!
 #if (FXAA_HLSL_4 == 1)
 #define FxaaInt2 int2
 struct FxaaTex { SamplerState smpl; Texture2D tex; };
-half4 FxaaTexTop(FxaaTex t, FxaaFloat2 p)
-{
-    half4 c = t.tex.SampleLevel(t.smpl, p, 0.0);
-    //c.a = dot(c.rgb, FxaaFloat3(0.299, 0.587, 0.114));
-    return c;
-}
-half4 FxaaTexOff(FxaaTex t, FxaaFloat2 p, FxaaFloat2 o) 
-{
-    half4 c = t.tex.SampleLevel(t.smpl, p, 0.0, o);
-    //c.a = dot(c.rgb, FxaaFloat3(0.299, 0.587, 0.114));
-    return c;
-}
+#define FxaaTexTop(t, p) t.tex.SampleLevel(t.smpl, p, 0.0)
+#define FxaaTexOff(t, p, o) t.tex.SampleLevel(t.smpl, p, 0.0, o)
 #endif
 /*--------------------------------------------------------------------------*/
 #if (FXAA_HLSL_5 == 1)
@@ -594,6 +584,7 @@ FxaaFloat FxaaLuma(FxaaFloat4 rgba) { return rgba.y; }
 ============================================================================*/
 /*--------------------------------------------------------------------------*/
 FxaaFloat4 FxaaPixelShader(
+    FxaaFloat4 rgbyM,
     //
     // Use noperspective interpolation here (turn off perspective interpolation).
     // {xy} = center of pixel
@@ -647,9 +638,7 @@ FxaaFloat4 FxaaPixelShader(
     //   will appear very dark in the green channel!
     //   Tune by looking at mostly non-green content,
     //   then start at zero and increase until aliasing is a problem.
-    FxaaFloat fxaaQualityEdgeThresholdMin,
-
-    half4 senwLumas
+    FxaaFloat fxaaQualityEdgeThresholdMin
 ) {
     /*--------------------------------------------------------------------------*/
     FxaaFloat2 posM;
@@ -657,7 +646,7 @@ FxaaFloat4 FxaaPixelShader(
     posM.y = pos.y;
 #if (FXAA_GATHER4_ALPHA == 1)
 #if (FXAA_DISCARD == 0)
-    FxaaFloat4 rgbyM = FxaaTexTop(tex, posM);
+    //FxaaFloat4 rgbyM = FxaaTexTop(tex, posM);
 #if (FXAA_GREEN_AS_LUMA == 0)
 #define lumaM rgbyM.w
 #else
@@ -681,16 +670,16 @@ FxaaFloat4 FxaaPixelShader(
 #define lumaN luma4B.z
 #define lumaW luma4B.x
 #else
-    FxaaFloat4 rgbyM = FxaaTexTop(tex, posM);
+    //FxaaFloat4 rgbyM = FxaaTexTop(tex, posM);
 #if (FXAA_GREEN_AS_LUMA == 0)
 #define lumaM rgbyM.w
 #else
 #define lumaM rgbyM.y
 #endif
-    FxaaFloat lumaS = senwLumas.x;// FxaaLuma(FxaaTexOff(tex, posM, FxaaInt2(0, 1)));
-    FxaaFloat lumaE = senwLumas.y;// FxaaLuma(FxaaTexOff(tex, posM, FxaaInt2(1, 0)));
-    FxaaFloat lumaN = senwLumas.z;//FxaaLuma(FxaaTexOff(tex, posM, FxaaInt2(0, -1)));
-    FxaaFloat lumaW = senwLumas.w;//FxaaLuma(FxaaTexOff(tex, posM, FxaaInt2(-1, 0)));
+    FxaaFloat lumaS = FxaaLuma(FxaaTexOff(tex, posM, FxaaInt2(0, 1)));
+    FxaaFloat lumaE = FxaaLuma(FxaaTexOff(tex, posM, FxaaInt2(1, 0)));
+    FxaaFloat lumaN = FxaaLuma(FxaaTexOff(tex, posM, FxaaInt2(0, -1)));
+    FxaaFloat lumaW = FxaaLuma(FxaaTexOff(tex, posM, FxaaInt2(-1, 0)));
 #endif
     /*--------------------------------------------------------------------------*/
     FxaaFloat maxSM = max(lumaS, lumaM);

@@ -21,17 +21,17 @@
 Texture2DArray<uint> tex : register(t0);
 Texture1DArray palette : register(t1);
 
-half4 main(PixelShaderInput psInput) : SV_TARGET
+PixelShaderOutput main(PixelShaderInput psInput)
 {
 	const uint atlasIndex = psInput.misc.x;
 	const bool chromaKeyEnabled = (psInput.misc.y & MISC_CHROMAKEY_ENABLED_MASK) != 0;
 
 	uint indexedColor = tex.Load(int4(psInput.tc, atlasIndex, 0));
-	
+
 	if (chromaKeyEnabled && indexedColor == 0)
 		discard;
 
-	const uint paletteIndex = psInput.misc.y >> 8;	
+	const uint paletteIndex = psInput.misc.y >> 8;
 	const half4 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0));
 
 	const uint colorCombine = psInput.misc.y & MISC_RGB_MASK;
@@ -40,11 +40,14 @@ half4 main(PixelShaderInput psInput) : SV_TARGET
 	half3 c =
 		(colorCombine == MISC_RGB_ITERATED_COLOR_MULTIPLIED_BY_TEXTURE) ? textureColor.rgb * psInput.color.rgb :
 		((colorCombine == MISC_RGB_CONSTANT_COLOR) ? psInput.color.rgb :
-		half3(1, 0, 1));
-	
+			half3(1, 0, 1));
+
 	half a =
 		(alphaCombine == MISC_ALPHA_ONE) ? 1 :
-		(alphaCombine == MISC_ALPHA_TEXTURE) ? psInput.color.a : 1;
+		(alphaCombine == MISC_ALPHA_TEXTURE) ? psInput.color.a : 0;
 
-	return half4(c, a);
+	PixelShaderOutput psOutput;
+	psOutput.output0 = half4(c, a);
+	psOutput.output1 = psInput.misc.z;
+	return psOutput;
 }

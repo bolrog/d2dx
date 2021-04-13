@@ -28,6 +28,7 @@
 #include "GameVS_cso.h"
 #include "VideoPS_cso.h"
 #include "GammaPS_cso.h"
+#include "ResolveAA_cso.h"
 #include "TextureCache.h"
 #include "Vertex.h"
 #include "Utils.h"
@@ -95,10 +96,9 @@ RenderContext::RenderContext(
 	_featureLevel = D3D_FEATURE_LEVEL_11_0;
 	D3D_FEATURE_LEVEL requestedFeatureLevels[] =
 	{
-		D3D_FEATURE_LEVEL_10_0,
-		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_11_1
+		D3D_FEATURE_LEVEL_10_1
 	};
 
 	_dxgiAllowTearingFlagSupported = IsAllowTearingFlagSupported();
@@ -336,11 +336,12 @@ void RenderContext::CreateShadersAndInputLayout()
 	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(DisplayIntegerScalePS_cso, ARRAYSIZE(DisplayIntegerScalePS_cso), NULL, &_displayIntegerScalePS));
 	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(DisplayNonintegerScalePS_cso, ARRAYSIZE(DisplayNonintegerScalePS_cso), NULL, &_displayNonintegerScalePS));
 	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(GammaPS_cso, ARRAYSIZE(GammaPS_cso), NULL, &_gammaPS));
+	D2DX_RELEASE_CHECK_HR(_device->CreatePixelShader(ResolveAA_cso, ARRAYSIZE(ResolveAA_cso), NULL, &_resolveAAPS));
 
 	D3D11_INPUT_ELEMENT_DESC inputElementDescs[4] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R16G16_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R16G16_SINT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32_UINT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 1, DXGI_FORMAT_R16G16_UINT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
@@ -384,13 +385,7 @@ void RenderContext::Draw(
 	SetVS(_gameVS.Get());
 	SetPS(_gamePS.Get());
 
-	SetBlendState(batch.GetAlphaBlend(),
-		(batch.GetTextureCategory() == TextureCategory::UserInterface ||
-			batch.GetTextureCategory() == TextureCategory::MousePointer ||
-			batch.GetTextureCategory() == TextureCategory::Font ||
-			batch.GetAlphaBlend() == AlphaBlend::Additive)
-		? 1.0f :
-		32.0f / 255.0f);
+	SetBlendState(batch.GetAlphaBlend());
 
 	ITextureCache* atlas = GetTextureCache(batch);
 	ID3D11ShaderResourceView* srvs[2] = { atlas->GetSrv(batch.GetTextureAtlas()), _paletteTextureSrv.Get() };
@@ -429,10 +424,11 @@ void RenderContext::Present()
 	float color[] = { .0f, .0f, .0f, .0f };
 	ID3D11ShaderResourceView* srvs[2];
 
-	SetBlendState(AlphaBlend::Opaque, true);
+	SetBlendState(AlphaBlend::Opaque);
 	SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	_deviceContext->OMSetRenderTargets(1, _gammaCorrectedTextureRtv.GetAddressOf(), NULL);
+	ID3D11RenderTargetView* rtvs[2] = { _gammaCorrectedTextureRtv.Get(), nullptr };
+	_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
 	_deviceContext->ClearRenderTargetView(_gammaCorrectedTextureRtv.Get(), color);
 	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 
@@ -448,6 +444,28 @@ void RenderContext::Present()
 
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
+	srvs[0] = nullptr;
+	srvs[1] = nullptr;
+	SetPSShaderResourceViews(srvs);
+
+	rtvs[0] = _gameTextureRtv.Get();
+	_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
+	_deviceContext->ClearRenderTargetView(_gameTextureRtv.Get(), color);
+	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+
+	srvs[0] = _gammaCorrectedTextureSrv.Get();
+	srvs[1] = _idBufferSrv.Get();
+	SetPSShaderResourceViews(srvs);
+
+	SetVS(_displayVS.Get());
+	SetPS(_resolveAAPS.Get());
+
+	startVertexLocation = _vbWriteIndex;
+	vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, { 0,0,_gameSize.width, _gameSize.height });
+
+	_deviceContext->Draw(vertexCount, startVertexLocation);
+
+
 	_deviceContext->RSSetState(_rasterizerStateNoScissor.Get());
 
 	_deviceContext->OMSetRenderTargets(1, _backbufferRtv.GetAddressOf(), NULL);
@@ -456,7 +474,7 @@ void RenderContext::Present()
 
 	const bool isIntegerScale = IsIntegerScale();
 
-	srvs[0] = _gammaCorrectedTextureSrv.Get();
+	srvs[0] = _gameTextureSrv.Get();
 	srvs[1] = nullptr;
 	SetPSShaderResourceViews(srvs);
 
@@ -501,10 +519,13 @@ void RenderContext::Present()
 		_textureCaches[i]->OnNewFrame();
 	}
 
-	_deviceContext->OMSetRenderTargets(1, _gameTextureRtv.GetAddressOf(), NULL);
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
-
+	rtvs[0] = _gameTextureRtv.Get();
+	rtvs[1] = _idBufferRtv.Get();
+	_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
 	_deviceContext->ClearRenderTargetView(_gameTextureRtv.Get(), color);
+	_deviceContext->ClearRenderTargetView(_idBufferRtv.Get(), color);
+
+	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 
 	_deviceContext->RSSetState(_rasterizerState.Get());
 
@@ -532,10 +553,14 @@ void RenderContext::CreateGameTexture()
 		ALWAYS_PRINT("Using DXGI_FORMAT_R8G8B8A8_UNORM for the render buffer.");
 	}
 
+	auto maxGameSize = Metrics::GetSuggestedGameSize(_desktopSize, !_options.noWide);
+	maxGameSize.width = max(1024, maxGameSize.width);
+	maxGameSize.height = max(768, maxGameSize.height);
+
 	CD3D11_TEXTURE2D_DESC desc{
 		renderTargetFormat,
-		(UINT)_desktopSize.width,
-		(UINT)_desktopSize.height,
+		(UINT)maxGameSize.width,
+		(UINT)maxGameSize.height,
 		1U,
 		1U,
 		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
@@ -553,16 +578,21 @@ void RenderContext::CreateGameTexture()
 	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_gameTexture.Get(), &rtvDesc, &_gameTextureRtv));
 
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
 	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_gammaCorrectedTexture));
 	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_gammaCorrectedTexture.Get(), NULL, &_gammaCorrectedTextureSrv));
 
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
 	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_gammaCorrectedTexture.Get(), &rtvDesc, &_gammaCorrectedTextureRtv));
 
+	desc.Format = DXGI_FORMAT_R32_FLOAT;
+	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_idBufferTexture));
+	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_idBufferTexture.Get(), NULL, &_idBufferSrv));
 
-	_deviceContext->OMSetRenderTargets(1, _gameTextureRtv.GetAddressOf(), NULL);
+	rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_idBufferTexture.Get(), &rtvDesc, &_idBufferRtv));
+
+	ID3D11RenderTargetView* rtvs[2] = { _gameTextureRtv.Get(), _idBufferRtv.Get() };
+	_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
 }
 
 void RenderContext::CreateGammaTexture()
@@ -635,7 +665,7 @@ void RenderContext::WriteToScreen(
 	SetVS(_displayVS.Get());
 	SetPS(_videoPS.Get());
 
-	SetBlendState(AlphaBlend::Opaque, true);
+	SetBlendState(AlphaBlend::Opaque);
 
 	ID3D11ShaderResourceView* srvs[2] = { _videoTextureSrv.Get(), nullptr };
 	SetPSShaderResourceViews(srvs);
@@ -651,8 +681,7 @@ void RenderContext::WriteToScreen(
 }
 
 void RenderContext::SetBlendState(
-	AlphaBlend alphaBlend,
-	float blendFactorAlpha)
+	AlphaBlend alphaBlend)
 {
 	ComPtr<ID3D11BlendState> blendState = _blendStates[(int32_t)alphaBlend];
 
@@ -660,6 +689,7 @@ void RenderContext::SetBlendState(
 	{
 		D3D11_BLEND_DESC blendDesc;
 		ZeroMemory(&blendDesc, sizeof(D3D11_BLEND_DESC));
+		blendDesc.IndependentBlendEnable = TRUE;
 
 		if (alphaBlend == AlphaBlend::Opaque)
 		{
@@ -667,10 +697,19 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
 			blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_BLEND_FACTOR;
-			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+			blendDesc.RenderTarget[1].BlendEnable = TRUE;
+			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED;
+			blendDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].DestBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP_ADD;
+			blendDesc.RenderTarget[1].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		}
 		else if (alphaBlend == AlphaBlend::Additive)
 		{
@@ -682,6 +721,15 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
 			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+			blendDesc.RenderTarget[1].BlendEnable = TRUE;
+			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED;
+			blendDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].DestBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP_ADD;
+			blendDesc.RenderTarget[1].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		}
 		else if (alphaBlend == AlphaBlend::Multiplicative)
 		{
@@ -689,10 +737,19 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_SRC_COLOR;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_BLEND_FACTOR;
-			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+			blendDesc.RenderTarget[1].BlendEnable = TRUE;
+			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED;
+			blendDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].DestBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP_ADD;
+			blendDesc.RenderTarget[1].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		}
 		else if (alphaBlend == AlphaBlend::SrcAlphaInvSrcAlpha)
 		{
@@ -700,10 +757,19 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 			blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 			blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_BLEND_FACTOR;
-			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+			blendDesc.RenderTarget[1].BlendEnable = TRUE;
+			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED;
+			blendDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_ONE;
+			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].DestBlendAlpha = D3D11_BLEND_ZERO;
+			blendDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP_ADD;
+			blendDesc.RenderTarget[1].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		}
 		else
 		{
@@ -715,7 +781,7 @@ void RenderContext::SetBlendState(
 		_blendStates[(int32_t)alphaBlend] = blendState;
 	}
 
-	SetBlendState(blendState.Get(), blendFactorAlpha);
+	SetBlendState(blendState.Get());
 }
 
 _Use_decl_annotations_
@@ -744,10 +810,13 @@ uint32_t RenderContext::UpdateVerticesWithFullScreenQuad(
 	Size srcSize,
 	Rect dstRect)
 {
+	int16_t s = (srcSize.width & 511);
+	int16_t t = ((srcSize.width >> 9) & 511);
+
 	Vertex vertices[3] = {
-		Vertex{ 0.0f, 0.0f, 0, 0, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
-		Vertex{ (float)dstRect.size.width * 2.0f, 0.0f, (int16_t)srcSize.width * 2, 0, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
-		Vertex{ 0.0f, (float)dstRect.size.height * 2.0f, 0, (int16_t)srcSize.height * 2, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0 },
+		Vertex{ 0.0f, 0.0f, s, t, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0, srcSize.height },
+		Vertex{ (float)dstRect.size.width * 2.0f, 0.0f, s, t, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0, srcSize.height },
+		Vertex{ 0.0f, (float)dstRect.size.height * 2.0f, s, t, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0, srcSize.height },
 	};
 
 	D3D11_MAP mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
@@ -843,7 +912,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 			d3d11Context->ToggleFullscreen();
 			return 0;
 		}
-	}
+}
 	else if (uMsg == WM_DESTROY)
 	{
 		RemoveWindowSubclass(hWnd, d2dxSubclassWndProc, 1234);
@@ -880,7 +949,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 	}
 
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
-}
+	}
 
 uint32_t RenderContext::DetermineMaxTextureArraySize()
 {
@@ -958,16 +1027,14 @@ void RenderContext::SetPS(
 
 _Use_decl_annotations_
 void RenderContext::SetBlendState(
-	ID3D11BlendState* blendState,
-	float blendFactorAlpha)
+	ID3D11BlendState* blendState)
 {
-	if (blendState != _shadowState._lastBlendState || blendFactorAlpha != _shadowState._lastBlendFactorAlpha)
+	if (blendState != _shadowState._lastBlendState)
 	{
-		float blendFactor[4] = { 0.0f, 0.0f, 0.0f, blendFactorAlpha };
+		float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		UINT sampleMask = 0xffffffff;
 		_deviceContext->OMSetBlendState(blendState, blendFactor, sampleMask);
 		_shadowState._lastBlendState = blendState;
-		_shadowState._lastBlendFactorAlpha = blendFactorAlpha;
 	}
 }
 
@@ -1077,8 +1144,8 @@ void RenderContext::ResizeBackbuffer()
 	}
 	else if (_backbufferSizingStrategy == RenderContextBackbufferSizingStrategy::ResizeBuffers)
 	{
-		ID3D11RenderTargetView* nullRtv = nullptr;
-		_deviceContext->OMSetRenderTargets(1, &nullRtv, nullptr);
+		ID3D11RenderTargetView* nullRtvs[2] = { nullptr, nullptr };
+		_deviceContext->OMSetRenderTargets(2, nullRtvs, nullptr);
 		_backbufferRtv = nullptr;
 
 		D2DX_RELEASE_CHECK_HR(_swapChain1->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, _swapChainCreateFlags));

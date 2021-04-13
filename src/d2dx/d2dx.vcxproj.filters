@@ -22,6 +22,9 @@
     <FxCompile Include="GammaPS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
+    <FxCompile Include="ResolveAA.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureCache.cpp" />

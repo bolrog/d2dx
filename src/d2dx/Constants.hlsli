@@ -28,7 +28,13 @@ struct PixelShaderInput
 	noperspective float4 pos : SV_POSITION;
 	noperspective float2 tc : TEXCOORD0;
 	noperspective half4 color : COLOR0;
-	nointerpolation uint2 misc : TEXCOORD1;
+	nointerpolation uint3 misc : TEXCOORD1;
+};
+
+struct PixelShaderOutput
+{
+	half4 output0 : SV_TARGET0;
+	float output1 : SV_TARGET1;
 };
 
 SamplerState PointSampler : register(s0);

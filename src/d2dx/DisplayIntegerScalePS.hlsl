@@ -23,5 +23,5 @@ Texture2D sceneTexture : register(t0);
 half4 main(
     in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
-	return sceneTexture.Load(float3(tc, 0));
+	return sceneTexture.Load(int3(tc, 0));
 }

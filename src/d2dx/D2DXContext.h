@@ -181,7 +181,8 @@ namespace d2dx
 		Vertex ReadVertex(
 			_In_ const uint8_t* vertex,
 			_In_ uint32_t vertexLayout,
-			_In_ const Batch& batch);
+			_In_ const Batch& batch,
+			_In_ int32_t batchIndex);
 		
 		Batch _scratchBatch;
 
@@ -219,5 +220,8 @@ namespace d2dx
 		Size _suggestedGameSize;
 
 		uint32_t _lastScreenOpenMode;
+
+		int32_t _batchId;
+		int32_t _nextBatchId;
 	};
 }

@@ -20,13 +20,30 @@
 
 void main(
 	in float2 pos : POSITION,
-	in int2 tc : TEXCOORD,
+	in uint s_t_batchIndex : TEXCOORD,
 	in float4 color : COLOR,
+	in uint vertexId : SV_VertexID,
 	out noperspective float2 o_tc : TEXCOORD0,
 	out noperspective float4 o_pos : SV_POSITION)
 {
 	float2 fpos = (2.0 * pos / screenSize) - 1.0;
-	
+
 	o_pos = float4(fpos.x, -fpos.y, 0.0, 1.0);
-	o_tc = tc;
+
+	int srcWidth = (s_t_batchIndex & ((1 << 18) - 1));
+	int srcHeight = s_t_batchIndex >> 18;
+
+	switch (vertexId)
+	{
+	default:
+	case 0:
+		o_tc = float2(0, 0);
+		break;
+	case 1:
+		o_tc = float2(srcWidth * 2, 0);
+		break;
+	case 2:
+		o_tc = float2(0, srcHeight * 2);
+		break;
+	}
 }

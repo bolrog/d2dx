@@ -121,9 +121,11 @@ namespace d2dx
 		uint32_t DetermineMaxTextureArraySize();
 		bool IsIntegerScale() const;
 
-		void UpdateViewport(Rect rect);
+		void UpdateViewport(
+			_In_ Rect rect);
 
-		void SetBlendState(AlphaBlend alphaBlend, float blendFactorAlpha);
+		void SetBlendState(
+			_In_ AlphaBlend alphaBlend);
 
 		void AdjustWindowPlacement(
 			_In_ HWND hWnd,
@@ -145,8 +147,7 @@ namespace d2dx
 			_In_ ID3D11PixelShader* ps);
 
 		void SetBlendState(
-			_In_ ID3D11BlendState* blendState,
-			_In_ float blendFactorAlpha);
+			_In_ ID3D11BlendState* blendState);
 
 		void SetPSShaderResourceViews(
 			_In_ ID3D11ShaderResourceView* srvs[2]);
@@ -199,6 +200,7 @@ namespace d2dx
 		ComPtr<ID3D11PixelShader> _displayIntegerScalePS;
 		ComPtr<ID3D11PixelShader> _displayNonintegerScalePS;
 		ComPtr<ID3D11PixelShader> _gammaPS;
+		ComPtr<ID3D11PixelShader> _resolveAAPS;
 		ComPtr<ID3D11RenderTargetView> _backbufferRtv;
 		ComPtr<ID3D11SamplerState> _samplerState[2];
 
@@ -221,6 +223,10 @@ namespace d2dx
 		ComPtr<ID3D11RenderTargetView> _gammaCorrectedTextureRtv;
 		ComPtr<ID3D11ShaderResourceView> _gammaCorrectedTextureSrv;
 
+		ComPtr<ID3D11Texture2D> _idBufferTexture;
+		ComPtr<ID3D11RenderTargetView> _idBufferRtv;
+		ComPtr<ID3D11ShaderResourceView> _idBufferSrv;
+
 		ComPtr<ITextureCache> _textureCaches[6];
 
 		HWND _hWnd;
@@ -231,7 +237,6 @@ namespace d2dx
 			ID3D11VertexShader* _lastVS;
 			ID3D11PixelShader* _lastPS;
 			ID3D11BlendState* _lastBlendState;
-			float _lastBlendFactorAlpha;
 			ID3D11ShaderResourceView* _psSrvs[2];
 			D3D11_PRIMITIVE_TOPOLOGY _primitiveTopology;
 			Constants _constants;

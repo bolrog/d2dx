@@ -20,16 +20,21 @@
 
 PixelShaderInput main(
 	in float2 pos : POSITION,
-	in int2 tc : TEXCOORD0,
+	in uint s_t_batchIndex : TEXCOORD0,
 	in float4 color : COLOR0,
 	in uint2 misc : TEXCOORD1)
 {
 	float2 fpos = (2.0 * pos / screenSize) - 1.0;
-	
+
+	int s = s_t_batchIndex & 511;
+	int t = (s_t_batchIndex >> 9) & 511;
+	int batchIndex = s_t_batchIndex >> 18;
+
 	PixelShaderInput psInput;
 	psInput.pos = float4(fpos.x, -fpos.y, 0.0, 1.0);
-	psInput.tc = tc;
+	psInput.tc = float2(s, t);
 	psInput.color = color;
-	psInput.misc = misc;
+	psInput.misc.xy = misc;
+	psInput.misc.z = batchIndex;
 	return psInput;
 }

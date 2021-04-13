@@ -18,84 +18,16 @@
 */
 #include "Constants.hlsli"
 
-//#define SHOW_EDGES
-//#define SHOW_MASK
-
 Texture2D sceneTexture : register(t0);
 Texture1D gammaTexture : register(t1);
-
-#define FXAA_PC 1
-#define FXAA_HLSL_4 1
-#define FXAA_QUALITY__PRESET 23
-#define FXAA_GREEN_AS_LUMA 1
-#include "FXAA.hlsli"
 
 half4 main(
 	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
-#ifdef SHOW_EDGES
-	half4 color = sceneTexture.Load(float3(tc, 0));
-	return half4(color.a, color.a, color.a, 1);
-#endif
-
-	half4 c;
-
-	if ((flags.x & 1) != 0)
-	{
-		half4 senwLumas;
-		half4 temp = sceneTexture.Load(int3(tc, 0), int2(0, 1));
-		senwLumas.x = temp.g;
-		half mins = temp.a;
-		half maxs = temp.a;
-
-		temp = sceneTexture.Load(int3(tc, 0), int2(1, 0));
-		senwLumas.y = temp.g;
-		mins = min(mins, temp.a);
-		maxs = max(maxs, temp.a);
-
-		temp = sceneTexture.Load(int3(tc, 0), int2(0, -1));
-		senwLumas.z = temp.g;
-		mins = min(mins, temp.a);
-		maxs = max(maxs, temp.a);
-
-		temp = sceneTexture.Load(int3(tc, 0), int2(-1, 0));
-		senwLumas.w = temp.g;
-		mins = min(mins, temp.a);
-		maxs = max(maxs, temp.a);
-
-		half diff = maxs - mins;
-		if (diff > 0.05)
-		{
-#ifdef SHOW_MASK
-			return half4(1, 0, 0, 1);
-#else
-			float2 invTextureSize;
-			sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
-			invTextureSize = 1.0 / invTextureSize;
-
-			FxaaTex ftx;
-			ftx.smpl = BilinearSampler;
-			ftx.tex = sceneTexture;
-			c = FxaaPixelShader(tc * invTextureSize, ftx, invTextureSize, 0.0, 0.063, 0.0, senwLumas);
-#endif
-		}
-		else
-		{
-#ifdef SHOW_MASK
-			return half4(0, 1, 0, 1);
-#else
-			c = sceneTexture.Load(float3(tc, 0));
-#endif
-		}
-	}
-	else
-	{
-		c = sceneTexture.Load(float3(tc, 0));
-	}
-
-	c.r = gammaTexture.Sample(BilinearSampler, c.r).r;
-	c.g = gammaTexture.Sample(BilinearSampler, c.g).g;
-	c.b = gammaTexture.Sample(BilinearSampler, c.b).b;
+	half4 c = sceneTexture.Load(int3(tc, 0));
+	c.r = gammaTexture.Load(int2(c.r*255,0)).r;
+	c.g = gammaTexture.Load(int2(c.g*255,0)).g;
+	c.b = gammaTexture.Load(int2(c.b*255,0)).b;
+	c.a = dot(c.rgb, float3(0.299, 0.587, 0.114));
 	return c;
-
 }
