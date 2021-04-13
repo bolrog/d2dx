@@ -29,7 +29,7 @@
 #include <cassert>
 
 #include <windows.h>
-#include <PathCch.h>
+#include <lm.h>
 #include <CommCtrl.h>
 #include <combaseapi.h>
 #include <wrl/implements.h>
