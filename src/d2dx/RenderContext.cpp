@@ -196,8 +196,10 @@ RenderContext::RenderContext(
 		dxgiFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_WINDOW_CHANGES);
 	}
 
+	_swapChain1.As(&_swapChain2);
+
 #ifdef ALLOW_SET_SOURCE_SIZE
-	if (SUCCEEDED(_swapChain1.As(&_swapChain2)))
+	if (_swapChain2)
 	{
 		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::SetSourceSize;
 		ALWAYS_PRINT("Using 'SetSourceSize' backbuffer sizing strategy.");
