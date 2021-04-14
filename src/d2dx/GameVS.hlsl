@@ -18,11 +18,12 @@
 */
 #include "Constants.hlsli"
 
-PixelShaderInput main(
+void main(
 	in float2 pos : POSITION,
 	in uint s_t_batchIndex : TEXCOORD0,
 	in float4 color : COLOR0,
-	in uint2 misc : TEXCOORD1)
+	in uint2 misc : TEXCOORD1,
+	out PixelShaderInput psInput)
 {
 	float2 fpos = (2.0 * pos / screenSize) - 1.0;
 
@@ -30,11 +31,10 @@ PixelShaderInput main(
 	int t = (s_t_batchIndex >> 9) & 511;
 	int batchIndex = s_t_batchIndex >> 18;
 
-	PixelShaderInput psInput;
+
 	psInput.pos = float4(fpos.x, -fpos.y, 0.0, 1.0);
 	psInput.tc = float2(s, t);
 	psInput.color = color;
 	psInput.misc.xy = misc;
 	psInput.misc.z = batchIndex;
-	return psInput;
 }

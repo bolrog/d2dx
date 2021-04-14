@@ -570,8 +570,15 @@ void RenderContext::CreateGameTexture()
 		D3D11_USAGE_DEFAULT
 	};
 
+	CD3D11_SHADER_RESOURCE_VIEW_DESC srvDesc
+	{
+		D3D11_SRV_DIMENSION_TEXTURE2D,
+		renderTargetFormat
+	};
+
 	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_gameTexture));
-	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_gameTexture.Get(), NULL, &_gameTextureSrv));
+
+	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_gameTexture.Get(), &srvDesc, &_gameTextureSrv));
 
 	CD3D11_RENDER_TARGET_VIEW_DESC rtvDesc{
 		D3D11_RTV_DIMENSION_TEXTURE2D,
@@ -582,16 +589,20 @@ void RenderContext::CreateGameTexture()
 
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_gammaCorrectedTexture));
-	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_gammaCorrectedTexture.Get(), NULL, &_gammaCorrectedTextureSrv));
+
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_gammaCorrectedTexture.Get(), &srvDesc, &_gammaCorrectedTextureSrv));
 
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_gammaCorrectedTexture.Get(), &rtvDesc, &_gammaCorrectedTextureRtv));
 
-	desc.Format = DXGI_FORMAT_R32_FLOAT;
+	desc.Format = DXGI_FORMAT_R16G16_TYPELESS;
 	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_idBufferTexture));
-	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_idBufferTexture.Get(), NULL, &_idBufferSrv));
 
-	rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.Format = DXGI_FORMAT_R16G16_UNORM;
+	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_idBufferTexture.Get(), &srvDesc, &_idBufferSrv));
+
+	rtvDesc.Format = DXGI_FORMAT_R16G16_UNORM;
 	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_idBufferTexture.Get(), &rtvDesc, &_idBufferRtv));
 
 	ID3D11RenderTargetView* rtvs[2] = { _gameTextureRtv.Get(), _idBufferRtv.Get() };
@@ -707,7 +718,7 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
 			blendDesc.RenderTarget[1].BlendEnable = TRUE;
-			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED;
+			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 			blendDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_ONE;
 			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
@@ -727,7 +738,7 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
 			blendDesc.RenderTarget[1].BlendEnable = TRUE;
-			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED;
+			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 			blendDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ONE;
 			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
@@ -747,7 +758,7 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
 			blendDesc.RenderTarget[1].BlendEnable = TRUE;
-			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED;
+			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 			blendDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ONE;
 			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
@@ -767,7 +778,7 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
 			blendDesc.RenderTarget[1].BlendEnable = TRUE;
-			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED;
+			blendDesc.RenderTarget[1].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 			blendDesc.RenderTarget[1].SrcBlend = D3D11_BLEND_ONE;
 			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;

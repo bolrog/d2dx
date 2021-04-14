@@ -34,7 +34,7 @@ struct PixelShaderInput
 struct PixelShaderOutput
 {
 	half4 output0 : SV_TARGET0;
-	float output1 : SV_TARGET1;
+	float2 output1 : SV_TARGET1;
 };
 
 SamplerState PointSampler : register(s0);

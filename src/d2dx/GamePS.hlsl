@@ -48,6 +48,6 @@ PixelShaderOutput main(PixelShaderInput psInput)
 
 	PixelShaderOutput psOutput;
 	psOutput.output0 = half4(c, a);
-	psOutput.output1 = psInput.misc.z;
+	psOutput.output1 = float2(psInput.misc.z / 16383.0, 0);
 	return psOutput;
 }

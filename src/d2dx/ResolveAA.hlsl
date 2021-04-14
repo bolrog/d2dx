@@ -22,21 +22,24 @@
 //#define SHOW_MASK
 
 Texture2D sceneTexture : register(t0);
-Texture2D<float> idTexture : register(t1);
+Texture2D<float2> idTexture : register(t1);
 
 #define FXAA_PC 1
 #define FXAA_HLSL_4 1
-#define FXAA_QUALITY__PRESET 23
+#define FXAA_QUALITY__PRESET 25
 #include "FXAA.hlsli" 
 
 half4 main(
-	in noperspective half2 tc : TEXCOORD0) : SV_TARGET
+	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
+	int3 tci = int3(tc, 0);
+	
 	float2 invTextureSize;
 	sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
 	invTextureSize = 1.0 / invTextureSize;
+	tc *= invTextureSize;
 
-	half4 c = sceneTexture.Load(int3(tc, 0));
+	half4 c = sceneTexture.Load(tci);
 
 #ifdef SHOW_BATCH_IDS
 	uint id = (uint)idTexture.Load(int3(tc, 0));
@@ -44,40 +47,33 @@ half4 main(
 	c.g = ((id >> 5) & 31) / 31.0;
 	c.b = ((id >> 10) & 15) / 31.0;
 	return half4(c.r, c.g, c.b, 1);
-#endif
+#else
 
-	bool isEdge = false;
+	float id = idTexture.Load(tci, int2(-1,-1)).x;
 
-	float id = idTexture.Load(int3(tc, 0), int2(-1, -1));
-	float2 tcf = tc * invTextureSize;
-
-
-	if (
-		idTexture.Sample(BilinearSampler, tcf + float2(0.5, -1) * invTextureSize) != id ||
-		idTexture.Sample(BilinearSampler, tcf + float2(-1, 0.5) * invTextureSize) != id ||
-		idTexture.Sample(BilinearSampler, tcf + float2(0.5, 0.5) * invTextureSize) != id)
-	{
-		isEdge = true;
-	}
+	bool isEdge =
+		idTexture.Sample(BilinearSampler, tc + float2(0.5, -1) * invTextureSize) != id ||
+		idTexture.Sample(BilinearSampler, tc + float2(-1, 0.5) * invTextureSize) != id ||
+		idTexture.Sample(BilinearSampler, tc + float2(0.5, 0.5) * invTextureSize) != id;
 
 	if (isEdge)
 	{
 #ifdef SHOW_MASK
 		return half4(1, 0, 0, 1);
 #else
-
 		FxaaTex ftx;
 		ftx.smpl = BilinearSampler;
 		ftx.tex = sceneTexture;
-		c = FxaaPixelShader(c, tc * invTextureSize, ftx, invTextureSize, 0.25, 0.166, 0.0625);
+		c = FxaaPixelShader(c, tc, ftx, invTextureSize, 0.25, 0.166, 0.1);
 #endif
 	}
 #ifdef SHOW_MASK
 	else
 	{
-		return half4(0, 1, 0, 1);
+		return half4(0, 0, 0, 1);
 	}
 #endif
 
 	return c;
+#endif
 }
