@@ -25,9 +25,6 @@ namespace d2dx
 	MIDL_INTERFACE("89F801A7-BB81-4729-BD97-AE9090E5612A")
 		ID2DXContext : public IGlide3x
 	{
-		virtual void OnMousePosChanged(
-			_In_ Offset pos) = 0;
-
 		virtual void SetCustomResolution(
 			_In_ Size size) = 0;
 

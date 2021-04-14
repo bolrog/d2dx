@@ -944,8 +944,6 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 		mousePos.x = (int32_t)(max(0, mousePos.x - mouseOffsetX) / scale);
 		mousePos.y = (int32_t)(mousePos.y / scale);
 
-		D2DXContextFactory::GetInstance()->OnMousePosChanged(mousePos);
-
 		lParam = mousePos.x;
 		lParam |= mousePos.y << 16;
 	}

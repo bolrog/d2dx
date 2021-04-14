@@ -517,8 +517,6 @@ void D2DXContext::OnDrawLine(
 	const void* v2,
 	uint32_t gameContext)
 {
-	FixIngameMousePosition();
-
 	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
 
 	Batch batch = _scratchBatch;
@@ -623,8 +621,6 @@ void D2DXContext::OnDrawVertexArray(
 	uint8_t** pointers,
 	uint32_t gameContext)
 {
-	FixIngameMousePosition();
-
 	const Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
 	const uint32_t vertexLayout = _vertexLayout;
 
@@ -684,8 +680,6 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	uint32_t stride,
 	uint32_t gameContext)
 {
-	FixIngameMousePosition();
-
 	const Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
 	const uint32_t vertexLayout = _vertexLayout;
 
@@ -926,13 +920,8 @@ GameVersion D2DXContext::GetGameVersion() const
 }
 
 _Use_decl_annotations_
-void D2DXContext::OnMousePosChanged(
+Offset D2DXContext::OnSetCursorPos(
 	Offset pos)
-{
-	_mousePos = pos;
-}
-
-Offset D2DXContext::OnSetCursorPos(Offset pos)
 {
 	auto currentScreenOpenMode = _gameHelper->ScreenOpenMode();
 
@@ -968,18 +957,6 @@ Offset D2DXContext::OnSetCursorPos(Offset pos)
 	}
 
 	return { -1, -1 };
-}
-
-void D2DXContext::FixIngameMousePosition()
-{
-	/* When opening UI panels, the game will screw up the mouse position when
-	   we are using a non-1 window scale. This fix, which is run as early in the frame
-	   as we can, forces the ingame variables back to the proper values. */
-
-	if (_batchCount == 0)
-	{
-//		_gameHelper->SetIngameMousePos(_mousePos);
-	}
 }
 
 _Use_decl_annotations_

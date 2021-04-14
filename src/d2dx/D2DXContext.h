@@ -145,9 +145,6 @@ namespace d2dx
 
 #pragma region ID2DXContext
 
-		virtual void OnMousePosChanged(
-			_In_ Offset pos) override;
-
 		virtual void SetCustomResolution(
 			_In_ Size size) override;
 		
@@ -170,7 +167,6 @@ namespace d2dx
 		void PrepareLogoTextureBatch();
 		void InsertLogoOnTitleScreen();
 		void DrawBatches();
-		void FixIngameMousePosition();
 
 		const Batch PrepareBatchForSubmit(
 			_In_ Batch batch,
@@ -215,7 +211,6 @@ namespace d2dx
 		Buffer<uint8_t> _tmuMemory;
 		Buffer<uint8_t> _sideTmuMemory;
 
-		Offset _mousePos;
 		Size _customGameSize;
 		Size _suggestedGameSize;
 
