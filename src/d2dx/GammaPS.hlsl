@@ -25,9 +25,9 @@ half4 main(
 	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
 	half4 c = sceneTexture.Load(int3(tc, 0));
-	c.r = gammaTexture.Load(int2(c.r*255,0)).r;
-	c.g = gammaTexture.Load(int2(c.g*255,0)).g;
-	c.b = gammaTexture.Load(int2(c.b*255,0)).b;
+	c.r = gammaTexture.Load(int2(c.r * 255.0, 0)).r;
+	c.g = gammaTexture.Load(int2(c.g * 255.0, 0)).g;
+	c.b = gammaTexture.Load(int2(c.b * 255.0, 0)).b;
 	c.a = dot(c.rgb, float3(0.299, 0.587, 0.114));
 	return c;
 }

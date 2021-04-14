@@ -559,7 +559,8 @@ void RenderContext::CreateGameTexture()
 	maxGameSize.width = max(1024, maxGameSize.width);
 	maxGameSize.height = max(768, maxGameSize.height);
 
-	CD3D11_TEXTURE2D_DESC desc{
+	CD3D11_TEXTURE2D_DESC desc
+	{
 		renderTargetFormat,
 		(UINT)maxGameSize.width,
 		(UINT)maxGameSize.height,
