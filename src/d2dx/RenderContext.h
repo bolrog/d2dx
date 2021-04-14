@@ -107,6 +107,10 @@ namespace d2dx
 
 		virtual void ToggleFullscreen() override;
 
+		void ClipCursor();
+		void UnclipCursor();
+
+
 	private:
 		void CreateRasterizerState();
 		void CreateVertexAndIndexBuffers();

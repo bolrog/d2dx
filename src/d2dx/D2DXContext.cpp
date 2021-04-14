@@ -40,6 +40,7 @@ static Options GetCommandLineOptions()
 
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
+	options.noClipCursor = strstr(commandLine, "-dxnoclipcursor") != nullptr;
 	options.noResMod = strstr(commandLine, "-dxnoresmod") != nullptr;
 	options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
 	options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;

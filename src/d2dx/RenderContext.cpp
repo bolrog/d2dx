@@ -922,7 +922,18 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 {
 	RenderContext* d3d11Context = (RenderContext*)dwRefData;
 
-	if (uMsg == WM_SYSKEYDOWN || uMsg == WM_KEYDOWN)
+	if (uMsg == WM_ACTIVATEAPP)
+	{
+		if (wParam)
+		{
+			d3d11Context->ClipCursor();
+		}
+		else
+		{
+			d3d11Context->UnclipCursor();
+		}
+	}
+	else if (uMsg == WM_SYSKEYDOWN || uMsg == WM_KEYDOWN)
 	{
 		if (wParam == VK_RETURN && (HIWORD(lParam) & KF_ALTDOWN))
 		{
@@ -1130,6 +1141,8 @@ void RenderContext::AdjustWindowPlacement(
 		SetWindowPos_Real(hWnd, HWND_TOP, 0, 0, _desktopSize.width, _desktopSize.height, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
 	}
 
+	ClipCursor();
+
 	char newWindowText[256];
 	sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
 		_gameSize.width,
@@ -1245,4 +1258,23 @@ void RenderContext::GetCurrentMetrics(
 	*gameSize = _gameSize;
 	*renderRect = _renderRect;
 	*desktopSize = _desktopSize;
+}
+
+void RenderContext::ClipCursor()
+{
+	if (_options.noClipCursor)
+	{
+		return;
+	}
+
+	RECT clipRect;
+	GetClientRect(_hWnd, &clipRect);
+	ClientToScreen(_hWnd, (LPPOINT)&clipRect.left);
+	ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
+	::ClipCursor(&clipRect);
+}
+
+void RenderContext::UnclipCursor()
+{
+	::ClipCursor(NULL);
 }
