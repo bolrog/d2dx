@@ -26,7 +26,7 @@ Version 0.99.414
   - Diablo 2: LoD (see Compatibility section below).
   - Windows 7 SP1 and above (10 recommended for latency improvements).
   - A CPU with SSE2 support.
-  - Integrated graphics or discrete GPU with DirectX 10 support.
+  - Integrated graphics or discrete GPU with DirectX 10.1 support.
 
 ## Compatibility
 Game versions supported:
