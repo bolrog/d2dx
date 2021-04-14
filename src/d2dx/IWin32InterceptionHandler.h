@@ -25,6 +25,7 @@ namespace d2dx
 	MIDL_INTERFACE("E98AB1CA-859B-4DBF-A602-0BE9BEB7C6B9")
 		IWin32InterceptionHandler : public IUnknown
 	{
-		virtual Offset OnSetCursorPos(Offset pos) = 0;
+		virtual Offset OnSetCursorPos(
+			_In_ Offset pos) = 0;
 	};
 }

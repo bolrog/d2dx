@@ -682,6 +682,7 @@ void RenderContext::WriteToScreen(
 	Present();
 }
 
+_Use_decl_annotations_
 void RenderContext::SetBlendState(
 	AlphaBlend alphaBlend)
 {
@@ -862,7 +863,9 @@ TextureCacheLocation RenderContext::UpdateTexture(
 	return tcl;
 }
 
-void RenderContext::UpdateViewport(Rect rect)
+_Use_decl_annotations_
+void RenderContext::UpdateViewport(
+	Rect rect)
 {
 	CD3D11_VIEWPORT viewport{ (float)rect.offset.x, (float)rect.offset.y, (float)rect.size.width, (float)rect.size.height };
 	_deviceContext->RSSetViewports(1, &viewport);
