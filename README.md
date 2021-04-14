@@ -15,7 +15,7 @@ Version 0.99.414
   - Improved fullscreen mode: instant ALT-TAB and low latency.
   - Improved windowed mode.
   - Widescreen support (in vanilla D2/LoD).
-  - Anti-aliasing (customized FXAA only where it matters).
+  - Anti-aliasing of specific jagged edges in the game (sprites, walls, some floors).
   - Seamless windowed/fullscreen switching with (ALT-Enter).
   - Fixes various glitches in the supported game versions.
 
