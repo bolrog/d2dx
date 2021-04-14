@@ -729,11 +729,9 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 			vertex += stride;
 
 			assert((_vertexCount + 3) < _vertices.capacity);
-			int32_t vertexWriteIndex = _vertexCount;
-			_vertices.items[vertexWriteIndex++] = prevPrevVertex;
-			_vertices.items[vertexWriteIndex++] = prevVertex;
-			_vertices.items[vertexWriteIndex++] = currentVertex;
-			_vertexCount = vertexWriteIndex;
+			_vertices.items[_vertexCount++] = prevPrevVertex;
+			_vertices.items[_vertexCount++] = prevVertex;
+			_vertices.items[_vertexCount++] = currentVertex;
 
 			prevPrevVertex = prevVertex;
 			prevVertex = currentVertex;
@@ -912,14 +910,12 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	Vertex vertex3(x, y + 41, 0, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15, 16383);
 
 	assert((_vertexCount + 6) < _vertices.capacity);
-	int32_t vertexWriteIndex = _vertexCount;
-	_vertices.items[vertexWriteIndex++] = vertex0;
-	_vertices.items[vertexWriteIndex++] = vertex1;
-	_vertices.items[vertexWriteIndex++] = vertex2;
-	_vertices.items[vertexWriteIndex++] = vertex0;
-	_vertices.items[vertexWriteIndex++] = vertex2;
-	_vertices.items[vertexWriteIndex++] = vertex3;
-	_vertexCount = vertexWriteIndex;
+	_vertices.items[_vertexCount++] = vertex0;
+	_vertices.items[_vertexCount++] = vertex1;
+	_vertices.items[_vertexCount++] = vertex2;
+	_vertices.items[_vertexCount++] = vertex0;
+	_vertices.items[_vertexCount++] = vertex2;
+	_vertices.items[_vertexCount++] = vertex3;
 
 	_batches.items[_batchCount++] = _logoTextureBatch;
 }
