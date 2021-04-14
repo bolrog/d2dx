@@ -2,7 +2,7 @@
 
 D2DX is a project for running classic Diablo II/LoD on modern PCs, with enhancements that honor the original look and feel. Play in a window or in fullscreen, glitch-free, with (or without) enhancements like widescreen and anti-aliasing.
 
-Version 0.99.413
+Version 0.99.414
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
@@ -58,6 +58,11 @@ D2DX has been tested working with the following mods:
 Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
 
 ### Command-line options
+
+  Disable mouse cursor clipping
+  ```
+  -dxnoclipcursor
+  ```
 
   Hide the "D2DX" logo on the title screen
   ```
@@ -123,6 +128,14 @@ This project uses the following third party libraries:
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
 ## Release history
+
+### 0.99.414
+  - The mouse cursor is now confined to the game window by default. Disable with -dxnoclipcursor.
+  - Finish AA implementation, giving improved quality.
+  - Reverted behavior: the mouse cursor will now "jump" when opening inventory like in the unmodded game. This avoids the character suddenly changing movement direction if holding LMB while opening the inventory.
+  - Fix issue where D2DX was not able to turn off XP (etc) compatibility mode.
+  - Fix issue where D2DX used the DX 10.1 feature level by default even on better GPUs.
+  - Fix misc bugs.
 
 ### 0.99.413
   - Turn off XP compatibility mode for the game executables. It is not necessary with D2DX and causes issues like graphics corruption.
