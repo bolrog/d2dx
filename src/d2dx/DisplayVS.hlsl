@@ -20,8 +20,9 @@
 
 void main(
 	in float2 pos : POSITION,
-	in uint s_t_batchIndex : TEXCOORD,
+	in uint s_t_batchIndex : TEXCOORD0,
 	in float4 color : COLOR,
+	in uint2 dummy : TEXCOORD1,
 	in uint vertexId : SV_VertexID,
 	out noperspective float2 o_tc : TEXCOORD0,
 	out noperspective float4 o_pos : SV_POSITION)
