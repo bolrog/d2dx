@@ -52,9 +52,9 @@ half4 main(
 	float id = idTexture.Load(tci, int2(-1,-1)).x;
 
 	bool isEdge =
-		idTexture.Sample(BilinearSampler, tc + float2(0.5, -1) * invTextureSize) != id ||
-		idTexture.Sample(BilinearSampler, tc + float2(-1, 0.5) * invTextureSize) != id ||
-		idTexture.Sample(BilinearSampler, tc + float2(0.5, 0.5) * invTextureSize) != id;
+		idTexture.Sample(BilinearSampler, tc + float2(0.5, -1) * invTextureSize).x != id ||
+		idTexture.Sample(BilinearSampler, tc + float2(-1, 0.5) * invTextureSize).x != id ||
+		idTexture.Sample(BilinearSampler, tc + float2(0.5, 0.5) * invTextureSize).x != id;
 
 	if (isEdge)
 	{
