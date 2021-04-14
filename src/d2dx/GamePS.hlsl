@@ -37,10 +37,15 @@ PixelShaderOutput main(PixelShaderInput psInput)
 	const uint colorCombine = psInput.misc.y & MISC_RGB_MASK;
 	const uint alphaCombine = psInput.misc.y & MISC_ALPHA_MASK;
 
-	half3 c =
-		(colorCombine == MISC_RGB_ITERATED_COLOR_MULTIPLIED_BY_TEXTURE) ? textureColor.rgb * psInput.color.rgb :
-		((colorCombine == MISC_RGB_CONSTANT_COLOR) ? psInput.color.rgb :
-			half3(1, 0, 1));
+	half3 c = psInput.color.rgb;
+	
+	if (colorCombine == MISC_RGB_ITERATED_COLOR_MULTIPLIED_BY_TEXTURE)
+	{
+		c *= textureColor.rgb;
+	}
+	//(colorCombine == MISC_RGB_ITERATED_COLOR_MULTIPLIED_BY_TEXTURE) ? textureColor.rgb * psInput.color.rgb :
+	//	((colorCombine == MISC_RGB_CONSTANT_COLOR) ? psInput.color.rgb :
+	//		half3(1, 0, 1));
 
 	half a =
 		(alphaCombine == MISC_ALPHA_ONE) ? 1 :
