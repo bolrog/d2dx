@@ -35,7 +35,6 @@
 
 #define MAX_FRAME_LATENCY 1
 #undef ALLOW_SET_SOURCE_SIZE
-#undef ALLOW_10_10_10_2
 
 using namespace d2dx;
 using namespace std;
@@ -539,10 +538,10 @@ void RenderContext::CreateGameTexture()
 {
 	DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-#ifdef ALLOW_10_10_10_2
-	UINT formatSupport;
-	D2DX_RELEASE_CHECK_HR(_device->CheckFormatSupport(DXGI_FORMAT_R10G10B10A2_UNORM, &formatSupport));
-	if ((formatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) &&
+	UINT formatSupport = 0;
+	HRESULT hr = _device->CheckFormatSupport(DXGI_FORMAT_R10G10B10A2_UNORM, &formatSupport);
+	if (SUCCEEDED(hr) &&
+		(formatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) &&
 		(formatSupport & D3D11_FORMAT_SUPPORT_SHADER_LOAD) &&
 		(formatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET))
 	{
@@ -550,7 +549,6 @@ void RenderContext::CreateGameTexture()
 		renderTargetFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
 	}
 	else
-#endif
 	{
 		ALWAYS_PRINT("Using DXGI_FORMAT_R8G8B8A8_UNORM for the render buffer.");
 	}
