@@ -23,6 +23,8 @@ namespace d2dx
 	int64_t TimeStart();
 	float TimeEndMs(int64_t start);
 
+	void AlwaysPrint(const char* s);
+
 #ifdef NDEBUG
 #define DEBUG_PRINT(fmt, ...)
 #else
@@ -30,7 +32,7 @@ namespace d2dx
 	{ \
 		static char ss[256]; \
 		sprintf_s(ss, fmt "\n", __VA_ARGS__); \
-		OutputDebugStringA(ss); \
+		d2dx::AlwaysPrint(ssss); \
 	}
 #endif
 
@@ -38,11 +40,12 @@ namespace d2dx
 	{ \
 		static char ssss[256]; \
 		sprintf_s(ssss, fmt "\n", __VA_ARGS__); \
-		OutputDebugStringA(ssss); \
+		d2dx::AlwaysPrint(ssss); \
 	}
 
 	static __declspec(noreturn) void fatal(const char* msg)
 	{
+		d2dx::AlwaysPrint(msg);
 		MessageBoxA(nullptr, msg, "D2DX Fatal Error", MB_OK | MB_ICONSTOP);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}

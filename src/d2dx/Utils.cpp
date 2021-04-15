@@ -67,10 +67,10 @@ WindowsVersion d2dx::GetWindowsVersion()
     }
 
     HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");
-    if (hMod) 
+    if (hMod)
     {
         RtlGetVersionPtr fxPtr = (RtlGetVersionPtr)::GetProcAddress(hMod, "RtlGetVersion");
-        if (fxPtr != nullptr) 
+        if (fxPtr != nullptr)
         {
             RTL_OSVERSIONINFOW rovi = { 0 };
             rovi.dwOSVersionInfoSize = sizeof(rovi);
@@ -87,3 +87,42 @@ WindowsVersion d2dx::GetWindowsVersion()
     WindowsVersion wv = { 0,0,0 };
     return wv;
 }
+
+static bool logFileOpened = false;
+static FILE* logFile = 0;
+static CRITICAL_SECTION logFileCS;
+
+static void EnsureLogFileOpened()
+{
+    if (!logFileOpened)
+    {
+        logFileOpened = true;
+        fopen_s(&logFile, "d2dx_log.txt", "w");
+        InitializeCriticalSection(&logFileCS);
+    }
+}
+
+static DWORD WINAPI WriteToLogFileWorkItemFunc(PVOID pvContext)
+{
+    char* s = (char*)pvContext;
+
+    OutputDebugStringA(s);
+
+    EnterCriticalSection(&logFileCS);
+
+    fwrite(s, strlen(s), 1, logFile);
+    fflush(logFile);
+
+    LeaveCriticalSection(&logFileCS);
+
+    free(s);
+
+    return 0;
+}
+
+void d2dx::AlwaysPrint(const char* s)
+{
+    EnsureLogFileOpened();
+    QueueUserWorkItem(WriteToLogFileWorkItemFunc, _strdup(s), WT_EXECUTEDEFAULT);
+}
+
