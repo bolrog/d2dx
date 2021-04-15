@@ -32,24 +32,10 @@ PixelShaderOutput main(PixelShaderInput psInput)
 		discard;
 
 	const uint paletteIndex = psInput.misc.y >> 8;
-	const half4 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0));
+	const half3 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0));
 
-	const uint colorCombine = psInput.misc.y & MISC_RGB_MASK;
-	const uint alphaCombine = psInput.misc.y & MISC_ALPHA_MASK;
-
-	half3 c = psInput.color.rgb;
-	
-	if (colorCombine == MISC_RGB_ITERATED_COLOR_MULTIPLIED_BY_TEXTURE)
-	{
-		c *= textureColor.rgb;
-	}
-	//(colorCombine == MISC_RGB_ITERATED_COLOR_MULTIPLIED_BY_TEXTURE) ? textureColor.rgb * psInput.color.rgb :
-	//	((colorCombine == MISC_RGB_CONSTANT_COLOR) ? psInput.color.rgb :
-	//		half3(1, 0, 1));
-
-	half a =
-		(alphaCombine == MISC_ALPHA_ONE) ? 1 :
-		(alphaCombine == MISC_ALPHA_TEXTURE) ? psInput.color.a : 0;
+	half3 c = psInput.color.rgb * textureColor.rgb;
+	half a = psInput.color.a;
 
 	PixelShaderOutput psOutput;
 	psOutput.output0 = half4(c, a);

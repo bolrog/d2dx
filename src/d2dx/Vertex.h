@@ -29,8 +29,6 @@ namespace d2dx
 			int32_t s,
 			int32_t t,
 			uint32_t color,
-			RgbCombine rgbCombine,
-			AlphaCombine alphaCombine,
 			bool isChromaKeyEnabled,
 			int32_t atlasIndex,
 			int32_t paletteIndex,
@@ -39,11 +37,12 @@ namespace d2dx
 			_y(DirectX::PackedVector::XMConvertFloatToHalf(y)),
 			_s_t_batchIndex((batchIndex << 18) | ((t & 511) << 9) | (s & 511)),
 			_color(color),
-			_paletteIndex_isChromaKeyEnabled_alphaCombine_rgbCombine((paletteIndex << 8) | (isChromaKeyEnabled ? (1U << 2U) : 0) | ((uint32_t)alphaCombine << 1U) | ((uint32_t)rgbCombine)),
+			_paletteIndex_isChromaKeyEnabled((paletteIndex << 8) | (isChromaKeyEnabled ? (1U << 2U) : 0)),
 			_atlasIndex(atlasIndex)
 		{
 			assert(s >= INT16_MIN && s <= INT16_MAX);
 			assert(t >= INT16_MIN && t <= INT16_MAX);
+			assert(paletteIndex >= 0 && paletteIndex < D2DX_MAX_PALETTES);
 			assert(atlasIndex >= 0 && atlasIndex <= 4095);
 			assert(batchIndex >= 0 && batchIndex <= 16383);
 		}
@@ -109,19 +108,9 @@ namespace d2dx
 			_color = color;
 		}
 
-		inline RgbCombine GetRgbCombine() const
-		{
-			return (RgbCombine)(_paletteIndex_isChromaKeyEnabled_alphaCombine_rgbCombine & 0x01U);
-		}
-
-		inline AlphaCombine GetAlphaCombine() const
-		{
-			return (AlphaCombine)((_paletteIndex_isChromaKeyEnabled_alphaCombine_rgbCombine >> 1U) & 0x01U);
-		}
-
 		inline bool IsChromaKeyEnabled() const
 		{
-			return (_paletteIndex_isChromaKeyEnabled_alphaCombine_rgbCombine & (1U << 2U)) != 0;
+			return (_paletteIndex_isChromaKeyEnabled & (1U << 2U)) != 0;
 		}
 
 	private:
@@ -130,7 +119,7 @@ namespace d2dx
 		uint32_t _s_t_batchIndex;
 		uint32_t _color;
 		uint16_t _atlasIndex;
-		uint16_t _paletteIndex_isChromaKeyEnabled_alphaCombine_rgbCombine;
+		uint16_t _paletteIndex_isChromaKeyEnabled;
 	};
 
 	static_assert(sizeof(Vertex) == 16, "sizeof(Vertex)");

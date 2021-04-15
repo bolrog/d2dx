@@ -21,9 +21,12 @@
 #define D2DX_TMU_ADDRESS_ALIGNMENT 256
 #define D2DX_TMU_MEMORY_SIZE (16 * 1024 * 1024)
 #define D2DX_SIDE_TMU_MEMORY_SIZE (1 * 1024 * 1024)
-#define D2DX_MAX_PALETTES 16
 #define D2DX_MAX_BATCHES_PER_FRAME 16384
 #define D2DX_MAX_VERTICES_PER_FRAME (1024 * 1024)
+
+#define D2DX_WHITE_PALETTE_INDEX 30
+#define D2DX_LOGO_PALETTE_INDEX 31
+#define D2DX_MAX_PALETTES 32
 
 namespace d2dx
 {
@@ -84,7 +87,7 @@ namespace d2dx
 	enum class AlphaCombine
 	{
 		One = 0,
-		Texture = 1,
+		FromColor = 1,
 		Count = 2
 	};
 

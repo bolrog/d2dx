@@ -40,13 +40,5 @@ struct PixelShaderOutput
 SamplerState PointSampler : register(s0);
 SamplerState BilinearSampler : register(s1);
 
-#define MISC_RGB_ITERATED_COLOR_MULTIPLIED_BY_TEXTURE	(0 << 0)
-#define MISC_RGB_CONSTANT_COLOR							(1 << 0)
-#define MISC_RGB_MASK									(1 << 0)
-
-#define MISC_ALPHA_ONE									(0 << 1)
-#define MISC_ALPHA_TEXTURE								(1 << 1)
-#define MISC_ALPHA_MASK									(1 << 1)
-
 #define MISC_CHROMAKEY_ENABLED_MASK						(1 << 2)
 #define MISC_CHROMAKEY_THRESHOLD_LOW_MASK				(1 << 3)

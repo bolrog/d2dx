@@ -830,9 +830,9 @@ uint32_t RenderContext::UpdateVerticesWithFullScreenQuad(
 	int16_t t = ((srcSize.width >> 9) & 511);
 
 	Vertex vertices[3] = {
-		Vertex{ 0.0f, 0.0f, s, t, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0, srcSize.height },
-		Vertex{ (float)dstRect.size.width * 2.0f, 0.0f, s, t, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0, srcSize.height },
-		Vertex{ 0.0f, (float)dstRect.size.height * 2.0f, s, t, 0xFFFFFFFF, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, false, 0, 0, srcSize.height },
+		Vertex{ 0.0f, 0.0f, s, t, 0xFFFFFFFF, false, 0, 0, srcSize.height },
+		Vertex{ (float)dstRect.size.width * 2.0f, 0.0f, s, t, 0xFFFFFFFF, false, 0, 0, srcSize.height },
+		Vertex{ 0.0f, (float)dstRect.size.height * 2.0f, s, t, 0xFFFFFFFF, false, 0, 0, srcSize.height },
 	};
 
 	D3D11_MAP mapType = D3D11_MAP_WRITE_NO_OVERWRITE;

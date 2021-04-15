@@ -198,6 +198,13 @@ void D2DXContext::OnSstWinOpen(
 			windowSize * _options.defaultZoomLevel,
 			_options,
 			_simd.Get());
+
+		uint32_t whitePalette[256];
+		for (int32_t i = 0; i < 256; ++i)
+		{
+			whitePalette[i] = 0xFFFFFFFF;
+		}
+		_renderContext->SetPalette(D2DX_WHITE_PALETTE_INDEX, whitePalette);
 	}
 	else
 	{
@@ -450,7 +457,7 @@ void D2DXContext::OnAlphaCombine(
 	}
 	else if (function == GR_COMBINE_FUNCTION_LOCAL && factor == GR_COMBINE_FACTOR_ZERO && local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
 	{
-		alphaCombine = AlphaCombine::Texture;
+		alphaCombine = AlphaCombine::FromColor;
 	}
 	else
 	{
@@ -575,7 +582,13 @@ Vertex D2DXContext::ReadVertex(
 
 	auto pargb = pargbOffset != 0xFF ? *(const uint32_t*)(vertex + pargbOffset) : 0xFFFFFFFF;
 
-	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.GetRgbCombine(), batch.GetAlphaCombine(), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), batch.GetPaletteIndex(), batchIndex);
+	if (batch.GetAlphaCombine() == AlphaCombine::One)
+	{
+		pargb |= 0xFF000000;
+	}
+
+	int32_t paletteIndex = batch.GetRgbCombine() == RgbCombine::ColorMultipliedByTexture ? batch.GetPaletteIndex() : D2DX_WHITE_PALETTE_INDEX;
+	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), paletteIndex, batchIndex);
 }
 
 _Use_decl_annotations_
@@ -908,7 +921,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 	const uint8_t* srcPixels = dx_logo256 + 0x436;
 	const uint32_t* palette = (const uint32_t*)(dx_logo256 + 0x36);
 
-	_renderContext->SetPalette(15, palette);
+	_renderContext->SetPalette(D2DX_LOGO_PALETTE_INDEX, palette);
 
 	uint32_t hash = fnv_32a_buf((void*)srcPixels, sizeof(uint8_t) * 81 * 40, FNV1_32A_INIT);
 
@@ -923,7 +936,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 	_logoTextureBatch.SetIsChromaKeyEnabled(true);
 	_logoTextureBatch.SetRgbCombine(RgbCombine::ColorMultipliedByTexture);
 	_logoTextureBatch.SetAlphaCombine(AlphaCombine::One);
-	_logoTextureBatch.SetPaletteIndex(15);
+	_logoTextureBatch.SetPaletteIndex(D2DX_LOGO_PALETTE_INDEX);
 	_logoTextureBatch.SetVertexCount(6);
 
 	memset(data, 0, _logoTextureBatch.GetWidth() * _logoTextureBatch.GetHeight());
@@ -959,10 +972,10 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	const float y = (float)(gameSize.height - 50 - 16);
 	const uint32_t color = 0xFFFFa090;
 
-	Vertex vertex0(x, y, 0, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15, 16383);
-	Vertex vertex1(x + 80, y, 80, 0, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15, 16383);
-	Vertex vertex2(x + 80, y + 41, 80, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15, 16383);
-	Vertex vertex3(x, y + 41, 0, 41, color, RgbCombine::ColorMultipliedByTexture, AlphaCombine::One, true, _logoTextureBatch.GetTextureIndex(), 15, 16383);
+	Vertex vertex0(x, y, 0, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);
+	Vertex vertex1(x + 80, y, 80, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);
+	Vertex vertex2(x + 80, y + 41, 80, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);
+	Vertex vertex3(x, y + 41, 0, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);
 
 	assert((_vertexCount + 6) < _vertices.capacity);
 	_vertices.items[_vertexCount++] = vertex0;
