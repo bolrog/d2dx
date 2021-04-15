@@ -52,10 +52,14 @@ namespace d2dxtests
 		{
 			auto suggestedGameSize = d2dx::Metrics::GetSuggestedGameSize({ 1920, 1080 }, false);
 			Assert::AreEqual(Size(720, 540), suggestedGameSize);
+
+			// Odd desktop size that isn't large enough to divide down.
 			suggestedGameSize = d2dx::Metrics::GetSuggestedGameSize({ 1000, 500 }, true);
 			Assert::AreEqual(Size(1000, 500), suggestedGameSize);
+			
+			// Odd desktop size where a 2x integer scale would result in a too small game size.
 			suggestedGameSize = d2dx::Metrics::GetSuggestedGameSize({ 2001, 1003 }, true);
-			Assert::AreEqual(Size(1000, 501), suggestedGameSize);
+			Assert::AreEqual(Size(1436, 720), suggestedGameSize);
 		}
 
 		void AssertThatGameSizeIsIntegerScale(Size desktopSize, bool wide, bool lenient)
