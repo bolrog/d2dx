@@ -32,7 +32,7 @@ namespace d2dx
 	{ \
 		static char ss[256]; \
 		sprintf_s(ss, fmt "\n", __VA_ARGS__); \
-		d2dx::AlwaysPrint(ssss); \
+		d2dx::AlwaysPrint(ss); \
 	}
 #endif
 
