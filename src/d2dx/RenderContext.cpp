@@ -184,7 +184,10 @@ RenderContext::RenderContext(
 		&_featureLevel,
 		&_deviceContext));
 
-	ALWAYS_PRINT("Created device with feature level %u.", _featureLevel);
+	ALWAYS_PRINT("Created device supports %s.", 
+		_featureLevel == D3D_FEATURE_LEVEL_11_1 ? "D3D_FEATURE_LEVEL_11_1" :
+		_featureLevel == D3D_FEATURE_LEVEL_11_0 ? "D3D_FEATURE_LEVEL_11_0" :
+		_featureLevel == D3D_FEATURE_LEVEL_10_1 ? "D3D_FEATURE_LEVEL_10_1" : "unknown");
 
 	D2DX_RELEASE_CHECK_HR(swapChain.As(&_swapChain1));
 
@@ -585,7 +588,7 @@ void RenderContext::CreateGameTexture()
 
 	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_gameTexture.Get(), &rtvDesc, &_gameTextureRtv));
 
-	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
 	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_gammaCorrectedTexture));
 
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
