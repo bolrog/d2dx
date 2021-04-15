@@ -33,7 +33,7 @@
 #include "Vertex.h"
 #include "Utils.h"
 
-#define MAX_FRAME_LATENCY 2
+#define MAX_FRAME_LATENCY 1
 #undef ALLOW_SET_SOURCE_SIZE
 #undef ALLOW_10_10_10_2
 
