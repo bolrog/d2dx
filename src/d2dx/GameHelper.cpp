@@ -577,6 +577,8 @@ void GameHelper::FixBadRegistrySettings()
 
 bool GameHelper::TryApplyFpsFix()
 {
+	/* The offsets taken from The Phrozen Keep: https://d2mods.info/forum/viewtopic.php?t=65239. */
+
 	uint32_t expectedProbe = 0;
 	uint32_t patchOffset0 = 0;
 	uint32_t patchOffset1 = 0;
