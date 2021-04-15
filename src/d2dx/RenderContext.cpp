@@ -102,7 +102,7 @@ RenderContext::RenderContext(
 	};
 
 	_dxgiAllowTearingFlagSupported = IsAllowTearingFlagSupported();
-	_frameLatencyWaitableObjectSupported = IsFrameLatencyWaitableObjectSupported();
+	_frameLatencyWaitableObjectSupported = false; //  IsFrameLatencyWaitableObjectSupported();
 
 	_swapChainCreateFlags = 0;
 
@@ -232,7 +232,7 @@ RenderContext::RenderContext(
 		if (_swapChain2)
 		{
 			ALWAYS_PRINT("Setting maximum frame latency to %i.", MAX_FRAME_LATENCY);
-			_swapChain2->SetMaximumFrameLatency(MAX_FRAME_LATENCY);
+			D2DX_RELEASE_CHECK_HR(_swapChain2->SetMaximumFrameLatency(MAX_FRAME_LATENCY));
 		}
 	}
 	else
