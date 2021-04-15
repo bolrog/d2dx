@@ -20,6 +20,7 @@
 
 //#define SHOW_BATCH_IDS
 //#define SHOW_MASK
+//#define SHOW_AMPLIFIED_DIFFERENCE
 
 Texture2D sceneTexture : register(t0);
 Texture2D<float2> idTexture : register(t1);
@@ -41,20 +42,20 @@ half4 main(
 
 	half4 c = sceneTexture.Load(tci);
 
-#ifdef SHOW_BATCH_IDS
-	uint id = (uint)idTexture.Load(int3(tc, 0));
-	c.r = (id & 31) / 31.0;
-	c.g = ((id >> 5) & 31) / 31.0;
-	c.b = ((id >> 10) & 15) / 31.0;
-	return half4(c.r, c.g, c.b, 1);
-#else
-
 	float id = idTexture.Load(tci, int2(-1,-1)).x;
 
 	bool isEdge =
 		idTexture.Sample(BilinearSampler, tc + float2(0.5, -1) * invTextureSize).x != id ||
 		idTexture.Sample(BilinearSampler, tc + float2(-1, 0.5) * invTextureSize).x != id ||
 		idTexture.Sample(BilinearSampler, tc + float2(0.5, 0.5) * invTextureSize).x != id;
+
+#ifdef SHOW_BATCH_IDS
+	uint iid = (uint)(idTexture.Load(tci).x * 16383.0);
+	c.r = (iid & 31) / 31.0;
+	c.g = ((iid >> 5) & 31) / 31.0;
+	c.b = ((iid >> 10) & 15) / 31.0;
+	return isEdge ? half4(1-c.r, 1-c.g, 1-c.b, 1) : half4(c.r, c.g, c.b, 1);
+#else
 
 	if (isEdge)
 	{
@@ -64,13 +65,20 @@ half4 main(
 		FxaaTex ftx;
 		ftx.smpl = BilinearSampler;
 		ftx.tex = sceneTexture;
+
+#ifdef SHOW_AMPLIFIED_DIFFERENCE
+		half4 oldc = c;
+#endif
 		c = FxaaPixelShader(c, tc, ftx, invTextureSize, 0.25, 0.166, 0.1);
+#ifdef SHOW_AMPLIFIED_DIFFERENCE
+		c.rgb = 0.5 + c.rgb - oldc.rgb;
+#endif
 #endif
 	}
-#ifdef SHOW_MASK
+#if defined(SHOW_MASK) || defined(SHOW_AMPLIFIED_DIFFERENCE)
 	else
 	{
-		return half4(0, 0, 0, 1);
+		return half4(0.5, 0.5, 0.5, 1);
 	}
 #endif
 

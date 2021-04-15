@@ -273,10 +273,6 @@ void D2DXContext::OnTexSource(
 
 	uint32_t hash = fnv_32a_buf(pixels, pixelsSize, FNV1_32A_INIT);
 
-	if (_scratchBatch.GetTextureStartAddress() == startAddress)
-	{
-		return;
-	}
 
 	/* Patch the '5' to not look like '6'. */
 	if (hash == 0x8a12f6bb)
@@ -291,23 +287,6 @@ void D2DXContext::OnTexSource(
 	_scratchBatch.SetTextureSize(width, height);
 	_scratchBatch.SetTextureCategory(_gameHelper->GetTextureCategoryFromHash(hash));
 
-	auto textureCategory = _scratchBatch.GetTextureCategory();
-
-	switch (textureCategory)
-	{
-	case TextureCategory::MousePointer:
-	case TextureCategory::UserInterface:
-	case TextureCategory::Font:
-	case TextureCategory::LoadingScreen:
-	case TextureCategory::TitleScreen:
-		_batchId = (1 << 14) - 1;
-		break;
-	case TextureCategory::Floor:
-	case TextureCategory::Wall:
-	case TextureCategory::Unknown:
-		_batchId = _nextBatchId++;
-		break;
-	}
 }
 
 void D2DXContext::CheckMajorGameState()
@@ -380,7 +359,6 @@ void D2DXContext::DrawBatches()
 		{
 			if (_renderContext->GetTextureCache(batch) != _renderContext->GetTextureCache(mergedBatch) ||
 				(batch.GetTextureAtlas() != mergedBatch.GetTextureAtlas()) ||
-//				(batch.GetTextureCategory()) != (mergedBatch.GetTextureCategory()) ||
 				batch.GetAlphaBlend() != mergedBatch.GetAlphaBlend() ||
 				batch.GetPrimitiveType() != mergedBatch.GetPrimitiveType() ||
 				((mergedBatch.GetVertexCount() + batch.GetVertexCount()) > 65535))
@@ -577,7 +555,7 @@ _Use_decl_annotations_
 Vertex D2DXContext::ReadVertex(
 	const uint8_t* vertex,
 	uint32_t vertexLayout,
-	const Batch& batch, 
+	const Batch& batch,
 	int32_t batchIndex)
 {
 	uint32_t stShift = 0;
@@ -622,13 +600,85 @@ const Batch D2DXContext::PrepareBatchForSubmit(
 }
 
 _Use_decl_annotations_
+void D2DXContext::UpdateBatchSurfaceId(
+	Batch& batch)
+{
+	int32_t firstVertexInBatch = _vertexCount - batch.GetVertexCount();
+
+	int32_t minx = INT_MAX;
+	int32_t miny = INT_MAX;
+	int32_t maxx = INT_MIN;
+	int32_t maxy = INT_MIN;
+
+	for (int i = 0; i < batch.GetVertexCount(); ++i)
+	{
+		int32_t x = _vertices.items[firstVertexInBatch + i].GetX();
+		int32_t y = _vertices.items[firstVertexInBatch + i].GetY();
+		minx = min(minx, x);
+		miny = min(miny, y);
+		maxx = max(maxx, x);
+		maxy = max(maxy, y);
+	}
+
+	uint64_t drawCallTexture = (uint64_t)batch.GetTextureIndex() | ((uint64_t)batch.GetTextureAtlas() << 32ULL);
+
+	switch (batch.GetTextureCategory())
+	{
+	case TextureCategory::MousePointer:
+	case TextureCategory::UserInterface:
+	case TextureCategory::Font:
+	case TextureCategory::LoadingScreen:
+	case TextureCategory::TitleScreen:
+		_batchId = (1 << 14) - 1;
+		break;
+	case TextureCategory::Floor:
+	case TextureCategory::Wall:
+	case TextureCategory::Unknown:
+	{
+		if (
+			(_previousDrawCallTexture == drawCallTexture) ||
+			(
+				(batch.GetWidth() == 32 && batch.GetHeight() == 32) &&
+				(
+					/* 32x32 wall block drawn to the left of the previous one. */
+					(maxx == _previousDrawCallRect.offset.x && miny == _previousDrawCallRect.offset.y) ||
+
+					/* 32x32 wall block drawn on the next row from the previous one. */
+					(miny == (_previousDrawCallRect.offset.y + _previousDrawCallRect.size.height))
+				)
+			)
+		)
+		{
+			_batchId = _nextBatchId;
+		}
+		else
+		{
+			_batchId = ++_nextBatchId;
+		}
+		break;
+	}
+	}
+
+	for (int i = 0; i < batch.GetVertexCount(); ++i)
+	{
+		_vertices.items[firstVertexInBatch + i].SetBatchIndex(_batchId);
+	}
+
+	_previousDrawCallTexture = drawCallTexture;
+	_previousDrawCallRect.offset.x = minx;
+	_previousDrawCallRect.offset.y = miny;
+	_previousDrawCallRect.size.width = maxx - minx;
+	_previousDrawCallRect.size.height = maxy - miny;
+}
+
+_Use_decl_annotations_
 void D2DXContext::OnDrawVertexArray(
 	uint32_t mode,
 	uint32_t count,
 	uint8_t** pointers,
 	uint32_t gameContext)
 {
-	const Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
+	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
 	const uint32_t vertexLayout = _vertexLayout;
 
 	switch (mode)
@@ -675,6 +725,8 @@ void D2DXContext::OnDrawVertexArray(
 		return;
 	}
 
+	UpdateBatchSurfaceId(batch);
+
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;
 }
@@ -687,8 +739,10 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	uint32_t stride,
 	uint32_t gameContext)
 {
-	const Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
+	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
 	const uint32_t vertexLayout = _vertexLayout;
+
+	Rect batchRect;
 
 	switch (mode)
 	{
@@ -706,11 +760,9 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 			vertex += stride;
 
 			assert((_vertexCount + 3) < _vertices.capacity);
-			int32_t vertexWriteIndex = _vertexCount;
-			_vertices.items[vertexWriteIndex++] = firstVertex;
-			_vertices.items[vertexWriteIndex++] = prevVertex;
-			_vertices.items[vertexWriteIndex++] = currentVertex;
-			_vertexCount = vertexWriteIndex;
+			_vertices.items[_vertexCount++] = firstVertex;
+			_vertices.items[_vertexCount++] = prevVertex;
+			_vertices.items[_vertexCount++] = currentVertex;
 
 			prevVertex = currentVertex;
 		}
@@ -743,6 +795,8 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 		assert(false && "Unhandled primitive type.");
 		return;
 	}
+
+	UpdateBatchSurfaceId(batch);
 
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;

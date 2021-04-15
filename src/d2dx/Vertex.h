@@ -68,6 +68,13 @@ namespace d2dx
 			_y = DirectX::PackedVector::XMConvertFloatToHalf(y);
 		}
 
+		void SetBatchIndex(int32_t batchIndex)
+		{
+			assert(batchIndex >= 0 && batchIndex <= 16383);
+			_s_t_batchIndex &= ~(16383 << 18);
+			_s_t_batchIndex |= (batchIndex << 18);
+		}
+
 		inline int32_t GetS() const
 		{
 			return _s_t_batchIndex & 511;

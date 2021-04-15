@@ -167,6 +167,8 @@ namespace d2dx
 		void PrepareLogoTextureBatch();
 		void InsertLogoOnTitleScreen();
 		void DrawBatches();
+		void UpdateBatchSurfaceId(
+			_Inout_ Batch& batch);
 
 		const Batch PrepareBatchForSubmit(
 			_In_ Batch batch,
@@ -218,5 +220,8 @@ namespace d2dx
 
 		int32_t _batchId;
 		int32_t _nextBatchId;
+
+		Rect _previousDrawCallRect;
+		uint64_t _previousDrawCallTexture;
 	};
 }
