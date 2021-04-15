@@ -40,6 +40,7 @@ namespace d2dx
 		ScreenMode screenMode = ScreenMode::Windowed;
 		uint32_t defaultZoomLevel = 0;
 		bool noClipCursor = false;
+		bool noFpsFix = false;
 		bool noWide = false;
 		bool noLogo = false;
 		bool noVSync = false;

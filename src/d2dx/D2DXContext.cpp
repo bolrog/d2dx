@@ -41,6 +41,7 @@ static Options GetCommandLineOptions()
 	const char* commandLine = GetCommandLineA();
 	bool windowed = strstr(commandLine, "-w") != nullptr;
 	options.noClipCursor = strstr(commandLine, "-dxnoclipcursor") != nullptr;
+	options.noFpsFix = strstr(commandLine, "-dxnofpsfix") != nullptr;
 	options.noResMod = strstr(commandLine, "-dxnoresmod") != nullptr;
 	options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
 	options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
@@ -92,6 +93,11 @@ D2DXContext::D2DXContext(
 		if (FAILED(hr) || !_builtinResMod->IsActive())
 		{
 			_options.noResMod = true;
+		}
+
+		if (!_options.noFpsFix)
+		{
+			_gameHelper->TryApplyFpsFix();
 		}
 	}
 }

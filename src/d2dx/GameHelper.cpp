@@ -574,3 +574,67 @@ void GameHelper::FixBadRegistrySettings()
 		}
 	}
 }
+
+bool GameHelper::TryApplyFpsFix()
+{
+	uint32_t expectedProbe = 0;
+	uint32_t patchOffset0 = 0;
+	uint32_t patchOffset1 = 0;
+
+	switch (_version)
+	{
+	case GameVersion::Lod109d:
+		patchOffset0 = 0x9B5F;
+		patchOffset1 = 0x9B63;
+		expectedProbe = 0x2B756FBB;
+		break;
+	case GameVersion::Lod110:
+		patchOffset0 = 0xA2C9;
+		expectedProbe = 0x2B75C085;
+		break;
+	case GameVersion::Lod112:
+		patchOffset0 = 0x7D1E1;
+		patchOffset1 = 0x7D1E5;
+		expectedProbe = 0x35756FBD;
+		break;
+	case GameVersion::Lod113c:
+		patchOffset0 = 0x44E51;
+		patchOffset1 = 0x44E55;
+		expectedProbe = 0x35756FBD;
+		break;
+	case GameVersion::Lod113d:
+		patchOffset0 = 0x45EA1;
+		patchOffset1 = 0x45EA5;
+		expectedProbe = 0x35756FBD;
+		break;
+	case GameVersion::Lod114d:
+		patchOffset0 = 0x4F278;
+		patchOffset1 = 0x4F27C;
+		expectedProbe = 0x2475007A;
+		break;
+	}
+
+	if (patchOffset0 == 0)
+	{
+		ALWAYS_PRINT("Fps fix aborted: unsupported game version.");
+		return false;
+	}
+
+	const uint32_t probe = ReadU32(_hD2ClientDll, patchOffset1 != 0 ? patchOffset1 : patchOffset0);
+
+	if (probe != expectedProbe)
+	{
+		ALWAYS_PRINT("Fps fix aborted: location appears to be patched already.");
+		return false;
+	}
+
+	WriteU32(_hD2ClientDll, patchOffset0, 0x90909090);
+	
+	if (patchOffset1 != 0)
+	{
+		WriteU32(_hD2ClientDll, patchOffset1, 0x90909090);
+	}
+
+	ALWAYS_PRINT("Fps fix applied.");
+	return true;
+}

@@ -53,6 +53,8 @@ namespace d2dx
 			TextureCategory previousCategory,
 			GameAddress gameAddress) const override;
 
+		virtual bool TryApplyFpsFix() override;
+
 	private:
 		uint32_t ReadU32(HANDLE module, uint32_t offset) const;
 		void WriteU32(HANDLE module, uint32_t offset, uint32_t value);

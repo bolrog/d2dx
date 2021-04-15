@@ -45,5 +45,7 @@ namespace d2dx
 		virtual TextureCategory RefineTextureCategoryFromGameAddress(
 			_In_ TextureCategory previousCategory,
 			_In_ GameAddress gameAddress) const = 0;
+
+		virtual bool TryApplyFpsFix() = 0;
 	};
 }
