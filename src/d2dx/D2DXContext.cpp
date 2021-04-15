@@ -94,11 +94,11 @@ D2DXContext::D2DXContext(
 		{
 			_options.noResMod = true;
 		}
+	}
 
-		if (!_options.noFpsFix)
-		{
-			_gameHelper->TryApplyFpsFix();
-		}
+	if (!_options.noFpsFix)
+	{
+		_gameHelper->TryApplyFpsFix();
 	}
 }
 
