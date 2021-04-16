@@ -849,7 +849,15 @@ void D2DXContext::OnTexDownloadTable(
 		{
 			_paletteKeys.items[i] = hash;
 			_scratchBatch.SetPaletteIndex(i);
-			_renderContext->SetPalette(i, (const uint32_t*)data);
+			
+			uint32_t* palette = (uint32_t*)data;
+
+			for (int32_t i = 0; i < 256; ++i)
+			{
+				palette[i] |= 0xFF000000;
+			}
+
+			_renderContext->SetPalette(i, palette);
 			return;
 		}
 	}
@@ -919,7 +927,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 	}
 
 	const uint8_t* srcPixels = dx_logo256 + 0x436;
-	const uint32_t* palette = (const uint32_t*)(dx_logo256 + 0x36);
+	uint32_t* palette = (uint32_t*)(dx_logo256 + 0x36);
 
 	_renderContext->SetPalette(D2DX_LOGO_PALETTE_INDEX, palette);
 

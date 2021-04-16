@@ -33,13 +33,10 @@ PixelShaderOutput main(PixelShaderInput psInput)
 	if (chromaKeyEnabled && indexedColor == 0)
 		discard;
 
-	const float3 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0)).rgb;
-
-	const float3 c = psInput.color.rgb * textureColor.rgb;
-	const float a = psInput.color.a;
+	const float4 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0));
 
 	PixelShaderOutput psOutput;
-	psOutput.output0 = float4(c, a);
-	psOutput.output1 = float2(surfaceId / 16383.0, 0);
+	psOutput.output0 = psInput.color * textureColor;
+	psOutput.output1 = surfaceId.xx * float2(1.0 / 16383.0, 0);
 	return psOutput;
 }
