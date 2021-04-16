@@ -21,8 +21,8 @@
 Texture2D sceneTexture : register(t0);
 
 /* Anti-aliased nearest-neighbor sampling, taken from https://www.shadertoy.com/view/WtjyWy by user Amarcoli. */
-float2 nearestSampleUV_AA(float2 uv, float sharpness, float2 invTextureSize) {
-	float2 tileUv = uv / invTextureSize;
+float2 nearestSampleUV_AA(float2 uv, float sharpness, float4 textureSize_invTextureSize) {
+	float2 tileUv = uv * textureSize_invTextureSize.xy;
 	//float2 dx = float2(ddx(tileUv.x), ddy(tileUv.x));
 	//float2 dy = float2(ddx(tileUv.y), ddy(tileUv.y));
 
@@ -33,12 +33,12 @@ float2 nearestSampleUV_AA(float2 uv, float sharpness, float2 invTextureSize) {
 	float2 distFromEdge = 0.5 - abs(texelDelta);
 	float2 aa_factor = saturate(distFromEdge * sharpness / dxdy);
 
-	return uv - texelDelta * aa_factor * invTextureSize;
+	return uv - texelDelta * aa_factor * textureSize_invTextureSize.zw;
 }
 
 float4 main(
 	in noperspective float2 tc : TEXCOORD0,
-	in nointerpolation float2 invTextureSize : TEXCOORD1) : SV_TARGET
+	in nointerpolation float4 textureSize_invTextureSize : TEXCOORD1) : SV_TARGET
 {
-	return sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(tc, 2.0, invTextureSize));
+	return sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(tc, 2.0, textureSize_invTextureSize));
 }

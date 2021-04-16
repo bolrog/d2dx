@@ -32,13 +32,13 @@ Texture2D<float2> idTexture : register(t1);
 
 float4 main(
 	in noperspective float2 tc : TEXCOORD0,
-	in nointerpolation float2 invTextureSize : TEXCOORD1) : SV_TARGET
+	in nointerpolation float4 textureSize_invTextureSize : TEXCOORD1) : SV_TARGET
 {
 	float4 c = sceneTexture.SampleLevel(PointSampler, tc, 0);
 
 	float id = idTexture.SampleLevel(PointSampler, tc, 0, int2(1,-1)).x;
 
-	float2 tcShifted = tc - 0.5 * invTextureSize;
+	float2 tcShifted = tc - 0.5 * textureSize_invTextureSize.zw;
 	
 	bool isEdge =
 		idTexture.SampleLevel(PointSampler, tc, 0, int2(-1, 1)).x != id ||
@@ -65,7 +65,7 @@ float4 main(
 #ifdef SHOW_AMPLIFIED_DIFFERENCE
 		float4 oldc = c;
 #endif
-		c = FxaaPixelShader(c, tc, ftx, invTextureSize, 0.5, 0.166, 0.166 * 0.5);
+		c = FxaaPixelShader(c, tc, ftx, textureSize_invTextureSize.zw, 0.5, 0.166, 0.166 * 0.5);
 #ifdef SHOW_AMPLIFIED_DIFFERENCE
 		c.rgb = 0.5 + 4*(c.rgb - oldc.rgb);
 #endif

@@ -24,6 +24,6 @@ float4 main(
 	in noperspective float2 tc : TEXCOORD0,
 	in nointerpolation float2 invTextureSize : TEXCOORD1) : SV_TARGET
 {
-	half3 c = tex.Sample(BilinearSampler, tc * invTextureSize).rgb;
+	float3 c = tex.Sample(BilinearSampler, tc).rgb;
 	return float4(c, 1);
 }
