@@ -292,5 +292,20 @@
     <Text Include="GamePS_dxbc.txt">
       <Filter>shaders</Filter>
     </Text>
+    <Text Include="GammaPS_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
+    <Text Include="DisplayIntegerScalePS_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
+    <Text Include="DisplayNonintegerScalePS_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
+    <Text Include="GameVS_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
+    <Text Include="VideoPS_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
   </ItemGroup>
 </Project>
