@@ -49,6 +49,7 @@ namespace d2dx
 		virtual TextureCategory GetTextureCategoryFromHash(
 			uint32_t textureHash) const override;
 		
+		_Use_decl_annotations_
 		virtual TextureCategory RefineTextureCategoryFromGameAddress(
 			TextureCategory previousCategory,
 			GameAddress gameAddress) const override;

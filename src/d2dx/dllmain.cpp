@@ -32,9 +32,10 @@ using namespace std;
 
 static void FixCompatibilityMode();
 
-BOOL APIENTRY DllMain(HMODULE hModule,
-	DWORD  ul_reason_for_call,
-	LPVOID lpReserved
+BOOL APIENTRY DllMain(
+	_In_ HMODULE hModule,
+	_In_ DWORD  ul_reason_for_call,
+	_In_ LPVOID lpReserved
 )
 {
 	switch (ul_reason_for_call)
@@ -55,7 +56,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	return TRUE;
 }
 
-static bool HasIncompatibleCompatibilityOptions(const wchar_t* str)
+static bool HasIncompatibleCompatibilityOptions(
+	_In_z_ const wchar_t* str)
 {
 	return
 		wcsstr(str, L"WIN95") != nullptr ||
@@ -66,7 +68,9 @@ static bool HasIncompatibleCompatibilityOptions(const wchar_t* str)
 		wcsstr(str, L"WIN8") != nullptr;
 }
 
-static bool FixCompatibilityMode(HKEY hRootKey, const wchar_t* filename)
+static bool FixCompatibilityMode(
+	_In_ HKEY hRootKey,
+	_In_z_ const wchar_t* filename)
 {
 	HKEY hKey;
 	LPCTSTR compatibilityLayersKey = L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers";
@@ -118,6 +122,7 @@ static bool FixCompatibilityMode(HKEY hRootKey, const wchar_t* filename)
 	RegCloseKey(hKey);
 	return false;
 }
+
 static void FixCompatibilityMode()
 {
 	bool fixedCompatibilityMode = false;
@@ -136,7 +141,7 @@ static void FixCompatibilityMode()
 
 	// Get the true OS version using the LM API.
 	LPSERVER_INFO_101 bufptr = nullptr;
-	NetServerGetInfo(nullptr, 101, (LPBYTE*)&bufptr);
+	DWORD result = NetServerGetInfo(nullptr, 101, (LPBYTE*)&bufptr);
 	if (bufptr)
 	{
 		if (reportedWindowsVersion.major != bufptr->sv101_version_major)
@@ -145,8 +150,10 @@ static void FixCompatibilityMode()
 			NetApiBufferFree(bufptr);
 			TerminateProcess(GetCurrentProcess(), -1);
 		}
-
-		NetApiBufferFree(bufptr);
+		else
+		{
+			NetApiBufferFree(bufptr);
+		}
 	}
 
 	if (reportedWindowsVersion.major < 6 || (reportedWindowsVersion.major == 6 && reportedWindowsVersion.minor == 0))
