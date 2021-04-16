@@ -220,7 +220,6 @@
       <Filter>thirdparty\SlashDiablo-HD</Filter>
     </ClInclude>
     <ClInclude Include="D2DXConfigurator.h" />
-    <ClInclude Include="dllmain.h" />
     <ClInclude Include="BuiltinResMod.h" />
     <ClInclude Include="Metrics.h" />
     <ClInclude Include="ITextureCache.h" />
@@ -285,5 +284,13 @@
     <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2StubsAsm.S">
       <Filter>thirdparty\SlashDiablo-HD</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ResolveAA_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
+    <Text Include="GamePS_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
   </ItemGroup>
 </Project>

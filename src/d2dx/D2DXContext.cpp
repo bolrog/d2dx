@@ -329,7 +329,7 @@ void D2DXContext::CheckMajorGameState()
 			for (int32_t i = 0; i < batchCount; ++i)
 			{
 				const Batch& batch = _batches.items[i];
-				const float y0 = _vertices.items[batch.GetStartVertex()].GetY();
+				const int32_t y0 = _vertices.items[batch.GetStartVertex()].GetY();
 
 				if (batch.GetHash() == 0x4bea7b80 && y0 >= 550)
 				{
@@ -520,8 +520,8 @@ void D2DXContext::OnDrawLine(
 	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, _batchId);
 	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, _batchId);
 
-	float dx = startVertex.GetY() - endVertex.GetY();
-	float dy = endVertex.GetX() - startVertex.GetX();
+	float dx = (float)(startVertex.GetY() - endVertex.GetY());
+	float dy = (float)(endVertex.GetX() - startVertex.GetX());
 	const float lensqr = dx * dx + dy * dy;
 	const float len = lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
 	const float halfinvlen = 1.0f / (2.0f * len);
@@ -529,20 +529,20 @@ void D2DXContext::OnDrawLine(
 	dy *= halfinvlen;
 
 	Vertex vertex0 = startVertex;
-	vertex0.SetX(vertex0.GetX() - dx);
-	vertex0.SetY(vertex0.GetY() - dy);
+	vertex0.SetX((int32_t)(vertex0.GetX() - dx));
+	vertex0.SetY((int32_t)(vertex0.GetY() - dy));
 
 	Vertex vertex1 = startVertex;
-	vertex1.SetX(vertex1.GetX() + dx);
-	vertex1.SetY(vertex1.GetY() + dy);
+	vertex1.SetX((int32_t)(vertex1.GetX() + dx));
+	vertex1.SetY((int32_t)(vertex1.GetY() + dy));
 
 	Vertex vertex2 = endVertex;
-	vertex2.SetX(vertex2.GetX() - dx);
-	vertex2.SetY(vertex2.GetY() - dy);
+	vertex2.SetX((int32_t)(vertex2.GetX() - dx));
+	vertex2.SetY((int32_t)(vertex2.GetY() - dy));
 
 	Vertex vertex3 = endVertex;
-	vertex3.SetX(vertex3.GetX() + dx);
-	vertex3.SetY(vertex3.GetY() + dy);
+	vertex3.SetX((int32_t)(vertex3.GetX() + dx));
+	vertex3.SetY((int32_t)(vertex3.GetY() + dy));
 
 	assert((_vertexCount + 6) < _vertices.capacity);
 	_vertices.items[_vertexCount++] = vertex0;
@@ -588,7 +588,7 @@ Vertex D2DXContext::ReadVertex(
 	}
 
 	int32_t paletteIndex = batch.GetRgbCombine() == RgbCombine::ColorMultipliedByTexture ? batch.GetPaletteIndex() : D2DX_WHITE_PALETTE_INDEX;
-	return Vertex(xy[0], xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), paletteIndex, batchIndex);
+	return Vertex((int32_t)xy[0], (int32_t)xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), paletteIndex, batchIndex);
 }
 
 _Use_decl_annotations_
@@ -623,10 +623,10 @@ void D2DXContext::UpdateBatchSurfaceId(
 	int32_t maxx = INT_MIN;
 	int32_t maxy = INT_MIN;
 
-	for (int i = 0; i < batch.GetVertexCount(); ++i)
+	for (uint32_t i = 0; i < batch.GetVertexCount(); ++i)
 	{
-		int32_t x = _vertices.items[firstVertexInBatch + i].GetX();
-		int32_t y = _vertices.items[firstVertexInBatch + i].GetY();
+		int32_t x = (int32_t)_vertices.items[firstVertexInBatch + i].GetX();
+		int32_t y = (int32_t)_vertices.items[firstVertexInBatch + i].GetY();
 		minx = min(minx, x);
 		miny = min(miny, y);
 		maxx = max(maxx, x);
@@ -672,9 +672,9 @@ void D2DXContext::UpdateBatchSurfaceId(
 	}
 	}
 
-	for (int i = 0; i < batch.GetVertexCount(); ++i)
+	for (uint32_t i = 0; i < batch.GetVertexCount(); ++i)
 	{
-		_vertices.items[firstVertexInBatch + i].SetBatchIndex(_batchId);
+		_vertices.items[firstVertexInBatch + i].SetSurfaceId(_batchId);
 	}
 
 	_previousDrawCallTexture = drawCallTexture;
@@ -968,8 +968,8 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	Size desktopSize;
 	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
 
-	const float x = (float)(gameSize.width - 90 - 16);
-	const float y = (float)(gameSize.height - 50 - 16);
+	const int32_t x = gameSize.width - 90 - 16;
+	const int32_t y = gameSize.height - 50 - 16;
 	const uint32_t color = 0xFFFFa090;
 
 	Vertex vertex0(x, y, 0, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);

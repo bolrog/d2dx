@@ -136,8 +136,9 @@ namespace d2dx
 			bool centerOnCurrentPosition);
 
 		uint32_t UpdateVerticesWithFullScreenQuad(
-			Size srcSize,
-			Rect dstRect);
+			_In_ Size srcSize,
+			_In_ Size srcTextureSize,
+			_In_ Rect dstRect);
 
 		bool IsFrameLatencyWaitableObjectSupported() const;
 
@@ -208,6 +209,7 @@ namespace d2dx
 		ComPtr<ID3D11RenderTargetView> _backbufferRtv;
 		ComPtr<ID3D11SamplerState> _samplerState[2];
 
+		Size _videoTextureSize;
 		ComPtr<ID3D11Texture2D> _videoTexture;
 		ComPtr<ID3D11ShaderResourceView> _videoTextureSrv;
 
@@ -219,6 +221,7 @@ namespace d2dx
 		ComPtr<ID3D11Texture1D> _paletteTexture;
 		ComPtr<ID3D11ShaderResourceView> _paletteTextureSrv;
 
+		Size _gameTextureSize;
 		ComPtr<ID3D11Texture2D> _gameTexture;
 		ComPtr<ID3D11RenderTargetView> _gameTextureRtv;
 		ComPtr<ID3D11ShaderResourceView> _gameTextureSrv;

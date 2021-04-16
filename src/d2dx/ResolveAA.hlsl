@@ -27,30 +27,26 @@ Texture2D<float2> idTexture : register(t1);
 
 #define FXAA_PC 1
 #define FXAA_HLSL_4 1
-#define FXAA_QUALITY__PRESET 25
+#define FXAA_QUALITY__PRESET 23
 #include "FXAA.hlsli" 
 
 half4 main(
-	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
+	in noperspective float2 tc : TEXCOORD0,
+	in nointerpolation float2 invTextureSize : TEXCOORD1) : SV_TARGET
 {
-	int3 tci = int3(tc, 0);
+	half4 c = sceneTexture.SampleLevel(PointSampler, tc, 0);
+
+	half id = idTexture.SampleLevel(PointSampler, tc, 0, int2(1,-1)).x;
+
+	float2 tcShifted = tc - 0.5 * invTextureSize;
 	
-	float2 invTextureSize;
-	sceneTexture.GetDimensions(invTextureSize.x, invTextureSize.y);
-	invTextureSize = 1.0 / invTextureSize;
-	tc *= invTextureSize;
-
-	half4 c = sceneTexture.Load(tci);
-
-	float id = idTexture.Load(tci, int2(-1,-1)).x;
-
 	bool isEdge =
-		idTexture.Sample(BilinearSampler, tc + float2(0.5, -1) * invTextureSize).x != id ||
-		idTexture.Sample(BilinearSampler, tc + float2(-1, 0.5) * invTextureSize).x != id ||
-		idTexture.Sample(BilinearSampler, tc + float2(0.5, 0.5) * invTextureSize).x != id;
+		idTexture.SampleLevel(PointSampler, tc, 0, int2(-1, 1)).x != id ||
+		idTexture.SampleLevel(BilinearSampler, tcShifted, 0).x != id ||
+		idTexture.SampleLevel(BilinearSampler, tcShifted, 0, int2(1, 1)).x != id;
 
 #ifdef SHOW_BATCH_IDS
-	uint iid = (uint)(idTexture.Load(tci).x * 16383.0);
+	uint iid = (uint)(idTexture.SampleLevel(PointSampler, tc, 0).x * 16383.0);
 	c.r = (iid & 31) / 31.0;
 	c.g = ((iid >> 5) & 31) / 31.0;
 	c.b = ((iid >> 10) & 15) / 31.0;
@@ -69,9 +65,9 @@ half4 main(
 #ifdef SHOW_AMPLIFIED_DIFFERENCE
 		half4 oldc = c;
 #endif
-		c = FxaaPixelShader(c, tc, ftx, invTextureSize, 0.25, 0.166, 0.1);
+		c = FxaaPixelShader(c, tc, ftx, invTextureSize, 0.5, 0.166, 0.166 * 0.5);
 #ifdef SHOW_AMPLIFIED_DIFFERENCE
-		c.rgb = 0.5 + c.rgb - oldc.rgb;
+		c.rgb = 0.5 + 4*(c.rgb - oldc.rgb);
 #endif
 #endif
 	}

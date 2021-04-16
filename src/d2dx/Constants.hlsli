@@ -28,7 +28,7 @@ struct PixelShaderInput
 	noperspective float4 pos : SV_POSITION;
 	noperspective float2 tc : TEXCOORD0;
 	noperspective half4 color : COLOR0;
-	nointerpolation uint3 misc : TEXCOORD1;
+	nointerpolation uint4 atlasIndex_paletteIndex_surfaceId_flags : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -40,5 +40,4 @@ struct PixelShaderOutput
 SamplerState PointSampler : register(s0);
 SamplerState BilinearSampler : register(s1);
 
-#define MISC_CHROMAKEY_ENABLED_MASK						(1 << 2)
-#define MISC_CHROMAKEY_THRESHOLD_LOW_MASK				(1 << 3)
+#define FLAGS_CHROMAKEY_ENABLED_MASK	1

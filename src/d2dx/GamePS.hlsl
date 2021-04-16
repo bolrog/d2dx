@@ -23,22 +23,23 @@ Texture1DArray palette : register(t1);
 
 PixelShaderOutput main(PixelShaderInput psInput)
 {
-	const uint atlasIndex = psInput.misc.x;
-	const bool chromaKeyEnabled = (psInput.misc.y & MISC_CHROMAKEY_ENABLED_MASK) != 0;
+	const uint atlasIndex = psInput.atlasIndex_paletteIndex_surfaceId_flags.x;
+	const bool chromaKeyEnabled = psInput.atlasIndex_paletteIndex_surfaceId_flags.w & 1;
+	const uint surfaceId = psInput.atlasIndex_paletteIndex_surfaceId_flags.z;
+	const uint paletteIndex = psInput.atlasIndex_paletteIndex_surfaceId_flags.y;
 
-	uint indexedColor = tex.Load(int4(psInput.tc, atlasIndex, 0));
+	const uint indexedColor = tex.Load(int4(psInput.tc, atlasIndex, 0));
 
 	if (chromaKeyEnabled && indexedColor == 0)
 		discard;
 
-	const uint paletteIndex = psInput.misc.y >> 8;
-	const half3 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0));
+	const float3 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0)).rgb;
 
-	half3 c = psInput.color.rgb * textureColor.rgb;
-	half a = psInput.color.a;
+	const float3 c = psInput.color.rgb * textureColor.rgb;
+	const float a = psInput.color.a;
 
 	PixelShaderOutput psOutput;
-	psOutput.output0 = half4(c, a);
-	psOutput.output1 = float2(psInput.misc.z / 16383.0, 0);
+	psOutput.output0 = float4(c, a);
+	psOutput.output1 = float2(surfaceId / 16383.0, 0);
 	return psOutput;
 }

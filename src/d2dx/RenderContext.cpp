@@ -342,8 +342,8 @@ void RenderContext::CreateShadersAndInputLayout()
 
 	D3D11_INPUT_ELEMENT_DESC inputElementDescs[4] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R16G16_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32_UINT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R16G16_SINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R16G16_SINT, 0, 4, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 1, DXGI_FORMAT_R16G16_UINT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
@@ -442,7 +442,7 @@ void RenderContext::Present()
 	SetPS(_gammaPS.Get());
 
 	auto startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, { 0,0,_gameSize.width, _gameSize.height });
+	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, _gameTextureSize, { 0,0,_gameSize.width, _gameSize.height });
 
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
@@ -465,7 +465,7 @@ void RenderContext::Present()
 		SetPS(_resolveAAPS.Get());
 
 		startVertexLocation = _vbWriteIndex;
-		vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, { 0,0,_gameSize.width, _gameSize.height });
+		vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, _gameTextureSize, { 0,0,_gameSize.width, _gameSize.height });
 
 		_deviceContext->Draw(vertexCount, startVertexLocation);
 	}
@@ -486,7 +486,7 @@ void RenderContext::Present()
 	SetPS(isIntegerScale ? _displayIntegerScalePS.Get() : _displayNonintegerScalePS.Get());
 
 	startVertexLocation = _vbWriteIndex;
-	vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, _renderRect);
+	vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, _gameTextureSize, _renderRect);
 
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
@@ -556,15 +556,15 @@ void RenderContext::CreateGameTexture()
 		ALWAYS_PRINT("Using DXGI_FORMAT_R8G8B8A8_UNORM for the render buffer.");
 	}
 
-	auto maxGameSize = Metrics::GetSuggestedGameSize(_desktopSize, !_options.noWide);
-	maxGameSize.width = max(1024, maxGameSize.width);
-	maxGameSize.height = max(768, maxGameSize.height);
+	_gameTextureSize = Metrics::GetSuggestedGameSize(_desktopSize, !_options.noWide);
+	_gameTextureSize.width = max(1024, _gameTextureSize.width);
+	_gameTextureSize.height = max(768, _gameTextureSize.height);
 
 	CD3D11_TEXTURE2D_DESC desc
 	{
 		renderTargetFormat,
-		(UINT)maxGameSize.width,
-		(UINT)maxGameSize.height,
+		(UINT)_gameTextureSize.width,
+		(UINT)_gameTextureSize.height,
 		1U,
 		1U,
 		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
@@ -662,6 +662,7 @@ void RenderContext::CreateVideoTextures()
 		D3D11_CPU_ACCESS_WRITE
 	};
 
+	_videoTextureSize = { 640, 480 };
 	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_videoTexture));
 	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_videoTexture.Get(), NULL, &_videoTextureSrv));
 }
@@ -688,7 +689,7 @@ void RenderContext::WriteToScreen(
 	SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	uint32_t startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, { 0,0,_gameSize.width, _gameSize.height });
+	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, _videoTextureSize, { 0,0,_gameSize.width, _gameSize.height });
 	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
@@ -822,17 +823,16 @@ void RenderContext::BulkWriteVertices(
 	_vbWriteIndex += vertexCount;
 }
 
+_Use_decl_annotations_
 uint32_t RenderContext::UpdateVerticesWithFullScreenQuad(
 	Size srcSize,
+	Size srcTextureSize,
 	Rect dstRect)
 {
-	int16_t s = (srcSize.width & 511);
-	int16_t t = ((srcSize.width >> 9) & 511);
-
 	Vertex vertices[3] = {
-		Vertex{ 0.0f, 0.0f, s, t, 0xFFFFFFFF, false, 0, 0, srcSize.height },
-		Vertex{ (float)dstRect.size.width * 2.0f, 0.0f, s, t, 0xFFFFFFFF, false, 0, 0, srcSize.height },
-		Vertex{ 0.0f, (float)dstRect.size.height * 2.0f, s, t, 0xFFFFFFFF, false, 0, 0, srcSize.height },
+		Vertex{ 0, 0, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
+		Vertex{ dstRect.size.width * 2, 0, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
+		Vertex{ 0, dstRect.size.height * 2, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
 	};
 
 	D3D11_MAP mapType = D3D11_MAP_WRITE_NO_OVERWRITE;

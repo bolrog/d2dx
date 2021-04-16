@@ -21,27 +21,24 @@
 Texture2D sceneTexture : register(t0);
 
 /* Anti-aliased nearest-neighbor sampling, taken from https://www.shadertoy.com/view/WtjyWy by user Amarcoli. */
-float2 nearestSampleUV_AA(float2 tileUv, float sharpness) {
-	float2 textureSize;
-	sceneTexture.GetDimensions(textureSize.x, textureSize.y);
+float2 nearestSampleUV_AA(float2 uv, float sharpness, float2 invTextureSize) {
+	float2 tileUv = uv / invTextureSize;
+	//float2 dx = float2(ddx(tileUv.x), ddy(tileUv.x));
+	//float2 dy = float2(ddx(tileUv.y), ddy(tileUv.y));
 
-	float2 uv = tileUv / textureSize;
-	float2 dx = float2(ddx(tileUv.x), ddy(tileUv.x));
-	float2 dy = float2(ddx(tileUv.y), ddy(tileUv.y));
-
-	//Can avoid using true length, difference not noticable
-	//float2 dxdy = float2(length(dx), length(dy));
-	float2 dxdy = float2(max(abs(dx.x), abs(dx.y)), max(abs(dy.x), abs(dy.y)));
+	//float2 dxdy = float2(max(abs(dx.x), abs(dx.y)), max(abs(dy.x), abs(dy.y)));
+	float2 dxdy = float2(ddx(tileUv.x), ddy(tileUv.y));
 
 	float2 texelDelta = frac(tileUv) - 0.5;
 	float2 distFromEdge = 0.5 - abs(texelDelta);
-	float2 aa_factor = distFromEdge * sharpness / dxdy;
+	float2 aa_factor = saturate(distFromEdge * sharpness / dxdy);
 
-	return uv - texelDelta * clamp(aa_factor, 0.0, 1.0) / textureSize;
+	return uv - texelDelta * aa_factor * invTextureSize;
 }
 
 half4 main(
-	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
+	in noperspective float2 tc : TEXCOORD0,
+	in nointerpolation float2 invTextureSize : TEXCOORD1) : SV_TARGET
 {
-	return sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(tc, 2.0));
+	return sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(tc, 2.0, invTextureSize));
 }

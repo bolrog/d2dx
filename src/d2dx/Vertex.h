@@ -24,78 +24,79 @@ namespace d2dx
 	{
 	public:
 		Vertex(
-			float x,
-			float y,
+			int32_t x,
+			int32_t y,
 			int32_t s,
 			int32_t t,
 			uint32_t color,
 			bool isChromaKeyEnabled,
 			int32_t atlasIndex,
 			int32_t paletteIndex,
-			int32_t batchIndex) :
-			_x(DirectX::PackedVector::XMConvertFloatToHalf(x)),
-			_y(DirectX::PackedVector::XMConvertFloatToHalf(y)),
-			_s_t_batchIndex((batchIndex << 18) | ((t & 511) << 9) | (s & 511)),
+			int32_t surfaceId) :
+			_x(x),
+			_y(y),
+			_s(s),
+			_t(t),
 			_color(color),
-			_paletteIndex_isChromaKeyEnabled((paletteIndex << 8) | (isChromaKeyEnabled ? (1U << 2U) : 0)),
-			_atlasIndex(atlasIndex)
+			_paletteIndexHigh_isChromaKeyEnabled_surfaceId(((paletteIndex >> 4) ? 0x8000 : 0) | (isChromaKeyEnabled ? 0x4000 : 0) | (surfaceId & 16383)),
+			_paletteIndexLow_atlasIndex((paletteIndex << 12) | (atlasIndex & 4095))
 		{
+			assert(x >= INT16_MIN && x <= INT16_MAX);
+			assert(y >= INT16_MIN && y <= INT16_MAX);
 			assert(s >= INT16_MIN && s <= INT16_MAX);
 			assert(t >= INT16_MIN && t <= INT16_MAX);
 			assert(paletteIndex >= 0 && paletteIndex < D2DX_MAX_PALETTES);
 			assert(atlasIndex >= 0 && atlasIndex <= 4095);
-			assert(batchIndex >= 0 && batchIndex <= 16383);
+			assert(surfaceId >= 0 && surfaceId <= 16383);
 		}
 
-		inline float GetX() const
+		inline int32_t GetX() const
 		{
-			return DirectX::PackedVector::XMConvertHalfToFloat(_x);
+			return _x;
 		}
 
-		inline float GetY() const
+		inline int32_t GetY() const
 		{
-			return DirectX::PackedVector::XMConvertHalfToFloat(_y);
+			return _y;
 		}
 
-		void SetX(float x)
+		inline void SetX(int32_t x)
 		{
-			_x = DirectX::PackedVector::XMConvertFloatToHalf(x);
+			_x = x;
 		}
 
-		void SetY(float y)
+		inline void SetY(int32_t y)
 		{
-			_y = DirectX::PackedVector::XMConvertFloatToHalf(y);
+			_y = y;
 		}
 
-		void SetBatchIndex(int32_t batchIndex)
+		inline void SetSurfaceId(int32_t surfaceId)
 		{
-			assert(batchIndex >= 0 && batchIndex <= 16383);
-			_s_t_batchIndex &= ~(16383 << 18);
-			_s_t_batchIndex |= (batchIndex << 18);
+			assert(surfaceId >= 0 && surfaceId <= 16383);
+			_paletteIndexHigh_isChromaKeyEnabled_surfaceId &= ~16383;
+			_paletteIndexHigh_isChromaKeyEnabled_surfaceId |= surfaceId & 16383;
 		}
 
 		inline int32_t GetS() const
 		{
-			return _s_t_batchIndex & 511;
+			return _s;
 		}
 
 		inline void SetS(int32_t s)
 		{
 			assert(s >= 0 && s <= 511);
-			_s_t_batchIndex &= ~511;
-			_s_t_batchIndex |= s & 511;
+			_s = s;
 		}
 
 		inline int32_t GetT() const
 		{
-			return (_s_t_batchIndex >> 9) & 511;
+			return _t;
 		}
 
 		inline void SetT(int32_t t)
 		{
 			assert(t >= 0 && t <= 511);
-			_s_t_batchIndex &= ~(511 << 9);
-			_s_t_batchIndex |= (t & 511) << 9;
+			_t = t;
 		}
 
 		inline uint32_t GetColor() const
@@ -110,16 +111,17 @@ namespace d2dx
 
 		inline bool IsChromaKeyEnabled() const
 		{
-			return (_paletteIndex_isChromaKeyEnabled & (1U << 2U)) != 0;
+			return (_paletteIndexHigh_isChromaKeyEnabled_surfaceId & 0x4000) != 0;
 		}
 
 	private:
-		DirectX::PackedVector::HALF _x;
-		DirectX::PackedVector::HALF _y;
-		uint32_t _s_t_batchIndex;
+		int16_t _x;
+		int16_t _y;
+		int16_t _s;
+		int16_t _t;
 		uint32_t _color;
-		uint16_t _atlasIndex;
-		uint16_t _paletteIndex_isChromaKeyEnabled;
+		uint16_t _paletteIndexLow_atlasIndex;
+		uint16_t _paletteIndexHigh_isChromaKeyEnabled_surfaceId;
 	};
 
 	static_assert(sizeof(Vertex) == 16, "sizeof(Vertex)");
