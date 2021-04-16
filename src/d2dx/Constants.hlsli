@@ -27,13 +27,13 @@ struct PixelShaderInput
 {
 	noperspective float4 pos : SV_POSITION;
 	noperspective float2 tc : TEXCOORD0;
-	noperspective half4 color : COLOR0;
+	noperspective float4 color : COLOR0;
 	nointerpolation uint4 atlasIndex_paletteIndex_surfaceId_flags : TEXCOORD1;
 };
 
 struct PixelShaderOutput
 {
-	half4 output0 : SV_TARGET0;
+	float4 output0 : SV_TARGET0;
 	float2 output1 : SV_TARGET1;
 };
 

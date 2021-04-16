@@ -21,13 +21,13 @@
 Texture2D sceneTexture : register(t0);
 Texture1D gammaTexture : register(t1);
 
-half4 main(
+float4 main(
 	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
 {
-	half4 c = sceneTexture.SampleLevel(PointSampler, tc, 0);
+	float4 c = sceneTexture.SampleLevel(PointSampler, tc, 0);
 	c.r = gammaTexture.SampleLevel(BilinearSampler, c.r, 0).r;
 	c.g = gammaTexture.SampleLevel(BilinearSampler, c.g, 0).g;
 	c.b = gammaTexture.SampleLevel(BilinearSampler, c.b, 0).b;
-	c.a = dot(c.rgb, half3(0.299, 0.587, 0.114));
+	c.a = dot(c.rgb, float3(0.299, 0.587, 0.114));
 	return c;
 }

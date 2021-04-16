@@ -30,13 +30,13 @@ Texture2D<float2> idTexture : register(t1);
 #define FXAA_QUALITY__PRESET 23
 #include "FXAA.hlsli" 
 
-half4 main(
+float4 main(
 	in noperspective float2 tc : TEXCOORD0,
 	in nointerpolation float2 invTextureSize : TEXCOORD1) : SV_TARGET
 {
-	half4 c = sceneTexture.SampleLevel(PointSampler, tc, 0);
+	float4 c = sceneTexture.SampleLevel(PointSampler, tc, 0);
 
-	half id = idTexture.SampleLevel(PointSampler, tc, 0, int2(1,-1)).x;
+	float id = idTexture.SampleLevel(PointSampler, tc, 0, int2(1,-1)).x;
 
 	float2 tcShifted = tc - 0.5 * invTextureSize;
 	
@@ -50,20 +50,20 @@ half4 main(
 	c.r = (iid & 31) / 31.0;
 	c.g = ((iid >> 5) & 31) / 31.0;
 	c.b = ((iid >> 10) & 15) / 31.0;
-	return isEdge ? half4(1-c.r, 1-c.g, 1-c.b, 1) : half4(c.r, c.g, c.b, 1);
+	return isEdge ? float4(1-c.r, 1-c.g, 1-c.b, 1) : float4(c.r, c.g, c.b, 1);
 #else
 
 	if (isEdge)
 	{
 #ifdef SHOW_MASK
-		return half4(1, 0, 0, 1);
+		return float4(1, 0, 0, 1);
 #else
 		FxaaTex ftx;
 		ftx.smpl = BilinearSampler;
 		ftx.tex = sceneTexture;
 
 #ifdef SHOW_AMPLIFIED_DIFFERENCE
-		half4 oldc = c;
+		float4 oldc = c;
 #endif
 		c = FxaaPixelShader(c, tc, ftx, invTextureSize, 0.5, 0.166, 0.166 * 0.5);
 #ifdef SHOW_AMPLIFIED_DIFFERENCE
@@ -74,7 +74,7 @@ half4 main(
 #if defined(SHOW_MASK) || defined(SHOW_AMPLIFIED_DIFFERENCE)
 	else
 	{
-		return half4(0.5, 0.5, 0.5, 1);
+		return float4(0.5, 0.5, 0.5, 1);
 	}
 #endif
 

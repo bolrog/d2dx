@@ -36,7 +36,7 @@ float2 nearestSampleUV_AA(float2 uv, float sharpness, float2 invTextureSize) {
 	return uv - texelDelta * aa_factor * invTextureSize;
 }
 
-half4 main(
+float4 main(
 	in noperspective float2 tc : TEXCOORD0,
 	in nointerpolation float2 invTextureSize : TEXCOORD1) : SV_TARGET
 {

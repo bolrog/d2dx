@@ -20,10 +20,10 @@
 
 Texture2D tex : register(t0);
 
-half4 main(
+float4 main(
 	in noperspective float2 tc : TEXCOORD0,
 	in nointerpolation float2 invTextureSize : TEXCOORD1) : SV_TARGET
 {
 	half3 c = tex.Sample(BilinearSampler, tc * invTextureSize).rgb;
-	return half4(c, 1);
+	return float4(c, 1);
 }
