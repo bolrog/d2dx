@@ -82,7 +82,7 @@ D2DXContext::D2DXContext(
 	_simd{ simd },
 	_options{ GetCommandLineOptions() },
 	_lastScreenOpenMode{ 0 },
-	_batchId{ 0 },
+	_surfaceId{ 0 },
 	_nextBatchId{ 0 }
 {
 	memset(_paletteKeys.items, 0, sizeof(uint32_t)* _paletteKeys.capacity);
@@ -293,7 +293,6 @@ void D2DXContext::OnTexSource(
 	_scratchBatch.SetTextureHash(hash);
 	_scratchBatch.SetTextureSize(width, height);
 	_scratchBatch.SetTextureCategory(_gameHelper->GetTextureCategoryFromHash(hash));
-
 }
 
 void D2DXContext::CheckMajorGameState()
@@ -517,8 +516,8 @@ void D2DXContext::OnDrawLine(
 	batch.SetStartVertex(_vertexCount);
 	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 
-	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, _batchId);
-	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, _batchId);
+	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, _surfaceId);
+	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, _surfaceId);
 
 	float dx = (float)(startVertex.GetY() - endVertex.GetY());
 	float dy = (float)(endVertex.GetX() - startVertex.GetX());
@@ -635,46 +634,55 @@ void D2DXContext::UpdateBatchSurfaceId(
 
 	uint64_t drawCallTexture = (uint64_t)batch.GetTextureIndex() | ((uint64_t)batch.GetTextureAtlas() << 32ULL);
 
-	switch (batch.GetTextureCategory())
+	if (_majorGameState != MajorGameState::InGame ||
+		(batch.GetRgbCombine() == RgbCombine::ConstantColor && 
+		batch.GetAlphaBlend() == AlphaBlend::SrcAlphaInvSrcAlpha))
 	{
-	case TextureCategory::MousePointer:
-	case TextureCategory::UserInterface:
-	case TextureCategory::Font:
-	case TextureCategory::LoadingScreen:
-	case TextureCategory::TitleScreen:
-		_batchId = (1 << 14) - 1;
-		break;
-	case TextureCategory::Floor:
-	case TextureCategory::Wall:
-	case TextureCategory::Unknown:
-	{
-		if (
-			(_previousDrawCallTexture == drawCallTexture) ||
-			(
-				(batch.GetWidth() == 32 && batch.GetHeight() == 32) &&
-				(
-					/* 32x32 wall block drawn to the left of the previous one. */
-					(maxx == _previousDrawCallRect.offset.x && miny == _previousDrawCallRect.offset.y) ||
-
-					/* 32x32 wall block drawn on the next row from the previous one. */
-					(miny == (_previousDrawCallRect.offset.y + _previousDrawCallRect.size.height))
-				)
-			)
-		)
-		{
-			_batchId = _nextBatchId;
-		}
-		else
-		{
-			_batchId = ++_nextBatchId;
-		}
-		break;
+		_surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
 	}
+	else
+	{
+		switch (batch.GetTextureCategory())
+		{
+		case TextureCategory::MousePointer:
+		case TextureCategory::UserInterface:
+		case TextureCategory::Font:
+		case TextureCategory::LoadingScreen:
+		case TextureCategory::TitleScreen:
+			_surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
+			break;
+		case TextureCategory::Floor:
+		case TextureCategory::Wall:
+		case TextureCategory::Unknown:
+		{
+			if (
+				(_previousDrawCallTexture == drawCallTexture) ||
+				(
+					(batch.GetWidth() == 32 && batch.GetHeight() == 32) &&
+					(
+						/* 32x32 wall block drawn to the left of the previous one. */
+						(maxx == _previousDrawCallRect.offset.x && miny == _previousDrawCallRect.offset.y) ||
+
+						/* 32x32 wall block drawn on the next row from the previous one. */
+						(miny == (_previousDrawCallRect.offset.y + _previousDrawCallRect.size.height))
+						)
+					)
+				)
+			{
+				_surfaceId = _nextBatchId;
+			}
+			else
+			{
+				_surfaceId = ++_nextBatchId;
+			}
+			break;
+		}
+		}
 	}
 
 	for (uint32_t i = 0; i < batch.GetVertexCount(); ++i)
 	{
-		_vertices.items[firstVertexInBatch + i].SetSurfaceId(_batchId);
+		_vertices.items[firstVertexInBatch + i].SetSurfaceId(_surfaceId);
 	}
 
 	_previousDrawCallTexture = drawCallTexture;
@@ -698,12 +706,12 @@ void D2DXContext::OnDrawVertexArray(
 	{
 	case GR_TRIANGLE_FAN:
 	{
-		Vertex firstVertex = ReadVertex((const uint8_t*)pointers[0], vertexLayout, batch, _batchId);
-		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], vertexLayout, batch, _batchId);
+		Vertex firstVertex = ReadVertex((const uint8_t*)pointers[0], vertexLayout, batch, _surfaceId);
+		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], vertexLayout, batch, _surfaceId);
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch, _batchId);
+			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch, _surfaceId);
 
 			assert((_vertexCount + 3) < _vertices.capacity);
 			_vertices.items[_vertexCount++] = firstVertex;
@@ -716,12 +724,12 @@ void D2DXContext::OnDrawVertexArray(
 	}
 	case GR_TRIANGLE_STRIP:
 	{
-		Vertex prevPrevVertex = ReadVertex((const uint8_t*)pointers[0], vertexLayout, batch, _batchId);
-		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], vertexLayout, batch, _batchId);
+		Vertex prevPrevVertex = ReadVertex((const uint8_t*)pointers[0], vertexLayout, batch, _surfaceId);
+		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], vertexLayout, batch, _surfaceId);
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch, _batchId);
+			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], vertexLayout, batch, _surfaceId);
 
 			assert((_vertexCount + 3) < _vertices.capacity);
 			_vertices.items[_vertexCount++] = prevPrevVertex;
@@ -761,15 +769,15 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	{
 	case GR_TRIANGLE_FAN:
 	{
-		Vertex firstVertex = ReadVertex(vertex, _vertexLayout, batch, _batchId);
+		Vertex firstVertex = ReadVertex(vertex, _vertexLayout, batch, _surfaceId);
 		vertex += stride;
 
-		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch, _batchId);
+		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch, _surfaceId);
 		vertex += stride;
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch, _batchId);
+			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch, _surfaceId);
 			vertex += stride;
 
 			assert((_vertexCount + 3) < _vertices.capacity);
@@ -783,15 +791,15 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	}
 	case GR_TRIANGLE_STRIP:
 	{
-		Vertex prevPrevVertex = ReadVertex(vertex, _vertexLayout, batch, _batchId);
+		Vertex prevPrevVertex = ReadVertex(vertex, _vertexLayout, batch, _surfaceId);
 		vertex += stride;
 
-		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch, _batchId);
+		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch, _surfaceId);
 		vertex += stride;
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch, _batchId);
+			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch, _surfaceId);
 			vertex += stride;
 
 			assert((_vertexCount + 3) < _vertices.capacity);

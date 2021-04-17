@@ -184,7 +184,7 @@ RenderContext::RenderContext(
 		&_featureLevel,
 		&_deviceContext));
 
-	ALWAYS_PRINT("Created device supports %s.", 
+	ALWAYS_PRINT("Created device supports %s.",
 		_featureLevel == D3D_FEATURE_LEVEL_11_1 ? "D3D_FEATURE_LEVEL_11_1" :
 		_featureLevel == D3D_FEATURE_LEVEL_11_0 ? "D3D_FEATURE_LEVEL_11_0" :
 		_featureLevel == D3D_FEATURE_LEVEL_10_1 ? "D3D_FEATURE_LEVEL_10_1" : "unknown");
@@ -725,7 +725,7 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[1].DestBlendAlpha = D3D11_BLEND_ZERO;
-			blendDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP_ADD;
+			blendDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP_MAX;
 			blendDesc.RenderTarget[1].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		}
 		else if (alphaBlend == AlphaBlend::Additive)
@@ -785,7 +785,7 @@ void RenderContext::SetBlendState(
 			blendDesc.RenderTarget[1].DestBlend = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[1].SrcBlendAlpha = D3D11_BLEND_ZERO;
 			blendDesc.RenderTarget[1].DestBlendAlpha = D3D11_BLEND_ZERO;
-			blendDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP_ADD;
+			blendDesc.RenderTarget[1].BlendOp = D3D11_BLEND_OP_MAX;
 			blendDesc.RenderTarget[1].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 		}
 		else
@@ -888,6 +888,8 @@ void RenderContext::UpdateViewport(
 
 	_constants.screenSize[0] = (float)rect.size.width;
 	_constants.screenSize[1] = (float)rect.size.height;
+	_constants.invScreenSize[0] = 1.0f / _constants.screenSize[0];
+	_constants.invScreenSize[1] = 1.0f / _constants.screenSize[1];
 	_constants.flags[0] = _options.noAA ? 0 : 1;
 	_constants.flags[1] = 0;
 	if (memcmp(&_constants, &_shadowState._constants, sizeof(Constants)) != 0)
@@ -941,7 +943,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 			d3d11Context->ToggleFullscreen();
 			return 0;
 		}
-}
+	}
 	else if (uMsg == WM_DESTROY)
 	{
 		RemoveWindowSubclass(hWnd, d2dxSubclassWndProc, 1234);
@@ -976,7 +978,7 @@ LRESULT CALLBACK d2dxSubclassWndProc(
 	}
 
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
-	}
+}
 
 uint32_t RenderContext::DetermineMaxTextureArraySize()
 {

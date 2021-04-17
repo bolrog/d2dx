@@ -163,10 +163,11 @@ namespace d2dx
 		struct Constants
 		{
 			float screenSize[2];
-			uint32_t flags[2];
+			float invScreenSize[2];
+			uint32_t flags[4];
 		};
 
-		static_assert(sizeof(Constants) == 4 * 4, "size of Constants");
+		static_assert(sizeof(Constants) == 8 * 4, "size of Constants");
 
 		Size _gameSize;
 		Rect _renderRect;

@@ -218,7 +218,7 @@ namespace d2dx
 
 		uint32_t _lastScreenOpenMode;
 
-		int32_t _batchId;
+		int32_t _surfaceId;
 		int32_t _nextBatchId;
 
 		Rect _previousDrawCallRect;

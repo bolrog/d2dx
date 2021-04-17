@@ -28,6 +28,8 @@
 #define D2DX_LOGO_PALETTE_INDEX 31
 #define D2DX_MAX_PALETTES 32
 
+#define D2DX_SURFACE_ID_USER_INTERFACE 16383
+
 namespace d2dx
 {
 	static_assert(((D2DX_TMU_MEMORY_SIZE - 1) >> 8) == 0xFFFF, "TMU memory start addresses aren't 16 bit.");
