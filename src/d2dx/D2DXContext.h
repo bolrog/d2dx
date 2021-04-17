@@ -223,5 +223,9 @@ namespace d2dx
 
 		Rect _previousDrawCallRect;
 		uint64_t _previousDrawCallTexture;
+
+		uint32_t _lastOnTexSourceStartAddress;
+		int32_t _lastOnTexSourceWidth;
+		int32_t _lastOnTexSourceHeight;
 	};
 }

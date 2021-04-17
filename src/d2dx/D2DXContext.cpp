@@ -254,6 +254,10 @@ void D2DXContext::OnTexDownload(
 		return;
 	}
 
+	_lastOnTexSourceStartAddress = 0;
+	_lastOnTexSourceWidth = 0;
+	_lastOnTexSourceHeight = 0;
+
 	uint32_t memRequired = (uint32_t)(width * height);
 
 	auto pStart = _tmuMemory.items + startAddress;
@@ -274,6 +278,17 @@ void D2DXContext::OnTexSource(
 	{
 		return;
 	}
+
+	if (startAddress == _lastOnTexSourceStartAddress &&
+		width == _lastOnTexSourceWidth &&
+		height == _lastOnTexSourceHeight)
+	{
+		return;
+	}
+
+	_lastOnTexSourceStartAddress = startAddress;
+	_lastOnTexSourceWidth = width;
+	_lastOnTexSourceHeight = height;
 
 	uint8_t* pixels = _tmuMemory.items + startAddress;
 	const uint32_t pixelsSize = width * height;
