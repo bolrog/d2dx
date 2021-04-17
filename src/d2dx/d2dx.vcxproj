@@ -294,6 +294,10 @@
       </ObjectFileOutput>
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyCode</AssemblerOutput>
       <AssemblerOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)%(Filename)_dxbc.txt</AssemblerOutputFile>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </AdditionalOptions>
     </FxCompile>
     <FxCompile Include="DisplayIntegerScalePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -310,6 +314,10 @@
       </ObjectFileOutput>
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyCode</AssemblerOutput>
       <AssemblerOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)%(Filename)_dxbc.txt</AssemblerOutputFile>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </AdditionalOptions>
     </FxCompile>
     <FxCompile Include="DisplayVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -324,7 +332,10 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)%(Filename)_cso.h</HeaderFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </ObjectFileOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyCode</AssemblerOutput>
+      <AssemblerOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)%(Filename)_dxbc.txt</AssemblerOutputFile>
     </FxCompile>
+    <None Include="Display.hlsli" />
     <None Include="FXAA.hlsli">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -416,6 +427,7 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyCode</AssemblerOutput>
       <AssemblerOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)%(Filename)_dxbc.txt</AssemblerOutputFile>
     </FxCompile>
+    <None Include="Game.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDConfigInterception.S">
@@ -441,6 +453,7 @@
   <ItemGroup>
     <Text Include="DisplayIntegerScalePS_dxbc.txt" />
     <Text Include="DisplayNonintegerScalePS_dxbc.txt" />
+    <Text Include="DisplayVS_dxbc.txt" />
     <Text Include="GamePS_dxbc.txt" />
     <Text Include="GameVS_dxbc.txt" />
     <Text Include="GammaPS_dxbc.txt" />

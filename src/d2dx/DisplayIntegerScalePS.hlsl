@@ -17,11 +17,12 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "Constants.hlsli"
+#include "Display.hlsli"
 
 Texture2D sceneTexture : register(t0);
 
 float4 main(
-    in noperspective float2 tc : TEXCOORD0) : SV_TARGET
+    in DisplayPSInput ps_in) : SV_TARGET
 {
-	return sceneTexture.SampleLevel(PointSampler, tc, 0);
+	return sceneTexture.SampleLevel(PointSampler, ps_in.tc, 0);
 }

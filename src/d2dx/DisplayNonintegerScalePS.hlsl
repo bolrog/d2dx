@@ -17,6 +17,7 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "Constants.hlsli"
+#include "Display.hlsli"
 
 Texture2D sceneTexture : register(t0);
 
@@ -37,8 +38,7 @@ float2 nearestSampleUV_AA(float2 uv, float sharpness, float4 textureSize_invText
 }
 
 float4 main(
-	in noperspective float2 tc : TEXCOORD0,
-	in nointerpolation float4 textureSize_invTextureSize : TEXCOORD1) : SV_TARGET
+	in DisplayPSInput ps_in) : SV_TARGET
 {
-	return sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(tc, 2.0, textureSize_invTextureSize));
+	return sceneTexture.Sample(BilinearSampler, nearestSampleUV_AA(ps_in.tc, 2.0, ps_in.textureSize_invTextureSize));
 }

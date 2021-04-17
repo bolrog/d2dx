@@ -17,20 +17,18 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "Constants.hlsli"
+#include "Game.hlsli"
 
 void main(
-	in int2 pos : POSITION,
-	in int2 st : TEXCOORD0,
-	in float4 color : COLOR0,
-	in uint2 misc : TEXCOORD1,
-	out PixelShaderInput psInput)
+	in GameVSInput vs_in,
+	out GameVSOutput vs_out)
 {
-	float2 fpos = (2.0 * float2(pos) / screenSize) - 1.0;
-	psInput.pos = float4(fpos.x, -fpos.y, 0.0, 1.0);
-	psInput.tc = st;
-	psInput.color = color;
-	psInput.atlasIndex_paletteIndex_surfaceId_flags.x = misc.x & 4095;
-	psInput.atlasIndex_paletteIndex_surfaceId_flags.y = (misc.x >> 12) | ((misc.y & 0x8000) ? 0x10 : 0);
-	psInput.atlasIndex_paletteIndex_surfaceId_flags.z = misc.y & 16383;
-	psInput.atlasIndex_paletteIndex_surfaceId_flags.w = (misc.y & 0x4000) ? 1 : 0;
+	float2 unitPos = float2(vs_in.pos) * c_invScreenSize - 0.5;
+	vs_out.pos = unitPos.xyxx * float4(2, -2, 0, 0) + float4(0, 0, 0, 1);
+	vs_out.tc = vs_in.texCoord;
+	vs_out.color = vs_in.color;
+	vs_out.atlasIndex_paletteIndex_surfaceId_flags.x = vs_in.misc.x & 4095;
+	vs_out.atlasIndex_paletteIndex_surfaceId_flags.y = (vs_in.misc.x >> 12) | ((vs_in.misc.y & 0x8000) ? 0x10 : 0);
+	vs_out.atlasIndex_paletteIndex_surfaceId_flags.z = vs_in.misc.y & 16383;
+	vs_out.atlasIndex_paletteIndex_surfaceId_flags.w = (vs_in.misc.y & 0x4000) ? 1 : 0;
 }

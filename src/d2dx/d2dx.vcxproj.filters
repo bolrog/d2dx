@@ -270,6 +270,12 @@
     <None Include="FXAA.hlsli">
       <Filter>shaders</Filter>
     </None>
+    <None Include="Game.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="Display.hlsli">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="..\..\thirdparty\SlashDiablo-HD\src\D2HD\D2HDConfigInterception.S">
@@ -305,6 +311,9 @@
       <Filter>shaders</Filter>
     </Text>
     <Text Include="VideoPS_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
+    <Text Include="DisplayVS_dxbc.txt">
       <Filter>shaders</Filter>
     </Text>
   </ItemGroup>

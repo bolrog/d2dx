@@ -17,26 +17,27 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "Constants.hlsli"
+#include "Game.hlsli"
 
 Texture2DArray<uint> tex : register(t0);
 Texture1DArray palette : register(t1);
 
-PixelShaderOutput main(PixelShaderInput psInput)
+void main(
+	in GamePSInput ps_in,
+	out GamePSOutput ps_out)
 {
-	const uint atlasIndex = psInput.atlasIndex_paletteIndex_surfaceId_flags.x;
-	const bool chromaKeyEnabled = psInput.atlasIndex_paletteIndex_surfaceId_flags.w & 1;
-	const uint surfaceId = psInput.atlasIndex_paletteIndex_surfaceId_flags.z;
-	const uint paletteIndex = psInput.atlasIndex_paletteIndex_surfaceId_flags.y;
+	const uint atlasIndex = ps_in.atlasIndex_paletteIndex_surfaceId_flags.x;
+	const bool chromaKeyEnabled = ps_in.atlasIndex_paletteIndex_surfaceId_flags.w & 1;
+	const uint surfaceId = ps_in.atlasIndex_paletteIndex_surfaceId_flags.z;
+	const uint paletteIndex = ps_in.atlasIndex_paletteIndex_surfaceId_flags.y;
 
-	const uint indexedColor = tex.Load(int4(psInput.tc, atlasIndex, 0));
+	const uint indexedColor = tex.Load(int4(ps_in.tc, atlasIndex, 0));
 
 	if (chromaKeyEnabled && indexedColor == 0)
 		discard;
 
 	const float4 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0));
 
-	PixelShaderOutput psOutput;
-	psOutput.output0 = psInput.color * textureColor;
-	psOutput.output1 = surfaceId.xx * float2(1.0 / 16383.0, 0);
-	return psOutput;
+	ps_out.output0 = ps_in.color * textureColor;
+	ps_out.output1 = surfaceId.xx * float2(1.0 / 16383.0, 0);
 }

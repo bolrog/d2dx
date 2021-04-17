@@ -17,36 +17,34 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "Constants.hlsli"
+#include "Display.hlsli"
 
 void main(
-	in int2 pos : POSITION,
-	in int2 st : TEXCOORD0,
-	in float4 color : COLOR,
-	in uint2 misc : TEXCOORD1,
-	in uint vertexId : SV_VertexID,
-	out noperspective float2 o_tc : TEXCOORD0,
-	out nointerpolation float4 o_textureSize_invTextureSize : TEXCOORD1,
-	out noperspective float4 o_pos : SV_POSITION)
+	in DisplayVSInput vs_in,
+	uint vs_in_vertexId : SV_VertexID,
+	out DisplayVSOutput vs_out,
+	out noperspective float4 vs_out_pos : SV_POSITION)	
 {
-	float2 fpos = (2.0 * float2(pos) / screenSize) - 1.0;
+	float2 fpos = float2(vs_in.pos) * c_invScreenSize - 0.5;
+	vs_out_pos = fpos.xyxx * float4(2, -2, 0, 0) + float4(0,0,0,1);
+	
+	float2 stf = vs_in.st;
+	vs_out.textureSize_invTextureSize = float4(stf, 1/stf);
 
-	o_pos = float4(fpos.x, -fpos.y, 0.0, 1.0);
-	o_textureSize_invTextureSize = float4(st, 1.0 / st);
+	const float srcWidth = vs_in.misc.y & 16383;
+	const float srcHeight = vs_in.misc.x & 4095;
 
-	const float srcWidth = misc.y & 16383;
-	const float srcHeight = misc.x & 4095;
-
-	switch (vertexId)
+	switch (vs_in_vertexId)
 	{
 	default:
 	case 0:
-		o_tc = float2(0, 0);
+		vs_out.tc = float2(0, 0);
 		break;
 	case 1:
-		o_tc = float2(srcWidth * 2 * o_textureSize_invTextureSize.z, 0);
+		vs_out.tc = float2(srcWidth * 2 * vs_out.textureSize_invTextureSize.z, 0);
 		break;
 	case 2:
-		o_tc = float2(0, srcHeight * 2 * o_textureSize_invTextureSize.w);
+		vs_out.tc = float2(0, srcHeight * 2 * vs_out.textureSize_invTextureSize.w);
 		break;
 	}
 }

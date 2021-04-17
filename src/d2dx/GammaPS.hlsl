@@ -17,14 +17,15 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "Constants.hlsli"
+#include "Display.hlsli"
 
 Texture2D sceneTexture : register(t0);
 Texture1D gammaTexture : register(t1);
 
 float4 main(
-	in noperspective float2 tc : TEXCOORD0) : SV_TARGET
+	in DisplayPSInput ps_in) : SV_TARGET
 {
-	float4 c = sceneTexture.SampleLevel(PointSampler, tc, 0);
+	float4 c = sceneTexture.SampleLevel(PointSampler, ps_in.tc, 0);
 	c.r = gammaTexture.SampleLevel(BilinearSampler, c.r, 0).r;
 	c.g = gammaTexture.SampleLevel(BilinearSampler, c.g, 0).g;
 	c.b = gammaTexture.SampleLevel(BilinearSampler, c.b, 0).b;

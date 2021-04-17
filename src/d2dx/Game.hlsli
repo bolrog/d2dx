@@ -16,13 +16,27 @@
 	You should have received a copy of the GNU General Public License
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include "Constants.hlsli"
-#include "Display.hlsli"
 
-Texture2D tex : register(t0);
-
-float4 main(
-	in DisplayPSInput ps_in) : SV_TARGET
+struct GameVSInput
 {
-	return tex.Sample(BilinearSampler, ps_in.tc) * float4(1, 1, 1, 0) + float4(0, 0, 0, 1);
-}
+	int2 pos : POSITION;
+	int2 texCoord : TEXCOORD0;
+	float4 color : COLOR0;
+	uint2 misc : TEXCOORD1;
+};
+
+struct GameVSOutput
+{
+	noperspective float4 pos : SV_POSITION;
+	noperspective float2 tc : TEXCOORD0;
+	noperspective float4 color : COLOR0;
+	nointerpolation uint4 atlasIndex_paletteIndex_surfaceId_flags : TEXCOORD1;
+};
+
+typedef GameVSOutput GamePSInput;
+
+struct GamePSOutput
+{
+	float4 output0 : SV_TARGET0;
+	float2 output1 : SV_TARGET1;
+};

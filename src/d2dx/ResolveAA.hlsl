@@ -17,8 +17,9 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "Constants.hlsli"
+#include "Display.hlsli"
 
-//#define SHOW_BATCH_IDS
+//#define SHOW_SURFACE_IDS
 //#define SHOW_MASK
 //#define SHOW_AMPLIFIED_DIFFERENCE
 
@@ -31,27 +32,18 @@ Texture2D<float2> idTexture : register(t1);
 #include "FXAA.hlsli" 
 
 float4 main(
-	in noperspective float2 tc : TEXCOORD0,
-	in nointerpolation float4 textureSize_invTextureSize : TEXCOORD1) : SV_TARGET
+	in DisplayPSInput ps_in) : SV_TARGET
 {
-	float4 c = sceneTexture.SampleLevel(PointSampler, tc, 0);
+	float4 c = sceneTexture.SampleLevel(PointSampler, ps_in.tc, 0);
 
-	float id = idTexture.SampleLevel(PointSampler, tc, 0, int2(1,-1)).x;
+	float id = idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(1,-1)).x;
 
-	float2 tcShifted = tc - 0.5 * textureSize_invTextureSize.zw;
+	float2 tcShifted = ps_in.tc - 0.5 * ps_in.textureSize_invTextureSize.zw;
 	
 	bool isEdge =
-		idTexture.SampleLevel(PointSampler, tc, 0, int2(-1, 1)).x != id ||
+		idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(-1, 1)).x != id ||
 		idTexture.SampleLevel(BilinearSampler, tcShifted, 0).x != id ||
 		idTexture.SampleLevel(BilinearSampler, tcShifted, 0, int2(1, 1)).x != id;
-
-#ifdef SHOW_BATCH_IDS
-	uint iid = (uint)(idTexture.SampleLevel(PointSampler, tc, 0).x * 16383.0);
-	c.r = (iid & 31) / 31.0;
-	c.g = ((iid >> 5) & 31) / 31.0;
-	c.b = ((iid >> 10) & 15) / 31.0;
-	return isEdge ? float4(1-c.r, 1-c.g, 1-c.b, 1) : float4(c.r, c.g, c.b, 1);
-#else
 
 	if (isEdge)
 	{
@@ -65,7 +57,7 @@ float4 main(
 #ifdef SHOW_AMPLIFIED_DIFFERENCE
 		float4 oldc = c;
 #endif
-		c = FxaaPixelShader(c, tc, ftx, textureSize_invTextureSize.zw, 0.5, 0.166, 0.166 * 0.5);
+		c = FxaaPixelShader(c, ps_in.tc, ftx, ps_in.textureSize_invTextureSize.zw, 0.5, 0.166, 0.166 * 0.5);
 #ifdef SHOW_AMPLIFIED_DIFFERENCE
 		c.rgb = 0.5 + 4*(c.rgb - oldc.rgb);
 #endif
@@ -78,6 +70,14 @@ float4 main(
 	}
 #endif
 
-	return c;
+#ifdef SHOW_SURFACE_IDS
+	uint iid = (uint)(idTexture.SampleLevel(PointSampler, tc, 0).x * 16383.0);
+	float3 idc;
+	idc.r = (iid & 31) / 31.0;
+	idc.g = ((iid >> 5) & 31) / 31.0;
+	idc.b = ((iid >> 10) & 15) / 15.0;
+	c.rgb = lerp(c.rgb, isEdge ? 1 - idc : idc, 0.5);
 #endif
+
+	return c;
 }
