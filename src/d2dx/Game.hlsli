@@ -37,6 +37,6 @@ typedef GameVSOutput GamePSInput;
 
 struct GamePSOutput
 {
-	float4 output0 : SV_TARGET0;
-	float2 output1 : SV_TARGET1;
+	float4 color : SV_TARGET0;
+	float surfaceId : SV_TARGET1;
 };

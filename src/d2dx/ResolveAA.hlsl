@@ -24,7 +24,7 @@
 //#define SHOW_AMPLIFIED_DIFFERENCE
 
 Texture2D sceneTexture : register(t0);
-Texture2D<float2> idTexture : register(t1);
+Texture2D<float> idTexture : register(t1);
 
 #define FXAA_PC 1
 #define FXAA_HLSL_4 1
@@ -36,14 +36,14 @@ float4 main(
 {
 	float4 c = sceneTexture.SampleLevel(PointSampler, ps_in.tc, 0);
 
-	float id = idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(1,-1)).x;
+	float id = idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(1,-1));
 
 	float2 tcShifted = ps_in.tc - 0.5 * ps_in.textureSize_invTextureSize.zw;
 	
 	bool isEdge =
-		idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(-1, 1)).x != id ||
-		idTexture.SampleLevel(BilinearSampler, tcShifted, 0).x != id ||
-		idTexture.SampleLevel(BilinearSampler, tcShifted, 0, int2(1, 1)).x != id;
+		idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(-1, 1)) != id ||
+		idTexture.SampleLevel(BilinearSampler, tcShifted, 0) != id ||
+		idTexture.SampleLevel(BilinearSampler, tcShifted, 0, int2(1, 1)) != id;
 
 	if (isEdge)
 	{

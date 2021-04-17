@@ -231,9 +231,9 @@ namespace d2dx
 		ComPtr<ID3D11RenderTargetView> _gammaCorrectedTextureRtv;
 		ComPtr<ID3D11ShaderResourceView> _gammaCorrectedTextureSrv;
 
-		ComPtr<ID3D11Texture2D> _idBufferTexture;
-		ComPtr<ID3D11RenderTargetView> _idBufferRtv;
-		ComPtr<ID3D11ShaderResourceView> _idBufferSrv;
+		ComPtr<ID3D11Texture2D> _surfaceIdTexture;
+		ComPtr<ID3D11RenderTargetView> _surfaceIdRtv;
+		ComPtr<ID3D11ShaderResourceView> _surfaceIdSrv;
 
 		ComPtr<ITextureCache> _textureCaches[6];
 

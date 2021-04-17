@@ -458,7 +458,7 @@ void RenderContext::Present()
 		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 
 		srvs[0] = _gammaCorrectedTextureSrv.Get();
-		srvs[1] = _idBufferSrv.Get();
+		srvs[1] = _surfaceIdSrv.Get();
 		SetPSShaderResourceViews(srvs);
 
 		SetVS(_displayVS.Get());
@@ -524,10 +524,10 @@ void RenderContext::Present()
 	}
 
 	rtvs[0] = _gameTextureRtv.Get();
-	rtvs[1] = _idBufferRtv.Get();
+	rtvs[1] = _surfaceIdRtv.Get();
 	_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
 	_deviceContext->ClearRenderTargetView(_gameTextureRtv.Get(), color);
-	_deviceContext->ClearRenderTargetView(_idBufferRtv.Get(), color);
+	_deviceContext->ClearRenderTargetView(_surfaceIdRtv.Get(), color);
 
 	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 
@@ -597,16 +597,16 @@ void RenderContext::CreateGameTexture()
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_gammaCorrectedTexture.Get(), &rtvDesc, &_gammaCorrectedTextureRtv));
 
-	desc.Format = DXGI_FORMAT_R16G16_TYPELESS;
-	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_idBufferTexture));
+	desc.Format = DXGI_FORMAT_R16_TYPELESS;
+	D2DX_RELEASE_CHECK_HR(_device->CreateTexture2D(&desc, NULL, &_surfaceIdTexture));
 
-	srvDesc.Format = DXGI_FORMAT_R16G16_UNORM;
-	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_idBufferTexture.Get(), &srvDesc, &_idBufferSrv));
+	srvDesc.Format = DXGI_FORMAT_R16_UNORM;
+	D2DX_RELEASE_CHECK_HR(_device->CreateShaderResourceView(_surfaceIdTexture.Get(), &srvDesc, &_surfaceIdSrv));
 
-	rtvDesc.Format = DXGI_FORMAT_R16G16_UNORM;
-	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_idBufferTexture.Get(), &rtvDesc, &_idBufferRtv));
+	rtvDesc.Format = DXGI_FORMAT_R16_UNORM;
+	D2DX_RELEASE_CHECK_HR(_device->CreateRenderTargetView(_surfaceIdTexture.Get(), &rtvDesc, &_surfaceIdRtv));
 
-	ID3D11RenderTargetView* rtvs[2] = { _gameTextureRtv.Get(), _idBufferRtv.Get() };
+	ID3D11RenderTargetView* rtvs[2] = { _gameTextureRtv.Get(), _surfaceIdRtv.Get() };
 	_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
 }
 

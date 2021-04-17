@@ -38,6 +38,6 @@ void main(
 
 	const float4 textureColor = palette.Load(int3(indexedColor, paletteIndex, 0));
 
-	ps_out.output0 = ps_in.color * textureColor;
-	ps_out.output1 = surfaceId.xx * float2(1.0 / 16383.0, 0);
+	ps_out.color = ps_in.color * textureColor;
+	ps_out.surfaceId = surfaceId * 1.0 / 16383.0;
 }
