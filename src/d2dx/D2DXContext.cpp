@@ -852,7 +852,7 @@ void D2DXContext::OnTexDownloadTable(
 	uint32_t hash = fnv_32a_buf(data, 1024, FNV1_32A_INIT);
 	assert(hash != 0);
 
-	for (uint32_t i = 0; i < _paletteKeys.capacity; ++i)
+	for (uint32_t i = 0; i < D2DX_MAX_GAME_PALETTES; ++i)
 	{
 		if (_paletteKeys.items[i] == 0)
 		{
@@ -866,7 +866,7 @@ void D2DXContext::OnTexDownloadTable(
 		}
 	}
 
-	for (uint32_t i = 0; i < _paletteKeys.capacity; ++i)
+	for (uint32_t i = 0; i < D2DX_MAX_GAME_PALETTES; ++i)
 	{
 		if (_paletteKeys.items[i] == 0)
 		{

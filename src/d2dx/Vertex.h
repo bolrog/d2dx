@@ -38,8 +38,8 @@ namespace d2dx
 			_s(s),
 			_t(t),
 			_color(color),
-			_paletteIndexHigh_isChromaKeyEnabled_surfaceId(((paletteIndex >> 4) ? 0x8000 : 0) | (isChromaKeyEnabled ? 0x4000 : 0) | (surfaceId & 16383)),
-			_paletteIndexLow_atlasIndex((paletteIndex << 12) | (atlasIndex & 4095))
+			_isChromaKeyEnabled_surfaceId((isChromaKeyEnabled ? 0x4000 : 0) | (surfaceId & 16383)),
+			_paletteIndex_atlasIndex((paletteIndex << 12) | (atlasIndex & 4095))
 		{
 			assert(x >= INT16_MIN && x <= INT16_MAX);
 			assert(y >= INT16_MIN && y <= INT16_MAX);
@@ -73,8 +73,8 @@ namespace d2dx
 		inline void SetSurfaceId(int32_t surfaceId)
 		{
 			assert(surfaceId >= 0 && surfaceId <= 16383);
-			_paletteIndexHigh_isChromaKeyEnabled_surfaceId &= ~16383;
-			_paletteIndexHigh_isChromaKeyEnabled_surfaceId |= surfaceId & 16383;
+			_isChromaKeyEnabled_surfaceId &= ~16383;
+			_isChromaKeyEnabled_surfaceId |= surfaceId & 16383;
 		}
 
 		inline int32_t GetS() const
@@ -111,7 +111,7 @@ namespace d2dx
 
 		inline bool IsChromaKeyEnabled() const
 		{
-			return (_paletteIndexHigh_isChromaKeyEnabled_surfaceId & 0x4000) != 0;
+			return (_isChromaKeyEnabled_surfaceId & 0x4000) != 0;
 		}
 
 	private:
@@ -120,8 +120,8 @@ namespace d2dx
 		int16_t _s;
 		int16_t _t;
 		uint32_t _color;
-		uint16_t _paletteIndexLow_atlasIndex;
-		uint16_t _paletteIndexHigh_isChromaKeyEnabled_surfaceId;
+		uint16_t _paletteIndex_atlasIndex;
+		uint16_t _isChromaKeyEnabled_surfaceId;
 	};
 
 	static_assert(sizeof(Vertex) == 16, "sizeof(Vertex)");
