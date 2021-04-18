@@ -312,7 +312,7 @@ void RenderContext::CreateRasterizerState()
 
 void RenderContext::CreateVertexAndIndexBuffers()
 {
-	_vbCapacity = 1024 * 1024;
+	_vbCapacity = 4 * 1024 * 1024;
 
 	const CD3D11_BUFFER_DESC vbDesc
 	{
@@ -382,7 +382,8 @@ void RenderContext::CreateSamplerStates()
 
 _Use_decl_annotations_
 void RenderContext::Draw(
-	const Batch& batch)
+	const Batch& batch,
+	uint32_t startVertexLocation)
 {
 	SetVS(_gameVS.Get());
 	SetPS(_gamePS.Get());
@@ -398,13 +399,13 @@ void RenderContext::Draw(
 	case PrimitiveType::Triangles:
 	{
 		SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		_deviceContext->Draw(batch.GetVertexCount(), batch.GetStartVertex());
+		_deviceContext->Draw(batch.GetVertexCount(), startVertexLocation + batch.GetStartVertex());
 		break;
 	}
 	case PrimitiveType::Lines:
 	{
 		SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-		_deviceContext->Draw(batch.GetVertexCount(), batch.GetStartVertex());
+		_deviceContext->Draw(batch.GetVertexCount(), startVertexLocation + batch.GetStartVertex());
 		break;
 	}
 	default:
@@ -802,25 +803,33 @@ void RenderContext::SetBlendState(
 }
 
 _Use_decl_annotations_
-void RenderContext::BulkWriteVertices(
+uint32_t RenderContext::BulkWriteVertices(
 	const Vertex* vertices,
 	uint32_t vertexCount)
 {
-	assert(vertexCount <= _vbCapacity);
-	vertexCount = min(vertexCount, _vbCapacity);
+	auto mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+	if ((_vbWriteIndex + vertexCount) > _vbCapacity)
+	{
+		mapType = D3D11_MAP_WRITE_DISCARD;
+		_vbWriteIndex = 0;
+		assert(vertexCount <= _vbCapacity);
+		vertexCount = min(vertexCount, _vbCapacity);
+	}
 
-	D3D11_MAP mapType = D3D11_MAP_WRITE_DISCARD;
-	_vbWriteIndex = 0;
+	const uint32_t startVertexLocation = _vbWriteIndex;
 
-	D3D11_MAPPED_SUBRESOURCE mappedSubResource = { 0 };
-	D2DX_RELEASE_CHECK_HR(_deviceContext->Map(_vb.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubResource));
-	Vertex* pMappedVertices = (Vertex*)mappedSubResource.pData + _vbWriteIndex;
-
-	memcpy(pMappedVertices, vertices, sizeof(Vertex) * vertexCount);
-
-	_deviceContext->Unmap(_vb.Get(), 0);
+	if (vertexCount > 0)
+	{
+		D3D11_MAPPED_SUBRESOURCE mappedSubResource = { 0 };
+		D2DX_RELEASE_CHECK_HR(_deviceContext->Map(_vb.Get(), 0, mapType, 0, &mappedSubResource));
+		Vertex* pMappedVertices = (Vertex*)mappedSubResource.pData + _vbWriteIndex;
+		memcpy(pMappedVertices, vertices, sizeof(Vertex) * vertexCount);
+		_deviceContext->Unmap(_vb.Get(), 0);
+	}
 
 	_vbWriteIndex += vertexCount;
+
+	return startVertexLocation;
 }
 
 _Use_decl_annotations_
@@ -835,24 +844,23 @@ uint32_t RenderContext::UpdateVerticesWithFullScreenQuad(
 		Vertex{ 0, dstRect.size.height * 2, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
 	};
 
-	D3D11_MAP mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+	auto mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+
 	if ((_vbWriteIndex + ARRAYSIZE(vertices)) > _vbCapacity)
 	{
-		_vbWriteIndex = 0;
 		mapType = D3D11_MAP_WRITE_DISCARD;
+		_vbWriteIndex = 0;
 	}
 
 	D3D11_MAPPED_SUBRESOURCE mappedSubResource = { 0 };
 	D2DX_RELEASE_CHECK_HR(_deviceContext->Map(_vb.Get(), 0, mapType, 0, &mappedSubResource));
 	Vertex* pMappedVertices = (Vertex*)mappedSubResource.pData + _vbWriteIndex;
-
 	memcpy(pMappedVertices, vertices, sizeof(Vertex) * ARRAYSIZE(vertices));
-
 	_deviceContext->Unmap(_vb.Get(), 0);
 
 	_vbWriteIndex += ARRAYSIZE(vertices);
 
-	return 3;
+	return ARRAYSIZE(vertices);
 }
 
 _Use_decl_annotations_

@@ -166,7 +166,7 @@ namespace d2dx
 		void CheckMajorGameState();
 		void PrepareLogoTextureBatch();
 		void InsertLogoOnTitleScreen();
-		void DrawBatches();
+		void DrawBatches(uint32_t startVertexLocation);
 		void UpdateBatchSurfaceId(
 			_Inout_ Batch& batch);
 

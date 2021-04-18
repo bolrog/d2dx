@@ -35,7 +35,7 @@ namespace d2dx
 			_In_reads_(valueCount) const uint32_t* values,
 			_In_ uint32_t valueCount) = 0;
 
-		virtual void BulkWriteVertices(
+		virtual uint32_t BulkWriteVertices(
 			_In_reads_(vertexCount) const Vertex* vertices,
 			_In_ uint32_t vertexCount) = 0;
 
@@ -45,7 +45,8 @@ namespace d2dx
 			_In_ uint32_t tmuDataSize) = 0;
 
 		virtual void Draw(
-			_In_ const Batch& batch) = 0;
+			_In_ const Batch& batch,
+			_In_ uint32_t startVertexLocation) = 0;
 
 		virtual void Present() = 0;
 

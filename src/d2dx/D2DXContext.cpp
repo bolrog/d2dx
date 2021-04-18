@@ -355,7 +355,7 @@ void D2DXContext::CheckMajorGameState()
 	}
 }
 
-void D2DXContext::DrawBatches()
+void D2DXContext::DrawBatches(uint32_t startVertexLocation)
 {
 	const int32_t batchCount = (int32_t)_batchCount;
 
@@ -384,7 +384,7 @@ void D2DXContext::DrawBatches()
 				batch.GetPrimitiveType() != mergedBatch.GetPrimitiveType() ||
 				((mergedBatch.GetVertexCount() + batch.GetVertexCount()) > 65535))
 			{
-				_renderContext->Draw(mergedBatch);
+				_renderContext->Draw(mergedBatch, startVertexLocation);
 				++drawCalls;
 				mergedBatch = batch;
 			}
@@ -397,7 +397,7 @@ void D2DXContext::DrawBatches()
 
 	if (mergedBatch.IsValid())
 	{
-		_renderContext->Draw(mergedBatch);
+		_renderContext->Draw(mergedBatch, startVertexLocation);
 		++drawCalls;
 	}
 
@@ -413,9 +413,9 @@ void D2DXContext::OnBufferSwap()
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
 
-	_renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
+	auto startVertexLocation = _renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
 
-	DrawBatches();
+	DrawBatches(startVertexLocation);
 
 	_renderContext->Present();
 
