@@ -29,6 +29,7 @@
 #include <cassert>
 
 #include <windows.h>
+#include <windowsx.h>
 #include <lm.h>
 #include <CommCtrl.h>
 #include <combaseapi.h>

@@ -1072,6 +1072,28 @@ Offset D2DXContext::OnSetCursorPos(
 }
 
 _Use_decl_annotations_
+Offset D2DXContext::OnMouseMoveMessage(
+	Offset pos)
+{
+	auto currentScreenOpenMode = _gameHelper->ScreenOpenMode();
+
+	Size gameSize;
+	Rect renderRect;
+	Size desktopSize;
+	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
+
+	const bool isFullscreen = _options.screenMode == ScreenMode::FullscreenDefault;
+	const float scale = (float)renderRect.size.height / gameSize.height;
+	const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
+	const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
+
+	pos.x = (int32_t)(pos.x * scale + mouseOffsetX);
+	pos.y = (int32_t)(pos.y * scale);
+
+	return pos;
+}
+
+_Use_decl_annotations_
 void D2DXContext::SetCustomResolution(
 	Size size)
 {

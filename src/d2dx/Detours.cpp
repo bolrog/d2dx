@@ -135,9 +135,24 @@ SendMessageA_Hooked(
 {
     if (Msg == WM_MOUSEMOVE)
     {
-        /* The game tries to move the mouse pointer using a SendMessage call in some situations.
-           This screws up the cursor if windowscale != 1. So just drop the message. */
-        return 0;
+        auto win32InterceptionHandler = GetWin32InterceptionHandler();
+
+        if (!win32InterceptionHandler)
+        {
+            return 0;
+        }
+
+        auto x = GET_X_LPARAM(lParam);
+        auto y = GET_Y_LPARAM(lParam);
+
+        auto adjustedPos = win32InterceptionHandler->OnMouseMoveMessage({ x, y });
+
+        if (adjustedPos.x < 0)
+        {
+            return 0;
+        }
+
+        lParam = ((uint16_t)adjustedPos.y << 16) | ((uint16_t)adjustedPos.x & 0xFFFF);
     }
 
     return SendMessageA_Real(hWnd, Msg, wParam, lParam);

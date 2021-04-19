@@ -27,5 +27,8 @@ namespace d2dx
 	{
 		virtual Offset OnSetCursorPos(
 			_In_ Offset pos) = 0;
+
+		virtual Offset OnMouseMoveMessage(
+			_In_ Offset pos) = 0;
 	};
 }

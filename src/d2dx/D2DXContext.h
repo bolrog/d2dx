@@ -160,6 +160,8 @@ namespace d2dx
 		
 		virtual Offset OnSetCursorPos(Offset pos) override;
 
+		virtual Offset OnMouseMoveMessage(Offset pos) override;
+
 #pragma endregion IWin32InterceptionHandler
 
 	private:
