@@ -34,28 +34,39 @@ using namespace std;
 #define D2DX_GLIDE_ALPHA_BLEND(rgb_sf, rgb_df, alpha_sf, alpha_df) \
 		(uint16_t)(((rgb_sf & 0xF) << 12) | ((rgb_df & 0xF) << 8) | ((alpha_sf & 0xF) << 4) | (alpha_df & 0xF))
 
+static bool CheckOption(const char* commandLine, const Buffer<char>& cfgFile, const char* option)
+{
+	bool hasOption = strstr(commandLine, option) != nullptr || strstr(cfgFile.items, option) != nullptr;
+	if (hasOption)
+	{
+		ALWAYS_PRINT("Option: %s", option);
+	}
+	return hasOption;
+}
+
 static Options GetCommandLineOptions()
 {
 	Options options;
 
+	Buffer<char> cfgFile = ReadTextFile("d2dx.cfg");
 	const char* commandLine = GetCommandLineA();
-	bool windowed = strstr(commandLine, "-w") != nullptr;
-	options.noClipCursor = strstr(commandLine, "-dxnoclipcursor") != nullptr;
-	options.noFpsFix = strstr(commandLine, "-dxnofpsfix") != nullptr;
-	options.noResMod = strstr(commandLine, "-dxnoresmod") != nullptr;
-	options.noWide = strstr(commandLine, "-dxnowide") != nullptr;
-	options.noLogo = strstr(commandLine, "-dxnologo") != nullptr || strstr(commandLine, "-gxskiplogo") != nullptr;
-	options.noVSync = strstr(commandLine, "-dxnovsync") != nullptr;
-	options.noAA = strstr(commandLine, "-dxnoaa") != nullptr;
 
-	bool dxscale2 = strstr(commandLine, "-dxscale2") != nullptr || strstr(commandLine, "-gxscale2") != nullptr;
-	bool dxscale3 = strstr(commandLine, "-dxscale3") != nullptr || strstr(commandLine, "-gxscale3") != nullptr;
+	options.noClipCursor = CheckOption(commandLine, cfgFile, "-dxnoclipcursor");
+	options.noFpsFix = CheckOption(commandLine, cfgFile, "-dxnofpsfix");
+	options.noResMod = CheckOption(commandLine, cfgFile, "-dxnoresmod");
+	options.noWide = CheckOption(commandLine, cfgFile, "-dxnowide");
+	options.noLogo = CheckOption(commandLine, cfgFile, "-dxnologo");
+	options.noVSync = CheckOption(commandLine, cfgFile, "-dxnovsync");
+	options.noAA = CheckOption(commandLine, cfgFile, "-dxnoaa");
+
+	bool dxscale2 = CheckOption(commandLine, cfgFile, "-dxscale2");
+	bool dxscale3 = CheckOption(commandLine, cfgFile, "-dxscale3");
 	options.defaultZoomLevel =
 		dxscale3 ? 3 :
 		dxscale2 ? 2 :
 		1;
 
-	options.screenMode = windowed ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
+	options.screenMode = CheckOption(commandLine, cfgFile, "-w") ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
 
 	return options;
 }

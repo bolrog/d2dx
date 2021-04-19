@@ -126,3 +126,41 @@ void d2dx::AlwaysPrint(const char* s)
     QueueUserWorkItem(WriteToLogFileWorkItemFunc, _strdup(s), WT_EXECUTEDEFAULT);
 }
 
+_Use_decl_annotations_
+Buffer<char> d2dx::ReadTextFile(
+    const char* filename)
+{
+    FILE* cfgFile = nullptr;
+
+    errno_t err = fopen_s(&cfgFile, "d2dx.cfg", "r");
+
+    if (err < 0 || !cfgFile)
+    {
+        Buffer<char> str(1);
+        str.items[0] = 0;
+        return str;
+    }
+
+    fseek(cfgFile, 0, SEEK_END);
+
+    long size = ftell(cfgFile);
+
+    if (size <= 0)
+    {
+        Buffer<char> str(1);
+        str.items[0] = 0;
+        return str;
+    }
+
+    fseek(cfgFile, 0, SEEK_SET);
+
+    Buffer<char> str(size + 1);
+
+    fread_s(str.items, str.capacity, size, 1, cfgFile);
+    
+    str.items[size] = 0;
+
+    fclose(cfgFile);
+
+    return str;
+}

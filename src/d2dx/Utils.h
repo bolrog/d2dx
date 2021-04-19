@@ -18,6 +18,8 @@
 */
 #pragma once
 
+#include "Buffer.h"
+
 namespace d2dx
 {
 	int64_t TimeStart();
@@ -79,4 +81,7 @@ namespace d2dx
 	};
 
 	WindowsVersion GetWindowsVersion();
+
+	Buffer<char> ReadTextFile(
+		_In_z_ const char* filename);
 }
