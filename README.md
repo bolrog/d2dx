@@ -2,7 +2,7 @@
 
 D2DX is a project for running classic Diablo II/LoD on modern PCs, with enhancements that honor the original look and feel. Play in a window or in fullscreen, glitch-free, with (or without) enhancements like widescreen and anti-aliasing.
 
-Version 0.99.415
+Version 0.99.419
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
@@ -135,6 +135,12 @@ This project uses the following third party libraries:
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
 ## Release history
+
+### 0.99.419
+  - Fix issue where "tooltip" didn't pop up immediately after placing an item in the inventory.
+  - Add support for cfg file (named d2dx.cfg, should contain cmdline args including '-').
+  - Further limit where AA can possibly be applied (only on relevant edges in-game and exclude UI surfaces).
+  - Performance optimizations.
 
 ### 0.99.415
   - Add fps fix that greatly smoothes out frame pacing and mouse cursor movement. Can be disabled with -dxnofpsfix.
