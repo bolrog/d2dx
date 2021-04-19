@@ -218,8 +218,7 @@ namespace d2dx
 
 		uint32_t _lastScreenOpenMode;
 
-		int32_t _surfaceId;
-		int32_t _nextBatchId;
+		int32_t _nextSurfaceId;
 
 		Rect _previousDrawCallRect;
 		uint64_t _previousDrawCallTexture;
