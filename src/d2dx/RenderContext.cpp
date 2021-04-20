@@ -394,24 +394,8 @@ void RenderContext::Draw(
 	ID3D11ShaderResourceView* srvs[2] = { atlas->GetSrv(batch.GetTextureAtlas()), _paletteTextureSrv.Get() };
 	SetPSShaderResourceViews(srvs);
 
-	switch (batch.GetPrimitiveType())
-	{
-	case PrimitiveType::Triangles:
-	{
-		SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		_deviceContext->Draw(batch.GetVertexCount(), startVertexLocation + batch.GetStartVertex());
-		break;
-	}
-	case PrimitiveType::Lines:
-	{
-		SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-		_deviceContext->Draw(batch.GetVertexCount(), startVertexLocation + batch.GetStartVertex());
-		break;
-	}
-	default:
-		assert(false && "Unhandled primitive type.");
-		break;
-	}
+
+	_deviceContext->Draw(batch.GetVertexCount(), startVertexLocation + batch.GetStartVertex());
 }
 
 bool RenderContext::IsIntegerScale() const
@@ -424,11 +408,12 @@ bool RenderContext::IsIntegerScale() const
 
 void RenderContext::Present()
 {
+	_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	float color[] = { .0f, .0f, .0f, .0f };
 	ID3D11ShaderResourceView* srvs[2];
 
 	SetBlendState(AlphaBlend::Opaque);
-	SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	ID3D11RenderTargetView* rtvs[2] = { _gammaCorrectedTextureRtv.Get(), nullptr };
 	_deviceContext->OMSetRenderTargets(2, rtvs, nullptr);
@@ -687,7 +672,6 @@ void RenderContext::WriteToScreen(
 	ID3D11ShaderResourceView* srvs[2] = { _videoTextureSrv.Get(), nullptr };
 	SetPSShaderResourceViews(srvs);
 
-	SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	uint32_t startVertexLocation = _vbWriteIndex;
 	uint32_t vertexCount = UpdateVerticesWithFullScreenQuad(_gameSize, _videoTextureSize, { 0,0,_gameSize.width, _gameSize.height });

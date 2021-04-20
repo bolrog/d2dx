@@ -391,7 +391,6 @@ void D2DXContext::DrawBatches(uint32_t startVertexLocation)
 			if (_renderContext->GetTextureCache(batch) != _renderContext->GetTextureCache(mergedBatch) ||
 				(batch.GetTextureAtlas() != mergedBatch.GetTextureAtlas()) ||
 				batch.GetAlphaBlend() != mergedBatch.GetAlphaBlend() ||
-				batch.GetPrimitiveType() != mergedBatch.GetPrimitiveType() ||
 				((mergedBatch.GetVertexCount() + batch.GetVertexCount()) > 65535))
 			{
 				_renderContext->Draw(mergedBatch, startVertexLocation);
@@ -536,7 +535,6 @@ void D2DXContext::OnDrawLine(
 	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
 
 	Batch batch = _scratchBatch;
-	batch.SetPrimitiveType(PrimitiveType::Triangles);
 	batch.SetGameAddress(gameAddress);
 	batch.SetStartVertex(_vertexCount);
 	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
@@ -623,7 +621,6 @@ const Batch D2DXContext::PrepareBatchForSubmit(
 	uint32_t gameContext) const
 {
 	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
-	batch.SetPrimitiveType(PrimitiveType::Triangles);
 
 	auto tcl = _renderContext->UpdateTexture(batch, _tmuMemory.items, _tmuMemory.capacity);
 	batch.SetTextureAtlas(tcl._textureAtlas);
@@ -969,7 +966,6 @@ void D2DXContext::PrepareLogoTextureBatch()
 	_logoTextureBatch.SetTextureHash(hash);
 	_logoTextureBatch.SetTextureSize(128, 128);
 	_logoTextureBatch.SetTextureCategory(TextureCategory::TitleScreen);
-	_logoTextureBatch.SetPrimitiveType(PrimitiveType::Triangles);
 	_logoTextureBatch.SetAlphaBlend(AlphaBlend::SrcAlphaInvSrcAlpha);
 	_logoTextureBatch.SetIsChromaKeyEnabled(true);
 	_logoTextureBatch.SetRgbCombine(RgbCombine::ColorMultipliedByTexture);

@@ -74,18 +74,6 @@ namespace d2dx
 			_isChromaKeyEnabled_gameAddress_paletteIndex |= enable ? 0x80 : 0;
 		}
 
-		inline PrimitiveType GetPrimitiveType() const
-		{
-			return (PrimitiveType)((_textureCategory_primitiveType_combiners >> 2) & 0x03);
-		}
-
-		inline void SetPrimitiveType(PrimitiveType primitiveType)
-		{
-			assert((int32_t)primitiveType < 4);
-			_textureCategory_primitiveType_combiners &= ~0x0C;
-			_textureCategory_primitiveType_combiners |= ((uint8_t)primitiveType << 2) & 0x0C;
-		}
-
 		inline RgbCombine GetRgbCombine() const
 		{
 			return (RgbCombine)(_textureCategory_primitiveType_combiners & 0x01);
