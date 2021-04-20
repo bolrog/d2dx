@@ -90,6 +90,7 @@
     <ClCompile Include="BuiltinResMod.cpp" />
     <ClCompile Include="Metrics.cpp" />
     <ClCompile Include="D2DXContextFactory.cpp" />
+    <ClCompile Include="RenderContextResources.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -230,6 +231,7 @@
     <ClInclude Include="D2DXContextFactory.h" />
     <ClInclude Include="IBuiltinResMod.h" />
     <ClInclude Include="IWin32InterceptionHandler.h" />
+    <ClInclude Include="RenderContextResources.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

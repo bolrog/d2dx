@@ -158,17 +158,24 @@ namespace d2dx
 
 #pragma region IWin32InterceptionHandler
 		
-		virtual Offset OnSetCursorPos(Offset pos) override;
+		virtual Offset OnSetCursorPos(
+			_In_ Offset pos) override;
 
-		virtual Offset OnMouseMoveMessage(Offset pos) override;
+		virtual Offset OnMouseMoveMessage(
+			_In_ Offset pos) override;
 
 #pragma endregion IWin32InterceptionHandler
 
 	private:
 		void CheckMajorGameState();
+
 		void PrepareLogoTextureBatch();
+
 		void InsertLogoOnTitleScreen();
-		void DrawBatches(uint32_t startVertexLocation);
+
+		void DrawBatches(
+			_In_ uint32_t startVertexLocation);
+
 		void UpdateBatchSurfaceId(
 			_Inout_ Batch& batch);
 

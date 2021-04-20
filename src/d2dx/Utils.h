@@ -73,6 +73,8 @@ namespace d2dx
 	#define D2DX_RELEASE_CHECK(expr) release_check(expr, #expr)
 	#define D2DX_RELEASE_CHECK_HR(expr) release_check_hr(expr, #expr)
 
+	#define D2DX_RETURN_IF_FAILED(expr) { hr = (expr); if (FAILED(hr)) { return hr; } }
+
 	struct WindowsVersion 
 	{
 		uint32_t major;

@@ -21,6 +21,7 @@
 #include "IRenderContext.h"
 #include "ISimd.h"
 #include "ITextureCache.h"
+#include "RenderContextResources.h"
 #include "Types.h"
 
 namespace d2dx
@@ -111,32 +112,27 @@ namespace d2dx
 		void ClipCursor();
 		void UnclipCursor();
 
-
 	private:
-		void CreateRasterizerState();
-		void CreateVertexAndIndexBuffers();
-		void CreateShadersAndInputLayout();
-		void CreateConstantBuffers();
-		void CreateGammaTexture();
-		void CreatePaletteTexture();
-		void CreateVideoTextures();
-		void CreateGameTexture();
-		void CreateSamplerStates();
-		void CreateTextureCaches();
-		uint32_t DetermineMaxTextureArraySize();
 		bool IsIntegerScale() const;
 
 		void UpdateViewport(
 			_In_ Rect rect);
+
+		void SetRenderTargets(
+			_In_opt_ ID3D11RenderTargetView* rtv0,
+			_In_opt_ ID3D11RenderTargetView* rtv1);
+
+		void SetRasterizerState(
+			_In_ ID3D11RasterizerState* rasterizerState);
 
 		void SetBlendState(
 			_In_ AlphaBlend alphaBlend);
 
 		void AdjustWindowPlacement(
 			_In_ HWND hWnd,
-			bool centerOnCurrentPosition);
+			_In_ bool centerOnCurrentPosition);
 
-		uint32_t UpdateVerticesWithFullScreenQuad(
+		uint32_t UpdateVerticesWithFullScreenTriangle(
 			_In_ Size srcSize,
 			_In_ Size srcTextureSize,
 			_In_ Rect dstRect);
@@ -147,29 +143,25 @@ namespace d2dx
 
 		void ResizeBackbuffer();
 
-		void SetVS(
-			_In_ ID3D11VertexShader* vs);
-		void SetPS(
-			_In_ ID3D11PixelShader* ps);
+		void SetShaderState(
+			_In_opt_ ID3D11VertexShader* vs,
+			_In_opt_ ID3D11PixelShader* ps,
+			_In_opt_ ID3D11ShaderResourceView* psSrv0,
+			_In_opt_ ID3D11ShaderResourceView* psSrv1);
 
 		void SetBlendState(
 			_In_ ID3D11BlendState* blendState);
 
-		void SetPSShaderResourceViews(
-			_In_ ID3D11ShaderResourceView* srvs[2]);
-
-		void SetPrimitiveTopology(
-			D3D11_PRIMITIVE_TOPOLOGY pt);
-
-		struct Constants
+		struct Constants final
 		{
-			float screenSize[2];
-			float invScreenSize[2];
-			uint32_t flags[4];
+			float screenSize[2] = { 0.0f, 0.0f };
+			float invScreenSize[2] = { 0.0f, 0.0f };
+			uint32_t flags[4] = { 0, 0, 0, 0 };
 		};
 
 		static_assert(sizeof(Constants) == 8 * 4, "size of Constants");
 
+		uint32_t _frameCount;
 		Size _gameSize;
 		Rect _renderRect;
 		Size _windowSize;
@@ -180,6 +172,8 @@ namespace d2dx
 		uint32_t _vbCapacity;
 
 		Constants _constants;
+
+		ComPtr<RenderContextResources> _resources;
 
 		RenderContextSyncStrategy _syncStrategy;
 		RenderContextSwapStrategy _swapStrategy;
@@ -195,61 +189,25 @@ namespace d2dx
 		ComPtr<ID3D11DeviceContext1> _deviceContext1;
 		ComPtr<IDXGISwapChain1> _swapChain1;
 		ComPtr<IDXGISwapChain2> _swapChain2;
-		ComPtr<ID3D11RasterizerState> _rasterizerStateNoScissor;
-		ComPtr<ID3D11RasterizerState> _rasterizerState;
-		ComPtr<ID3D11InputLayout> _inputLayout;
-		ComPtr<ID3D11Buffer> _vb;
-		ComPtr<ID3D11Buffer> _cb;
-		ComPtr<ID3D11VertexShader> _gameVS;
-		ComPtr<ID3D11PixelShader> _gamePS;
-		ComPtr<ID3D11PixelShader> _videoPS;
-		ComPtr<ID3D11VertexShader> _displayVS;
-		ComPtr<ID3D11PixelShader> _displayIntegerScalePS;
-		ComPtr<ID3D11PixelShader> _displayNonintegerScalePS;
-		ComPtr<ID3D11PixelShader> _gammaPS;
-		ComPtr<ID3D11PixelShader> _resolveAAPS;
 		ComPtr<ID3D11RenderTargetView> _backbufferRtv;
-		ComPtr<ID3D11SamplerState> _samplerState[2];
-
-		Size _videoTextureSize;
-		ComPtr<ID3D11Texture2D> _videoTexture;
-		ComPtr<ID3D11ShaderResourceView> _videoTextureSrv;
-
-		ComPtr<ID3D11BlendState> _blendStates[(int32_t)AlphaBlend::Count];
-
-		ComPtr<ID3D11Texture1D> _gammaTexture;
-		ComPtr<ID3D11ShaderResourceView> _gammaTextureSrv;
-
-		ComPtr<ID3D11Texture1D> _paletteTexture;
-		ComPtr<ID3D11ShaderResourceView> _paletteTextureSrv;
-
-		Size _gameTextureSize;
-		ComPtr<ID3D11Texture2D> _gameTexture;
-		ComPtr<ID3D11RenderTargetView> _gameTextureRtv;
-		ComPtr<ID3D11ShaderResourceView> _gameTextureSrv;
-
-		ComPtr<ID3D11Texture2D> _gammaCorrectedTexture;
-		ComPtr<ID3D11RenderTargetView> _gammaCorrectedTextureRtv;
-		ComPtr<ID3D11ShaderResourceView> _gammaCorrectedTextureSrv;
-
-		ComPtr<ID3D11Texture2D> _surfaceIdTexture;
-		ComPtr<ID3D11RenderTargetView> _surfaceIdRtv;
-		ComPtr<ID3D11ShaderResourceView> _surfaceIdSrv;
-
-		ComPtr<ITextureCache> _textureCaches[6];
 
 		HWND _hWnd;
 		Options& _options;
 
-		struct
+		struct DeviceContextState final
 		{
-			ID3D11VertexShader* _lastVS;
-			ID3D11PixelShader* _lastPS;
-			ID3D11BlendState* _lastBlendState;
-			ID3D11ShaderResourceView* _psSrvs[2];
-			D3D11_PRIMITIVE_TOPOLOGY _primitiveTopology;
-			Constants _constants;
-		} _shadowState;
+			Constants constants;
+			ID3D11RasterizerState* rs = nullptr;
+			ID3D11VertexShader* vs = nullptr;
+			ID3D11PixelShader* ps = nullptr;
+			ID3D11BlendState* bs = nullptr;
+			ID3D11ShaderResourceView* psSrv0 = nullptr;
+			ID3D11ShaderResourceView* psSrv1 = nullptr;
+			ID3D11RenderTargetView* rtv0 = nullptr;
+			ID3D11RenderTargetView* rtv1 = nullptr;
+		};
+		
+		DeviceContextState _shadowState;
 
 		HANDLE _frameLatencyWaitableObject;
 		ComPtr<ISimd> _simd;

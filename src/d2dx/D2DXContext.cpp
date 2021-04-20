@@ -208,13 +208,6 @@ void D2DXContext::OnSstWinOpen(
 			windowSize * _options.defaultZoomLevel,
 			_options,
 			_simd.Get());
-
-		uint32_t whitePalette[256];
-		for (int32_t i = 0; i < 256; ++i)
-		{
-			whitePalette[i] = 0xFFFFFFFF;
-		}
-		_renderContext->SetPalette(D2DX_WHITE_PALETTE_INDEX, whitePalette);
 	}
 	else
 	{
@@ -365,7 +358,9 @@ void D2DXContext::CheckMajorGameState()
 	}
 }
 
-void D2DXContext::DrawBatches(uint32_t startVertexLocation)
+_Use_decl_annotations_
+void D2DXContext::DrawBatches(
+	uint32_t startVertexLocation)
 {
 	const int32_t batchCount = (int32_t)_batchCount;
 

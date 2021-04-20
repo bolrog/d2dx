@@ -41,18 +41,17 @@ namespace d2dx
 		virtual Size GetConfiguredGameSize() const override;
 		
 		virtual void SetIngameMousePos(
-			Offset pos) override;
+			_In_ Offset pos) override;
 
 		virtual GameAddress IdentifyGameAddress(
-			uint32_t returnAddress) const override;
+			_In_ uint32_t returnAddress) const override;
 
 		virtual TextureCategory GetTextureCategoryFromHash(
-			uint32_t textureHash) const override;
+			_In_ uint32_t textureHash) const override;
 		
-		_Use_decl_annotations_
 		virtual TextureCategory RefineTextureCategoryFromGameAddress(
-			TextureCategory previousCategory,
-			GameAddress gameAddress) const override;
+			_In_ TextureCategory previousCategory,
+			_In_ GameAddress gameAddress) const override;
 
 		virtual bool TryApplyFpsFix() override;
 

@@ -85,6 +85,7 @@ int32_t TextureCachePolicyBitPmru::Insert(
 {
 	if (_capacity == 0)
 	{
+		evicted = false;
 		return -1;
 	}
 

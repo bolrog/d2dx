@@ -89,7 +89,6 @@ uint32_t GameHelper::ScreenOpenMode() const
 	}
 }
 
-_Use_decl_annotations_
 Size GameHelper::GetConfiguredGameSize() const
 {
 	HKEY hKey;
@@ -240,7 +239,9 @@ static const uint32_t gameAddresses_114d[] =
 	0x0050c0de, /* DrawSomething2 */
 };
 
-GameAddress GameHelper::IdentifyGameAddress(uint32_t returnAddress) const
+_Use_decl_annotations_
+GameAddress GameHelper::IdentifyGameAddress(
+	uint32_t returnAddress) const
 {
 	const uint32_t* gameAddresses = nullptr;
 	uint32_t gameAddressCount = 0;
@@ -419,7 +420,9 @@ void GameHelper::InitializeTextureHashPrefixTable()
 	}
 }
 
-TextureCategory GameHelper::GetTextureCategoryFromHash(uint32_t textureHash) const
+_Use_decl_annotations_
+TextureCategory GameHelper::GetTextureCategoryFromHash(
+	uint32_t textureHash) const
 {
 	Buffer<uint32_t>& table = prefixTable[textureHash >> 24];
 
@@ -439,7 +442,10 @@ TextureCategory GameHelper::GetTextureCategoryFromHash(uint32_t textureHash) con
 	return TextureCategory::Unknown;
 }
 
-TextureCategory GameHelper::RefineTextureCategoryFromGameAddress(TextureCategory previousCategory, GameAddress gameAddress) const
+_Use_decl_annotations_
+TextureCategory GameHelper::RefineTextureCategoryFromGameAddress(
+	TextureCategory previousCategory,
+	GameAddress gameAddress) const
 {
 	switch (gameAddress)
 	{
