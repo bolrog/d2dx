@@ -55,15 +55,14 @@ namespace d2dxtests
 			Assert::AreEqual(0U, batch.GetTextureIndex());
 			Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 			Assert::AreEqual(0U, batch.GetHash());
-			Assert::AreEqual(2, batch.GetHeight());
+			Assert::AreEqual(2, batch.GetTextureHeight());
 			Assert::AreEqual(0, batch.GetPaletteIndex());
-			Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 			Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 			Assert::AreEqual(0, batch.GetStartVertex());
 			Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 			Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 			Assert::AreEqual(0U, batch.GetVertexCount());
-			Assert::AreEqual(2, batch.GetWidth());
+			Assert::AreEqual(2, batch.GetTextureWidth());
 		}
 
 		TEST_METHOD(SetAlphaBlend)
@@ -79,15 +78,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -104,15 +102,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -130,15 +127,14 @@ namespace d2dxtests
 				Assert::AreEqual(i & 511, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -155,15 +151,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual((GameAddress)i, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -180,15 +175,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual((uint32_t)i, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -207,15 +201,14 @@ namespace d2dxtests
 					Assert::AreEqual(0U, batch.GetTextureIndex());
 					Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 					Assert::AreEqual(0U, batch.GetHash());
-					Assert::AreEqual(1 << h, batch.GetHeight());
+					Assert::AreEqual(1 << h, batch.GetTextureHeight());
 					Assert::AreEqual(0, batch.GetPaletteIndex());
-					Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 					Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 					Assert::AreEqual(0, batch.GetStartVertex());
 					Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 					Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 					Assert::AreEqual(0U, batch.GetVertexCount());
-					Assert::AreEqual(1 << w, batch.GetWidth());
+					Assert::AreEqual(1 << w, batch.GetTextureWidth());
 				}
 			}
 		}
@@ -233,40 +226,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(i, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
-			}
-		}
-
-		TEST_METHOD(SetPrimitiveType)
-		{
-			Batch batch;
-			for (int32_t i = 0; i < (int32_t)PrimitiveType::Count; ++i)
-			{
-				batch.SetPrimitiveType((PrimitiveType)i);
-				Assert::IsFalse(batch.IsValid());
-				Assert::AreEqual(AlphaBlend::Opaque, batch.GetAlphaBlend());
-				Assert::AreEqual(AlphaCombine::One, batch.GetAlphaCombine());
-				Assert::AreEqual(0U, batch.GetTextureAtlas());
-				Assert::AreEqual(0U, batch.GetTextureIndex());
-				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
-				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual((PrimitiveType)i, batch.GetPrimitiveType());
-				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
-				Assert::AreEqual(0, batch.GetStartVertex());
-				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
-				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
-				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -283,15 +250,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual((RgbCombine)i, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -308,15 +274,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(i, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -333,15 +298,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual((TextureCategory)i, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -358,15 +322,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(i, batch.GetTextureStartAddress());
 				Assert::AreEqual(0U, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 
@@ -383,15 +346,14 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
 				Assert::AreEqual(0U, batch.GetHash());
-				Assert::AreEqual(2, batch.GetHeight());
+				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
-				Assert::AreEqual(PrimitiveType::Points, batch.GetPrimitiveType());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
 				Assert::AreEqual(0, batch.GetStartVertex());
 				Assert::AreEqual(TextureCategory::Unknown, batch.GetTextureCategory());
 				Assert::AreEqual(-D2DX_TMU_ADDRESS_ALIGNMENT, batch.GetTextureStartAddress());
 				Assert::AreEqual(i, batch.GetVertexCount());
-				Assert::AreEqual(2, batch.GetWidth());
+				Assert::AreEqual(2, batch.GetTextureWidth());
 			}
 		}
 	};

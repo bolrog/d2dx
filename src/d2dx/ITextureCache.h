@@ -31,6 +31,8 @@ namespace d2dx
 		int16_t _textureIndex;
 	};
 
+	static_assert(sizeof(TextureCacheLocation) == 4, "sizeof(TextureCacheLocation) == 4");
+
 	MIDL_INTERFACE("64DBFE90-2B5D-4E58-AFD1-6E876928B81F")
 		ITextureCache abstract : public IUnknown
 	{

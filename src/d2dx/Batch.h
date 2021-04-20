@@ -98,12 +98,12 @@ namespace d2dx
 			_textureCategory_primitiveType_combiners |= ((uint8_t)alphaCombine << 1) & 0x02;
 		}
 
-		inline int32_t GetWidth() const
+		inline int32_t GetTextureWidth() const
 		{
 			return 1 << (((_textureHeight_textureWidth_alphaBlend >> 2) & 7) + 1);
 		}
 
-		inline int32_t GetHeight() const
+		inline int32_t GetTextureHeight() const
 		{
 			return 1 << (((_textureHeight_textureWidth_alphaBlend >> 5) & 7) + 1);
 		}

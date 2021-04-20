@@ -588,7 +588,7 @@ Vertex D2DXContext::ReadVertex(
 	int32_t surfaceId)
 {
 	uint32_t stShift = 0;
-	_BitScanReverse((DWORD*)&stShift, max(batch.GetWidth(), batch.GetHeight()));
+	_BitScanReverse((DWORD*)&stShift, max(batch.GetTextureWidth(), batch.GetTextureHeight()));
 	stShift = 8 - stShift;
 
 	const int32_t xyOffset = (vertexLayout >> 16) & 0xFF;
@@ -681,7 +681,7 @@ void D2DXContext::UpdateBatchSurfaceId(
 		{
 			if (_previousDrawCallTexture == drawCallTexture ||
 				(
-					(batch.GetWidth() == 32 && batch.GetHeight() == 32) &&
+					(batch.GetTextureWidth() == 32 && batch.GetTextureHeight() == 32) &&
 					(
 						/* 32x32 wall block drawn to the left of the previous one. */
 						(maxx == _previousDrawCallRect.offset.x && miny == _previousDrawCallRect.offset.y) ||
@@ -973,7 +973,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 	_logoTextureBatch.SetPaletteIndex(D2DX_LOGO_PALETTE_INDEX);
 	_logoTextureBatch.SetVertexCount(6);
 
-	memset(data, 0, _logoTextureBatch.GetWidth() * _logoTextureBatch.GetHeight());
+	memset(data, 0, _logoTextureBatch.GetTextureWidth() * _logoTextureBatch.GetTextureHeight());
 
 	for (int32_t y = 0; y < 41; ++y)
 	{
@@ -1006,10 +1006,10 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	const int32_t y = gameSize.height - 50 - 16;
 	const uint32_t color = 0xFFFFa090;
 
-	Vertex vertex0(x, y, 0, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);
-	Vertex vertex1(x + 80, y, 80, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);
-	Vertex vertex2(x + 80, y + 41, 80, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);
-	Vertex vertex3(x, y + 41, 0, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, 16383);
+	Vertex vertex0(x, y, 0, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex vertex1(x + 80, y, 80, 0, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex vertex2(x + 80, y + 41, 80, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex vertex3(x, y + 41, 0, 41, color, true, _logoTextureBatch.GetTextureIndex(), D2DX_LOGO_PALETTE_INDEX, D2DX_SURFACE_ID_USER_INTERFACE);
 
 	assert((_vertexCount + 6) < _vertices.capacity);
 	_vertices.items[_vertexCount++] = vertex0;

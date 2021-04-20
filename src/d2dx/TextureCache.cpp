@@ -113,28 +113,28 @@ TextureCacheLocation TextureCache::InsertTexture(
 	const uint8_t* tmuData,
 	uint32_t tmuDataSize)
 {
-	assert(batch.IsValid() && batch.GetWidth() > 0 && batch.GetHeight() > 0);
+	assert(batch.IsValid() && batch.GetTextureWidth() > 0 && batch.GetTextureHeight() > 0);
 
 	bool evicted = false;
 	int32_t replacementIndex = _policy.Insert(contentKey, evicted);
 
 	if (evicted)
 	{
-		DEBUG_PRINT("Evicted %ix%i texture %i from cache.", batch.GetWidth(), batch.GetHeight(), replacementIndex);
+		DEBUG_PRINT("Evicted %ix%i texture %i from cache.", batch.GetTextureWidth(), batch.GetTextureHeight(), replacementIndex);
 	}
 
 #ifndef D2DX_UNITTEST
 	CD3D11_BOX box;
 	box.left = 0;
 	box.top = 0;
-	box.right = batch.GetWidth();
-	box.bottom = batch.GetHeight();
+	box.right = batch.GetTextureWidth();
+	box.bottom = batch.GetTextureHeight();
 	box.front = 0;
 	box.back = 1;
 
 	const uint8_t* pData = tmuData + batch.GetTextureStartAddress();
 
-	_deviceContext->UpdateSubresource(_textures[replacementIndex / _texturesPerAtlas].Get(), replacementIndex & (_texturesPerAtlas - 1), &box, pData, batch.GetWidth(), 0);
+	_deviceContext->UpdateSubresource(_textures[replacementIndex / _texturesPerAtlas].Get(), replacementIndex & (_texturesPerAtlas - 1), &box, pData, batch.GetTextureWidth(), 0);
 #endif
 
 	return { (int16_t)(replacementIndex / _texturesPerAtlas), (int16_t)(replacementIndex & (_texturesPerAtlas - 1)) };
