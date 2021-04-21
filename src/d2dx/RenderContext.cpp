@@ -103,12 +103,12 @@ RenderContext::RenderContext(
 		{
 			_syncStrategy = RenderContextSyncStrategy::AllowTearing;
 			_swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-			ALWAYS_PRINT("Using 'AllowTearing' sync strategy.")
+			D2DX_LOG("Using 'AllowTearing' sync strategy.")
 		}
 		else
 		{
 			_syncStrategy = RenderContextSyncStrategy::Interval0;
-			ALWAYS_PRINT("Using 'Interval0' sync strategy.")
+			D2DX_LOG("Using 'Interval0' sync strategy.")
 		}
 	}
 	else
@@ -117,24 +117,24 @@ RenderContext::RenderContext(
 		{
 			_syncStrategy = RenderContextSyncStrategy::FrameLatencyWaitableObject;
 			_swapChainCreateFlags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-			ALWAYS_PRINT("Using 'FrameLatencyWaitableObject' sync strategy.")
+			D2DX_LOG("Using 'FrameLatencyWaitableObject' sync strategy.")
 		}
 		else
 		{
 			_syncStrategy = RenderContextSyncStrategy::Interval1;
-			ALWAYS_PRINT("Using 'Interval1' sync strategy.")
+			D2DX_LOG("Using 'Interval1' sync strategy.")
 		}
 	}
 
 	if (GetWindowsVersion().major >= 10)
 	{
 		_swapStrategy = RenderContextSwapStrategy::FlipDiscard;
-		ALWAYS_PRINT("Using 'FlipDiscard' swap strategy.")
+		D2DX_LOG("Using 'FlipDiscard' swap strategy.")
 	}
 	else
 	{
 		_swapStrategy = RenderContextSwapStrategy::Discard;
-		ALWAYS_PRINT("Using 'Discard' swap strategy.")
+		D2DX_LOG("Using 'Discard' swap strategy.")
 	}
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
@@ -165,7 +165,7 @@ RenderContext::RenderContext(
 	D2DX_CHECK_HR(
 		D3D11CreateDeviceAndSwapChain(
 			NULL,
-			D3D_DRIVER_TYPE_WARP,
+			D3D_DRIVER_TYPE_HARDWARE,
 			NULL,
 			flags,
 			requestedFeatureLevels,
@@ -177,7 +177,7 @@ RenderContext::RenderContext(
 			&_featureLevel,
 			&_deviceContext));
 
-	ALWAYS_PRINT("Created device supports %s.",
+	D2DX_LOG("Created device supports %s.",
 		_featureLevel == D3D_FEATURE_LEVEL_11_1 ? "D3D_FEATURE_LEVEL_11_1" :
 		_featureLevel == D3D_FEATURE_LEVEL_11_0 ? "D3D_FEATURE_LEVEL_11_0" :
 		_featureLevel == D3D_FEATURE_LEVEL_10_1 ? "D3D_FEATURE_LEVEL_10_1" : "unknown");
@@ -198,11 +198,11 @@ RenderContext::RenderContext(
 	if (_swapChain2)
 	{
 		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::SetSourceSize;
-		ALWAYS_PRINT("Using 'SetSourceSize' backbuffer sizing strategy.");
+		D2DX_LOG("Using 'SetSourceSize' backbuffer sizing strategy.");
 
 		if (!_options.noVSync && _frameLatencyWaitableObjectSupported)
 		{
-			ALWAYS_PRINT("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
+			D2DX_LOG("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
 			_frameLatencyWaitableObject = _swapChain2->GetFrameLatencyWaitableObject();
 		}
 	}
@@ -210,16 +210,16 @@ RenderContext::RenderContext(
 #endif
 	{
 		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::ResizeBuffers;
-		ALWAYS_PRINT("Using 'ResizeBuffers' backbuffer sizing strategy.")
+		D2DX_LOG("Using 'ResizeBuffers' backbuffer sizing strategy.")
 	}
 
 	if (SUCCEEDED(_deviceContext->QueryInterface(IID_PPV_ARGS(&_deviceContext1))))
 	{
-		ALWAYS_PRINT("Device context supports ID3D11DeviceContext1. Will use this to discard resources and views.");
+		D2DX_LOG("Device context supports ID3D11DeviceContext1. Will use this to discard resources and views.");
 	}
 	else
 	{
-		ALWAYS_PRINT("Device context does not support ID3D11DeviceContext1.");
+		D2DX_LOG("Device context does not support ID3D11DeviceContext1.");
 	}
 
 	if (_syncStrategy == RenderContextSyncStrategy::FrameLatencyWaitableObject)
@@ -227,7 +227,7 @@ RenderContext::RenderContext(
 		assert(_swapChain2);
 		if (_swapChain2)
 		{
-			ALWAYS_PRINT("Setting maximum frame latency to %i.", MAX_FRAME_LATENCY);
+			D2DX_LOG("Setting maximum frame latency to %i.", MAX_FRAME_LATENCY);
 			D2DX_CHECK_HR(
 				_swapChain2->SetMaximumFrameLatency(MAX_FRAME_LATENCY));
 		}
@@ -237,7 +237,7 @@ RenderContext::RenderContext(
 		ComPtr<IDXGIDevice1> dxgiDevice1;
 		if (SUCCEEDED(_swapChain1->GetDevice(IID_PPV_ARGS(&dxgiDevice1))))
 		{
-			ALWAYS_PRINT("Setting maximum frame latency to %i.", MAX_FRAME_LATENCY);
+			D2DX_LOG("Setting maximum frame latency to %i.", MAX_FRAME_LATENCY);
 			D2DX_CHECK_HR(
 				dxgiDevice1->SetMaximumFrameLatency(MAX_FRAME_LATENCY));
 		}
@@ -823,10 +823,15 @@ void RenderContext::AdjustWindowPlacement(
 		(int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
 	SetWindowTextA(hWnd, newWindowText);
 
-	ALWAYS_PRINT("Desktop size %ix%i", _desktopSize.width, _desktopSize.height);
-	ALWAYS_PRINT("Window size %ix%i", _windowSize.width, _windowSize.height);
-	ALWAYS_PRINT("Game size %ix%i", _gameSize.width, _gameSize.height);
-	ALWAYS_PRINT("Render size %ix%i", _renderRect.size.width, _renderRect.size.height);
+	D2DX_LOG("Sizes: desktop %ix%i, window %ix%i, game %ix%i, render %ix%i", 
+		_desktopSize.width,
+		_desktopSize.height,
+		_windowSize.width,
+		_windowSize.height,
+		_gameSize.width,
+		_gameSize.height,
+		_renderRect.size.width,
+		_renderRect.size.height);
 
 	if (_resources)
 	{

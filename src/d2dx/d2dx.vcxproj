@@ -160,6 +160,7 @@
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\TemplateIncludes.h" />
     <ClInclude Include="BuiltinResMod.h" />
+    <ClInclude Include="CompatibilityModeDisabler.h" />
     <ClInclude Include="D2DXContextFactory.h" />
     <ClInclude Include="Detours.h" />
     <ClInclude Include="Buffer.h" />
@@ -254,6 +255,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="BuiltinResMod.cpp" />
+    <ClCompile Include="CompatibilityModeDisabler.cpp" />
     <ClCompile Include="D2DXContextFactory.cpp" />
     <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />

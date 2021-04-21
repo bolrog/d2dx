@@ -36,9 +36,9 @@ namespace d2dx
 
 
 #ifdef NDEBUG
-#define DEBUG_PRINT(fmt, ...)
+#define D2DX_DEBUG_LOG(fmt, ...)
 #else
-#define DEBUG_PRINT(fmt, ...) \
+#define D2DX_DEBUG_LOG(fmt, ...) \
 	{ \
 		static char ss[256]; \
 		sprintf_s(ss, fmt "\n", __VA_ARGS__); \
@@ -46,7 +46,7 @@ namespace d2dx
 	}
 #endif
 
-#define ALWAYS_PRINT(fmt, ...) \
+#define D2DX_LOG(fmt, ...) \
 	{ \
 		static char ssss[256]; \
 		sprintf_s(ssss, fmt "\n", __VA_ARGS__); \
@@ -81,6 +81,8 @@ namespace d2dx
 	};
 
 	WindowsVersion GetWindowsVersion();
+
+	WindowsVersion GetActualWindowsVersion();
 
 	Buffer<char> ReadTextFile(
 		_In_z_ const char* filename);

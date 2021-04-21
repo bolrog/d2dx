@@ -91,6 +91,7 @@
     <ClCompile Include="Metrics.cpp" />
     <ClCompile Include="D2DXContextFactory.cpp" />
     <ClCompile Include="RenderContextResources.cpp" />
+    <ClCompile Include="CompatibilityModeDisabler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -232,6 +233,7 @@
     <ClInclude Include="IBuiltinResMod.h" />
     <ClInclude Include="IWin32InterceptionHandler.h" />
     <ClInclude Include="RenderContextResources.h" />
+    <ClInclude Include="CompatibilityModeDisabler.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

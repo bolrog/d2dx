@@ -16,36 +16,24 @@
 	You should have received a copy of the GNU General Public License
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include "pch.h"
-#include "Detours.h"
+#pragma once
 
-#pragma comment(lib, "comctl32.lib")
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "d3dcompiler.lib")
-
-using namespace d2dx;
-using namespace std;
-
-BOOL APIENTRY DllMain(
-	_In_ HMODULE hModule,
-	_In_ DWORD  ul_reason_for_call,
-	_In_ LPVOID lpReserved
-)
+namespace d2dx
 {
-	switch (ul_reason_for_call)
+	class CompatibilityModeDisabler final
 	{
-	case DLL_PROCESS_ATTACH:
-		SetProcessDPIAware();
-		AttachDetours();
-		break;
-	case DLL_THREAD_ATTACH:
-		break;
-	case DLL_THREAD_DETACH:
-		break;
-	case DLL_PROCESS_DETACH:
-		DetachDetours();
-		break;
-	}
-	return TRUE;
+	public:
+		CompatibilityModeDisabler();
+		~CompatibilityModeDisabler() noexcept {}
+
+		void DisableCompatibilityMode();
+
+	private:
+		bool FixCompatibilityMode(
+			_In_ HKEY hRootKey,
+			_In_z_ const wchar_t* filename);
+
+		bool HasOsCompatibilityOption(
+			_In_z_ const wchar_t* options);
+	};
 }

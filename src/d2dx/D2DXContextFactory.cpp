@@ -21,6 +21,7 @@
 #include "GameHelper.h"
 #include "SimdSse2.h"
 #include "D2DXContext.h"
+#include "CompatibilityModeDisabler.h"
 
 using namespace d2dx;
 
@@ -35,7 +36,8 @@ ID2DXContext* D2DXContextFactory::GetInstance()
 	{
 		auto gameHelper = std::make_shared<GameHelper>();
 		auto simd = std::make_shared<SimdSse2>();
-		instance = std::make_shared<D2DXContext>(gameHelper, simd);
+		auto compatibilityModeDisabler = std::make_shared<CompatibilityModeDisabler>();
+		instance = std::make_shared<D2DXContext>(gameHelper, simd, compatibilityModeDisabler);
 	}
 
 	return instance.get();

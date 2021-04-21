@@ -175,7 +175,7 @@ void RenderContextResources::CreateTextureCaches(
 	static const uint32_t capacities[6] = { 2048, 2048, 2048, 2048, 2048, 2048 };
 
 	const uint32_t texturesPerAtlas = DetermineMaxTextureArraySize(device);
-	ALWAYS_PRINT("The device supports %u textures per atlas.", texturesPerAtlas);
+	D2DX_LOG("The device supports %u textures per atlas.", texturesPerAtlas);
 
 	uint32_t totalSize = 0;
 	for (int32_t i = 0; i < ARRAYSIZE(_textureCaches); ++i)
@@ -184,12 +184,12 @@ void RenderContextResources::CreateTextureCaches(
 
 		_textureCaches[i] = std::make_unique<TextureCache>(width, width, capacities[i], texturesPerAtlas, device, simd);
 
-		DEBUG_PRINT("Creating texture cache for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
+		D2DX_DEBUG_LOG("Creating texture cache for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
 
 		totalSize += _textureCaches[i]->GetMemoryFootprint();
 	}
 
-	ALWAYS_PRINT("Total size of texture caches is %u kB.", totalSize / 1024);
+	D2DX_LOG("Total size of texture caches is %u kB.", totalSize / 1024);
 }
 
 _Use_decl_annotations_
@@ -259,12 +259,12 @@ void RenderContextResources::CreateFramebuffers(
 		(formatSupport & D3D11_FORMAT_SUPPORT_SHADER_LOAD) &&
 		(formatSupport & D3D11_FORMAT_SUPPORT_RENDER_TARGET))
 	{
-		ALWAYS_PRINT("Using DXGI_FORMAT_R10G10B10A2_UNORM for the render buffer.");
+		D2DX_LOG("Using DXGI_FORMAT_R10G10B10A2_UNORM for the render buffer.");
 		renderTargetFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
 	}
 	else
 	{
-		ALWAYS_PRINT("Using DXGI_FORMAT_R8G8B8A8_UNORM for the render buffer.");
+		D2DX_LOG("Using DXGI_FORMAT_R8G8B8A8_UNORM for the render buffer.");
 		hr = S_OK;
 	}
 

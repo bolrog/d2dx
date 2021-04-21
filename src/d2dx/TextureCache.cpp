@@ -103,7 +103,7 @@ TextureCacheLocation TextureCache::InsertTexture(
 
 	if (evicted)
 	{
-		DEBUG_PRINT("Evicted %ix%i texture %i from cache.", batch.GetTextureWidth(), batch.GetTextureHeight(), replacementIndex);
+		D2DX_DEBUG_LOG("Evicted %ix%i texture %i from cache.", batch.GetTextureWidth(), batch.GetTextureHeight(), replacementIndex);
 	}
 
 #ifndef D2DX_UNITTEST

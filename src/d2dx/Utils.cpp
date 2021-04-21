@@ -19,6 +19,8 @@
 #include "pch.h"
 #include "Utils.h"
 
+#pragma comment(lib, "Netapi32.lib")
+
 using namespace d2dx;
 
 static bool _hasSetFreq = false;
@@ -86,6 +88,22 @@ WindowsVersion d2dx::GetWindowsVersion()
     }
     WindowsVersion wv = { 0,0,0 };
     return wv;
+}
+
+WindowsVersion d2dx::GetActualWindowsVersion()
+{
+    LPSERVER_INFO_101 bufptr = nullptr;
+
+    DWORD result = NetServerGetInfo(nullptr, 101, (LPBYTE*)&bufptr);
+
+    if (!bufptr)
+    {
+        return { 0,0,0 };
+    }
+
+    WindowsVersion windowsVersion{ bufptr->sv101_version_major, bufptr->sv101_version_minor, 0 };
+    NetApiBufferFree(bufptr);
+    return windowsVersion;
 }
 
 static bool logFileOpened = false;
@@ -200,7 +218,7 @@ void d2dx::detail::FatalException() noexcept
     }
     catch (const std::exception& e)
     {
-        ALWAYS_PRINT("%s", e.what());
+        D2DX_LOG("%s", e.what());
         MessageBoxA(nullptr, e.what(), "D2DX Fatal Error", MB_OK | MB_ICONSTOP);
         TerminateProcess(GetCurrentProcess(), -1);
     }
@@ -210,7 +228,7 @@ _Use_decl_annotations_
 void d2dx::detail::FatalError(
     const char* msg) noexcept
 {
-    ALWAYS_PRINT("%s", msg);
+    D2DX_LOG("%s", msg);
     MessageBoxA(nullptr, msg, "D2DX Fatal Error", MB_OK | MB_ICONSTOP);
     TerminateProcess(GetCurrentProcess(), -1);
 }

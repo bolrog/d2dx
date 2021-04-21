@@ -26,6 +26,7 @@
 #include "IGlide3x.h"
 #include "IRenderContext.h"
 #include "IWin32InterceptionHandler.h"
+#include "CompatibilityModeDisabler.h"
 
 namespace d2dx
 {
@@ -36,9 +37,10 @@ namespace d2dx
 	public:
 		D2DXContext(
 			_In_ const std::shared_ptr<IGameHelper>& gameHelper,
-			_In_ const std::shared_ptr<ISimd>& simd);
+			_In_ const std::shared_ptr<ISimd>& simd,
+			_In_ const std::shared_ptr<CompatibilityModeDisabler>& compatibilityModeDisabler);
 		
-		virtual ~D2DXContext();
+		virtual ~D2DXContext() noexcept {}
 
 #pragma region IGlide3x
 
@@ -213,6 +215,7 @@ namespace d2dx
 		std::shared_ptr<IGameHelper> _gameHelper;
 		std::shared_ptr<ISimd> _simd;
 		std::unique_ptr<IBuiltinResMod> _builtinResMod;
+		std::shared_ptr<CompatibilityModeDisabler> _compatibilityModeDisabler;
 
 		Options _options;
 		Batch _logoTextureBatch;

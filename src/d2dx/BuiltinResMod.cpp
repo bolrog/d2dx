@@ -41,10 +41,10 @@ BuiltinResMod::BuiltinResMod(
 #ifndef D2DX_UNITTEST
     if (IsCompatible(gameHelper.get()))
     {
-        ALWAYS_PRINT("Writing MPQ.");
+        D2DX_LOG("Writing MPQ.");
         EnsureMpqExists(hModule);
 
-        ALWAYS_PRINT("Initializing built-in resolution mod.");
+        D2DX_LOG("Initializing built-in resolution mod.");
         SDHD_Initialize();
 
         _isActive = true;
@@ -74,13 +74,13 @@ bool BuiltinResMod::IsCompatible(
         gameVersion != d2dx::GameVersion::Lod113c &&
         gameVersion != d2dx::GameVersion::Lod113d)
     {
-        ALWAYS_PRINT("Unsupported game version, won't use built-in resolution mod.");
+        D2DX_LOG("Unsupported game version, won't use built-in resolution mod.");
         return false;
     }
 
     if (LoadLibraryA("D2Sigma.dll"))
     {
-        ALWAYS_PRINT("Detected Median XL, won't use built-in resolution mod.");
+        D2DX_LOG("Detected Median XL, won't use built-in resolution mod.");
         return false;
     }
 

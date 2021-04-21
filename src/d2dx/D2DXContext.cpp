@@ -39,7 +39,7 @@ static bool CheckOption(const char* commandLine, const Buffer<char>& cfgFile, co
 	bool hasOption = strstr(commandLine, option) != nullptr || strstr(cfgFile.items, option) != nullptr;
 	if (hasOption)
 	{
-		ALWAYS_PRINT("Option: %s", option);
+		D2DX_LOG("Option: %s", option);
 	}
 	return hasOption;
 }
@@ -58,6 +58,7 @@ static Options GetCommandLineOptions()
 	options.noLogo = CheckOption(commandLine, cfgFile, "-dxnologo");
 	options.noVSync = CheckOption(commandLine, cfgFile, "-dxnovsync");
 	options.noAA = CheckOption(commandLine, cfgFile, "-dxnoaa");
+	options.noCompatModeFix = CheckOption(commandLine, cfgFile, "-dxnocompatmodefix");
 
 	bool dxscale2 = CheckOption(commandLine, cfgFile, "-dxscale2");
 	bool dxscale3 = CheckOption(commandLine, cfgFile, "-dxscale3");
@@ -74,7 +75,11 @@ static Options GetCommandLineOptions()
 _Use_decl_annotations_
 D2DXContext::D2DXContext(
 	const std::shared_ptr<IGameHelper>& gameHelper,
-	const std::shared_ptr<ISimd>& simd) :
+	const std::shared_ptr<ISimd>& simd,
+	const std::shared_ptr<CompatibilityModeDisabler>& compatibilityModeDisabler) :
+	_gameHelper{ gameHelper },
+	_simd{ simd },
+	_compatibilityModeDisabler{ compatibilityModeDisabler },
 	_frame(0),
 	_majorGameState(MajorGameState::Unknown),
 	_vertexLayout(0xFF),
@@ -89,13 +94,21 @@ D2DXContext::D2DXContext(
 	_vertices(D2DX_MAX_VERTICES_PER_FRAME),
 	_customGameSize{ 0,0 },
 	_suggestedGameSize{ 0, 0 },
-	_gameHelper{ gameHelper },
-	_simd{ simd },
 	_options{ GetCommandLineOptions() },
 	_lastScreenOpenMode{ 0 },
 	_nextSurfaceId{ 0 }
 {
 	memset(_paletteKeys.items, 0, sizeof(uint32_t)* _paletteKeys.capacity);
+
+	if (!_options.noCompatModeFix)
+	{
+		_compatibilityModeDisabler->DisableCompatibilityMode();
+	}
+
+	auto apparentWindowsVersion = GetWindowsVersion();
+	auto actualWindowsVersion = GetActualWindowsVersion();
+	D2DX_LOG("Apparent Windows version: %u.%u (build %u).", apparentWindowsVersion.major, apparentWindowsVersion.minor, apparentWindowsVersion.build);
+	D2DX_LOG("Actual Windows version: %u.%u (build %u).", actualWindowsVersion.major, actualWindowsVersion.minor, actualWindowsVersion.build);
 
 	if (!_options.noResMod)
 	{
@@ -117,10 +130,6 @@ D2DXContext::D2DXContext(
 	{
 		_gameHelper->TryApplyFpsFix();
 	}
-}
-
-D2DXContext::~D2DXContext()
-{
 }
 
 _Use_decl_annotations_
@@ -380,7 +389,7 @@ void D2DXContext::DrawBatches(
 
 		if (!batch.IsValid())
 		{
-			DEBUG_PRINT("Skipping batch %i, it is invalid.", i);
+			D2DX_DEBUG_LOG("Skipping batch %i, it is invalid.", i);
 			continue;
 		}
 
@@ -415,7 +424,7 @@ void D2DXContext::DrawBatches(
 
 	if (!(_frame & 31))
 	{
-		DEBUG_PRINT("Nr draw calls: %i", drawCalls);
+		D2DX_DEBUG_LOG("Nr draw calls: %i", drawCalls);
 	}
 }
 
@@ -892,7 +901,7 @@ void D2DXContext::OnTexDownloadTable(
 	}
 
 	assert(false && "Too many palettes.");
-	ALWAYS_PRINT("Too many palettes.");
+	D2DX_LOG("Too many palettes.");
 }
 
 _Use_decl_annotations_
@@ -1104,7 +1113,7 @@ Size D2DXContext::GetSuggestedCustomResolution()
 	{
 		Size desktopSize{ GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
 		_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, !_options.noWide);
-		ALWAYS_PRINT("Suggesting game size %ix%i.", _suggestedGameSize.width, _suggestedGameSize.height);
+		D2DX_LOG("Suggesting game size %ix%i.", _suggestedGameSize.width, _suggestedGameSize.height);
 	}
 
 	return _suggestedGameSize;

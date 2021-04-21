@@ -475,7 +475,7 @@ GameVersion GameHelper::GetGameVersion()
 
 	if (!GetFileVersionInfoA("game.exe", NULL, verData.capacity, verData.items))
 	{
-		ALWAYS_PRINT("Failed to get file version for game.exe.");
+		D2DX_LOG("Failed to get file version for game.exe.");
 		return GameVersion::Unsupported;
 	}
 
@@ -485,14 +485,14 @@ GameVersion GameHelper::GetGameVersion()
 
 	if (!(success && size > 0))
 	{
-		ALWAYS_PRINT("Failed to query version info for game.exe.");
+		D2DX_LOG("Failed to query version info for game.exe.");
 		return GameVersion::Unsupported;
 	}
 
 	VS_FIXEDFILEINFO* vsFixedFileInfo = (VS_FIXEDFILEINFO*)lpBuffer;
 	if (vsFixedFileInfo->dwSignature != 0xfeef04bd)
 	{
-		ALWAYS_PRINT("Unexpected signature in version info for game.exe.");
+		D2DX_LOG("Unexpected signature in version info for game.exe.");
 		return GameVersion::Unsupported;
 	}
 
@@ -535,7 +535,7 @@ GameVersion GameHelper::GetGameVersion()
 		MessageBoxA(NULL, "This version of Diablo II is not supported by D2DX. Please upgrade or downgrade to a supported version.", "D2DX", MB_OK);
 	}
 
-	ALWAYS_PRINT("Game version: %d.%d.%d.%d (%s)\n", a, b, c, d, version == GameVersion::Unsupported ? "unsupported" : "supported");
+	D2DX_LOG("Game version: %d.%d.%d.%d (%s)\n", a, b, c, d, version == GameVersion::Unsupported ? "unsupported" : "supported");
 
 	return version;
 }
@@ -631,7 +631,7 @@ bool GameHelper::TryApplyFpsFix()
 
 	if (patchOffset0 == 0)
 	{
-		ALWAYS_PRINT("Fps fix aborted: unsupported game version.");
+		D2DX_LOG("Fps fix aborted: unsupported game version.");
 		return false;
 	}
 
@@ -639,7 +639,7 @@ bool GameHelper::TryApplyFpsFix()
 
 	if (probe != expectedProbe)
 	{
-		ALWAYS_PRINT("Fps fix aborted: location appears to be patched already.");
+		D2DX_LOG("Fps fix aborted: location appears to be patched already.");
 		return false;
 	}
 
@@ -650,6 +650,6 @@ bool GameHelper::TryApplyFpsFix()
 		WriteU32(hModule, patchOffset1, 0x90909090);
 	}
 
-	ALWAYS_PRINT("Fps fix applied.");
+	D2DX_LOG("Fps fix applied.");
 	return true;
 }

@@ -118,7 +118,7 @@ int32_t TextureCachePolicyBitPmru::Insert(
 
 	if (replacementIndex < 0)
 	{
-		ALWAYS_PRINT("All texture atlas entries used in a single frame, starting over!");
+		D2DX_LOG("All texture atlas entries used in a single frame, starting over!");
 		memset(_mruBits.items, 0, sizeof(uint32_t) * _mruBits.capacity);
 		memset(_usedInFrameBits.items, 0, sizeof(uint32_t) * _usedInFrameBits.capacity);
 
