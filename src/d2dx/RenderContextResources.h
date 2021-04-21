@@ -63,19 +63,17 @@ namespace d2dx
 		Count = 3,
 	};
 
-	class RenderContextResources final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		IUnknown>
+	class RenderContextResources final
 	{
 	public:
-		virtual ~RenderContextResources();
-
-		HRESULT RuntimeClassInitialize(
+		RenderContextResources(
 			_In_ uint32_t vbSizeBytes,
 			_In_ uint32_t cbSizeBytes,
 			_In_ Size framebufferSize,
 			_In_ ID3D11Device* device,
-			_In_ ISimd* simd);
+			_In_ const std::shared_ptr<ISimd>& simd);
+		
+		virtual ~RenderContextResources() noexcept {}
 
 		void OnNewFrame();
 
@@ -164,40 +162,40 @@ namespace d2dx
 		}
 
 	private:
-		HRESULT CreateRasterizerState(
+		void CreateRasterizerState(
 			_In_ ID3D11Device* device);
 
-		HRESULT CreateShadersAndInputLayout(
+		void CreateShadersAndInputLayout(
 			_In_ ID3D11Device* device);
 
-		HRESULT CreateTexture1Ds(
+		void CreateTexture1Ds(
 			_In_ ID3D11Device* device);
 
 		uint32_t DetermineMaxTextureArraySize(
 			_In_ ID3D11Device* device);
 
-		HRESULT CreateTextureCaches(
+		void CreateTextureCaches(
 			_In_ ID3D11Device* device,
-			_In_ ISimd* simd);
+			_In_ const std::shared_ptr<ISimd>& simd);
 	
-		HRESULT CreateVideoTextures(
+		void CreateVideoTextures(
 			_In_ ID3D11Device* device);
 
-		HRESULT CreateSamplerStates(
+		void CreateSamplerStates(
 			_In_ ID3D11Device* device);
 
-		HRESULT CreateBlendStates(
+		void CreateBlendStates(
 			_In_ ID3D11Device* device);
 
-		HRESULT CreateFramebuffers(
+		void CreateFramebuffers(
 			_In_ Size framebufferSize,
 			_In_ ID3D11Device* device);
 
-		HRESULT CreateVertexBuffer(
+		void CreateVertexBuffer(
 			_In_ uint32_t vbSizeBytes,
 			_In_ ID3D11Device* device);
 
-		HRESULT CreateConstantBuffer(
+		void CreateConstantBuffer(
 			_In_ uint32_t cbSizeBytes,
 			_In_ ID3D11Device* device);
 
@@ -218,7 +216,7 @@ namespace d2dx
 		ComPtr<ID3D11Texture2D> _videoTexture;
 		ComPtr<ID3D11ShaderResourceView> _videoTextureSrv;
 
-		ComPtr<ITextureCache> _textureCaches[6];
+		std::unique_ptr<ITextureCache> _textureCaches[6];
 
 		ComPtr<ID3D11RasterizerState> _rasterizerStateNoScissor;
 		ComPtr<ID3D11RasterizerState> _rasterizerState;

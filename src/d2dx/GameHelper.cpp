@@ -523,7 +523,7 @@ GameVersion GameHelper::GetGameVersion()
 	}
 	else if (a == 1 && b == 14 && c == 3 && d == 68)
 	{
-		fatal("This version (1.14b) of Diablo II will not work with D2DX. Please upgrade to version 1.14d.");
+		D2DX_FATAL_ERROR("This version (1.14b) of Diablo II will not work with D2DX. Please upgrade to version 1.14d.");
 	}
 	else if (a == 1 && b == 14 && c == 3 && d == 71)
 	{

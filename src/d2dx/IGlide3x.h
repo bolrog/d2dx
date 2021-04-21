@@ -22,9 +22,10 @@
 
 namespace d2dx
 {
-	MIDL_INTERFACE("7140BDA8-608E-4BAF-9BE1-AB8A66947980")
-		IGlide3x : public IUnknown
+	struct IGlide3x abstract
 	{
+		virtual ~IGlide3x() {}
+
 		virtual const char* OnGetString(
 			_In_ uint32_t pname) = 0;
 

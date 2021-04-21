@@ -23,15 +23,13 @@
 
 namespace d2dx
 {
-    class BuiltinResMod final : public RuntimeClass<
-        RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-        IBuiltinResMod
-    >
+    class BuiltinResMod final : public IBuiltinResMod
     {
     public:
-        HRESULT RuntimeClassInitialize(
+        BuiltinResMod(
             _In_ HMODULE hModule,
-            _In_ IGameHelper* gameHelper);
+            _In_ const std::shared_ptr<IGameHelper>& gameHelper);
+        virtual ~BuiltinResMod();
 
         virtual bool IsActive() const override;
 

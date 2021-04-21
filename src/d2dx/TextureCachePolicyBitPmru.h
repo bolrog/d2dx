@@ -31,9 +31,9 @@ namespace d2dx
 
 		TextureCachePolicyBitPmru(
 			_In_ uint32_t capacity,
-			_In_ ISimd* simd);
+			_In_ const std::shared_ptr<ISimd>& simd);
 		 
-		~TextureCachePolicyBitPmru();
+		~TextureCachePolicyBitPmru() noexcept;
 
 		int32_t Find(
 			_In_ uint32_t contentKey,
@@ -47,7 +47,7 @@ namespace d2dx
 
 	private:
 		uint32_t _capacity = 0;
-		ComPtr<ISimd> _simd;
+		std::shared_ptr<ISimd> _simd;
 		Buffer<uint32_t> _contentKeys;
 		Buffer<uint32_t> _usedInFrameBits;
 		Buffer<uint32_t> _mruBits;

@@ -32,12 +32,12 @@ namespace d2dxtests
 	public:
 		TEST_METHOD(Create)
 		{
-			auto simd = Make<SimdSse2>();
+			auto simd = std::make_shared<SimdSse2>();
 		}
 
 		TEST_METHOD(FindUInt32)
 		{
-			auto simd = Make<SimdSse2>();
+			auto simd = std::make_shared<SimdSse2>();
 
 			alignas(64) std::array<uint32_t, 1024> items;
 

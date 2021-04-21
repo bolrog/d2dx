@@ -26,7 +26,7 @@ namespace d2dx
 	class Batch final
 	{
 	public:
-		Batch() :
+		Batch() noexcept :
 			_textureStartAddress(0),
 			_startVertexHigh_textureIndex(0),
 			_textureHash(0),
@@ -39,76 +39,76 @@ namespace d2dx
 		{
 		}
 
-		inline GameAddress GetGameAddress() const
+		inline GameAddress GetGameAddress() const noexcept
 		{
 			return (GameAddress)((_isChromaKeyEnabled_gameAddress_paletteIndex & 0x70) >> 4);
 		}
 
-		inline void SetGameAddress(GameAddress gameAddress)
+		inline void SetGameAddress(GameAddress gameAddress) noexcept
 		{
 			assert((int32_t)gameAddress < 8);
 			_isChromaKeyEnabled_gameAddress_paletteIndex &= ~0x70;
 			_isChromaKeyEnabled_gameAddress_paletteIndex |= (uint8_t)((uint32_t)gameAddress << 4) & 0x70;
 		}
 
-		inline int32_t GetPaletteIndex() const
+		inline int32_t GetPaletteIndex() const noexcept
 		{
 			return _isChromaKeyEnabled_gameAddress_paletteIndex & 0xF;
 		}
 
-		inline void SetPaletteIndex(int32_t paletteIndex)
+		inline void SetPaletteIndex(int32_t paletteIndex) noexcept
 		{
 			assert(paletteIndex >= 0 && paletteIndex < 16);
 			_isChromaKeyEnabled_gameAddress_paletteIndex &= 0xF0;
 			_isChromaKeyEnabled_gameAddress_paletteIndex |= paletteIndex;
 		}
 
-		inline bool IsChromaKeyEnabled() const
+		inline bool IsChromaKeyEnabled() const noexcept
 		{
 			return (_isChromaKeyEnabled_gameAddress_paletteIndex & 0x80) != 0;
 		}
 
-		inline void SetIsChromaKeyEnabled(bool enable)
+		inline void SetIsChromaKeyEnabled(bool enable) noexcept
 		{
 			_isChromaKeyEnabled_gameAddress_paletteIndex &= 0x7F;
 			_isChromaKeyEnabled_gameAddress_paletteIndex |= enable ? 0x80 : 0;
 		}
 
-		inline RgbCombine GetRgbCombine() const
+		inline RgbCombine GetRgbCombine() const noexcept
 		{
 			return (RgbCombine)(_textureCategory_primitiveType_combiners & 0x01);
 		}
 
-		inline void SetRgbCombine(RgbCombine rgbCombine)
+		inline void SetRgbCombine(RgbCombine rgbCombine) noexcept
 		{
 			assert((int32_t)rgbCombine >= 0 && (int32_t)rgbCombine < 2);
 			_textureCategory_primitiveType_combiners &= ~0x01;
 			_textureCategory_primitiveType_combiners |= (uint8_t)rgbCombine & 0x01;
 		}
 
-		inline AlphaCombine GetAlphaCombine() const
+		inline AlphaCombine GetAlphaCombine() const noexcept
 		{
 			return (AlphaCombine)((_textureCategory_primitiveType_combiners >> 1) & 0x01);
 		}
 
-		inline void SetAlphaCombine(AlphaCombine alphaCombine)
+		inline void SetAlphaCombine(AlphaCombine alphaCombine) noexcept
 		{
 			assert((int32_t)alphaCombine >= 0 && (int32_t)alphaCombine < 2);
 			_textureCategory_primitiveType_combiners &= ~0x02;
 			_textureCategory_primitiveType_combiners |= ((uint8_t)alphaCombine << 1) & 0x02;
 		}
 
-		inline int32_t GetTextureWidth() const
+		inline int32_t GetTextureWidth() const noexcept
 		{
 			return 1 << (((_textureHeight_textureWidth_alphaBlend >> 2) & 7) + 1);
 		}
 
-		inline int32_t GetTextureHeight() const
+		inline int32_t GetTextureHeight() const noexcept
 		{
 			return 1 << (((_textureHeight_textureWidth_alphaBlend >> 5) & 7) + 1);
 		}
 
-		inline void SetTextureSize(int32_t width, int32_t height)
+		inline void SetTextureSize(int32_t width, int32_t height) noexcept
 		{
 			DWORD w, h;
 			BitScanReverse(&w, (uint32_t)width);
@@ -120,24 +120,24 @@ namespace d2dx
 			_textureHeight_textureWidth_alphaBlend |= (w - 1) << 2;
 		}
 
-		inline AlphaBlend GetAlphaBlend() const
+		inline AlphaBlend GetAlphaBlend() const noexcept
 		{
 			return (AlphaBlend)(_textureHeight_textureWidth_alphaBlend & 3);
 		}
 
-		inline void SetAlphaBlend(AlphaBlend alphaBlend)
+		inline void SetAlphaBlend(AlphaBlend alphaBlend) noexcept
 		{
 			assert((uint32_t)alphaBlend < 4);
 			_textureHeight_textureWidth_alphaBlend &= ~0x03;
 			_textureHeight_textureWidth_alphaBlend |= (uint32_t)alphaBlend & 3;
 		}
 
-		inline int32_t GetStartVertex() const
+		inline int32_t GetStartVertex() const noexcept
 		{
 			return _startVertexLow | ((_startVertexHigh_textureIndex & 0xF000) << 4);
 		}
 
-		inline void SetStartVertex(int32_t startVertex)
+		inline void SetStartVertex(int32_t startVertex) noexcept
 		{
 			assert(startVertex <= 0xFFFFF);
 			_startVertexLow = startVertex & 0xFFFF;
@@ -145,18 +145,18 @@ namespace d2dx
 			_startVertexHigh_textureIndex |= (startVertex >> 4) & 0xF000;
 		}
 
-		inline uint32_t GetVertexCount() const
+		inline uint32_t GetVertexCount() const noexcept
 		{
 			return _vertexCount;
 		}
 
-		inline void SetVertexCount(uint32_t vertexCount)
+		inline void SetVertexCount(uint32_t vertexCount) noexcept
 		{
 			assert(vertexCount >= 0 && vertexCount <= 0xFFFF);
 			_vertexCount = vertexCount;
 		}
 
-		inline uint32_t SelectColorAndAlpha(uint32_t iteratedColor, uint32_t constantColor) const
+		inline uint32_t SelectColorAndAlpha(uint32_t iteratedColor, uint32_t constantColor) const noexcept
 		{
 			const auto rgbCombine = GetRgbCombine();
 			uint32_t result = (rgbCombine == RgbCombine::ConstantColor ? constantColor : iteratedColor) & 0x00FFFFFF;
@@ -164,58 +164,58 @@ namespace d2dx
 			return result;
 		}
 
-		inline uint32_t GetHash() const
+		inline uint32_t GetHash() const noexcept
 		{
 			return _textureHash;
 		}
 
-		void SetTextureHash(uint32_t textureHash)
+		void SetTextureHash(uint32_t textureHash) noexcept
 		{
 			_textureHash = textureHash;
 		}
 
-		inline uint32_t GetTextureAtlas() const
+		inline uint32_t GetTextureAtlas() const noexcept
 		{
 			return (uint32_t)(_textureAtlas & 7);
 		}
 
-		inline void SetTextureAtlas(uint32_t textureAtlas)
+		inline void SetTextureAtlas(uint32_t textureAtlas) noexcept
 		{
 			assert(textureAtlas < 8);
 			_textureAtlas = textureAtlas & 7;
 		}
 
-		inline uint32_t GetTextureIndex() const
+		inline uint32_t GetTextureIndex() const noexcept
 		{
 			return (uint32_t)(_startVertexHigh_textureIndex & 0x0FFF);
 		}
 
-		inline void SetTextureIndex(uint32_t textureIndex)
+		inline void SetTextureIndex(uint32_t textureIndex) noexcept
 		{
 			assert(textureIndex < 4096);
 			_startVertexHigh_textureIndex &= ~0x0FFF;
 			_startVertexHigh_textureIndex = (uint16_t)(textureIndex & 0x0FFF);
 		}
 
-		inline TextureCategory GetTextureCategory() const
+		inline TextureCategory GetTextureCategory() const noexcept
 		{
 			return (TextureCategory)(_textureCategory_primitiveType_combiners >> 5U);
 		}
 
-		inline void SetTextureCategory(TextureCategory category)
+		inline void SetTextureCategory(TextureCategory category) noexcept
 		{
 			assert((uint32_t)category < 8);
 			_textureCategory_primitiveType_combiners &= ~0xE0;
 			_textureCategory_primitiveType_combiners |= ((uint32_t)category << 5U) & 0xE0;
 		}
 
-		inline int32_t GetTextureStartAddress() const
+		inline int32_t GetTextureStartAddress() const noexcept
 		{
 			const uint32_t startAddress = _textureStartAddress;
 			return (startAddress - 1) << 8;
 		}
 
-		inline void SetTextureStartAddress(int32_t startAddress)
+		inline void SetTextureStartAddress(int32_t startAddress) noexcept
 		{
 			assert(!(startAddress & (D2DX_TMU_ADDRESS_ALIGNMENT-1)));
 			assert(startAddress >= 0 && startAddress <= (D2DX_TMU_MEMORY_SIZE - D2DX_TMU_ADDRESS_ALIGNMENT));
@@ -228,7 +228,7 @@ namespace d2dx
 			_textureStartAddress = startAddress & 0xFFFF;
 		}
 
-		inline bool IsValid() const
+		inline bool IsValid() const noexcept
 		{
 			return _textureStartAddress != 0;
 		}

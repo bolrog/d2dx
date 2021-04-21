@@ -34,50 +34,23 @@
 using namespace d2dx;
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::RuntimeClassInitialize(
+RenderContextResources::RenderContextResources(
 	uint32_t vbSizeBytes,
 	uint32_t cbSizeBytes,
 	Size framebufferSize,
 	ID3D11Device* device,
-	ISimd* simd)
+	const std::shared_ptr<ISimd>& simd)
 {
-	HRESULT hr = S_OK;
-
-	D2DX_RETURN_IF_FAILED(
-		CreateTexture1Ds(device));
-
-	D2DX_RETURN_IF_FAILED(
-		CreateTextureCaches(device, simd));
-
-	D2DX_RETURN_IF_FAILED(
-		CreateVideoTextures(device));
-
-	D2DX_RETURN_IF_FAILED(
-		CreateShadersAndInputLayout(device));
-
-	D2DX_RETURN_IF_FAILED(
-		CreateRasterizerState(device));
-
-	D2DX_RETURN_IF_FAILED(
-		CreateSamplerStates(device));
-
-	D2DX_RETURN_IF_FAILED(
-		CreateBlendStates(device));
-
-	D2DX_RETURN_IF_FAILED(
-		CreateFramebuffers(framebufferSize, device));
-
-	D2DX_RETURN_IF_FAILED(
-		CreateVertexBuffer(vbSizeBytes, device));
-	
-	D2DX_RETURN_IF_FAILED(
-		CreateConstantBuffer(cbSizeBytes, device));
-
-	return hr;
-}
-
-RenderContextResources::~RenderContextResources()
-{
+	CreateTexture1Ds(device);
+	CreateTextureCaches(device, simd);
+	CreateVideoTextures(device);
+	CreateShadersAndInputLayout(device);
+	CreateRasterizerState(device);
+	CreateSamplerStates(device);
+	CreateBlendStates(device);
+	CreateFramebuffers(framebufferSize, device);
+	CreateVertexBuffer(vbSizeBytes, device);
+	CreateConstantBuffer(cbSizeBytes, device);
 }
 
 void RenderContextResources::OnNewFrame()
@@ -96,37 +69,35 @@ ITextureCache* RenderContextResources::GetTextureCache(int32_t textureWidth, int
 	BitScanForward((DWORD*)&log2Longest, (DWORD)longest);
 	log2Longest -= 3;
 	assert(log2Longest <= 5);
-	return _textureCaches[log2Longest].Get();
+	return _textureCaches[log2Longest].get();
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateShadersAndInputLayout(
+void RenderContextResources::CreateShadersAndInputLayout(
 	ID3D11Device* device)
 {
-	HRESULT hr;
-
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateVertexShader(GameVS_cso, ARRAYSIZE(GameVS_cso), NULL, &_vertexShaders[(int32_t)RenderContextVertexShader::Game]));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreatePixelShader(GamePS_cso, ARRAYSIZE(GamePS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::Game]));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreatePixelShader(VideoPS_cso, ARRAYSIZE(VideoPS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::Video]));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateVertexShader(DisplayVS_cso, ARRAYSIZE(DisplayVS_cso), NULL, &_vertexShaders[(int32_t)RenderContextVertexShader::Display]));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreatePixelShader(DisplayIntegerScalePS_cso, ARRAYSIZE(DisplayIntegerScalePS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::DisplayIntegerScale]));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreatePixelShader(DisplayNonintegerScalePS_cso, ARRAYSIZE(DisplayNonintegerScalePS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::DisplayNonintegerScale]));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreatePixelShader(GammaPS_cso, ARRAYSIZE(GammaPS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::Gamma]));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreatePixelShader(ResolveAA_cso, ARRAYSIZE(ResolveAA_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::ResolveAA]));
 
 	D3D11_INPUT_ELEMENT_DESC inputElementDescs[4] =
@@ -137,18 +108,14 @@ HRESULT RenderContextResources::CreateShadersAndInputLayout(
 		{ "TEXCOORD", 1, DXGI_FORMAT_R16G16_UINT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateInputLayout(inputElementDescs, ARRAYSIZE(inputElementDescs), GameVS_cso, ARRAYSIZE(GameVS_cso), &_inputLayout));
-
-	return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateTexture1Ds(
+void RenderContextResources::CreateTexture1Ds(
 	ID3D11Device* device)
 {
-	HRESULT hr = S_OK;
-
 	CD3D11_TEXTURE1D_DESC desc{
 		DXGI_FORMAT_B8G8R8A8_UNORM,
 		(UINT)256,
@@ -158,28 +125,28 @@ HRESULT RenderContextResources::CreateTexture1Ds(
 		D3D11_USAGE_DEFAULT
 	};
 
-	uint32_t initialPalettes[D2DX_MAX_PALETTES * 256];
-	memset(initialPalettes, 0, D2DX_MAX_PALETTES * 256 * sizeof(uint32_t));
+	Buffer<uint32_t> initialPalettes(D2DX_MAX_PALETTES * 256);
+	memset(initialPalettes.items, 0, D2DX_MAX_PALETTES * 256 * sizeof(uint32_t));
 	for (int32_t i = 0; i < 256; ++i)
 	{
-		initialPalettes[D2DX_WHITE_PALETTE_INDEX * 256 + i] = 0xFFFFFFFF;
+		initialPalettes.items[D2DX_WHITE_PALETTE_INDEX * 256 + i] = 0xFFFFFFFF;
 	}
 
 	D3D11_SUBRESOURCE_DATA subResourceData[D2DX_MAX_PALETTES];
 	for (int32_t i = 0; i < D2DX_MAX_PALETTES; ++i)
 	{
-		subResourceData[i].pSysMem = initialPalettes + 256 * i;
+		subResourceData[i].pSysMem = initialPalettes.items + 256 * i;
 		subResourceData[i].SysMemPitch = 0;
 		subResourceData[i].SysMemSlicePitch = 0;
 	}
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateTexture1D(
 			&desc,
 			&subResourceData[0],
 			&_texture1Ds[(int32_t)RenderContextTexture1D::Palette].texture));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateShaderResourceView(
 			_texture1Ds[(int32_t)RenderContextTexture1D::Palette].texture.Get(),
 			nullptr,
@@ -187,28 +154,24 @@ HRESULT RenderContextResources::CreateTexture1Ds(
 
 	desc.ArraySize = 1;
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateTexture1D(
 			&desc,
 			nullptr,
 			&_texture1Ds[(int32_t)RenderContextTexture1D::GammaTable].texture));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateShaderResourceView(
 			_texture1Ds[(int32_t)RenderContextTexture1D::GammaTable].texture.Get(),
 			nullptr,
 			&_texture1Ds[(int32_t)RenderContextTexture1D::GammaTable].srv));
-
-	return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateTextureCaches(
+void RenderContextResources::CreateTextureCaches(
 	ID3D11Device* device,
-	ISimd* simd)
+	const std::shared_ptr<ISimd>& simd)
 {
-	HRESULT hr = S_OK;
-
 	static const uint32_t capacities[6] = { 2048, 2048, 2048, 2048, 2048, 2048 };
 
 	const uint32_t texturesPerAtlas = DetermineMaxTextureArraySize(device);
@@ -219,13 +182,7 @@ HRESULT RenderContextResources::CreateTextureCaches(
 	{
 		int32_t width = 1U << (i + 3);
 
-		hr = MakeAndInitialize<TextureCache, ITextureCache>(&_textureCaches[i],
-			width, width, capacities[i], texturesPerAtlas, device, simd);
-
-		if (FAILED(hr))
-		{
-			return hr;
-		}
+		_textureCaches[i] = std::make_unique<TextureCache>(width, width, capacities[i], texturesPerAtlas, device, simd);
 
 		DEBUG_PRINT("Creating texture cache for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
 
@@ -233,7 +190,6 @@ HRESULT RenderContextResources::CreateTextureCaches(
 	}
 
 	ALWAYS_PRINT("Total size of texture caches is %u kB.", totalSize / 1024);
-	return hr;
 }
 
 _Use_decl_annotations_
@@ -265,11 +221,9 @@ uint32_t RenderContextResources::DetermineMaxTextureArraySize(
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateVideoTextures(
+void RenderContextResources::CreateVideoTextures(
 	ID3D11Device* device)
 {
-	HRESULT hr = S_OK;
-
 	CD3D11_TEXTURE2D_DESC desc
 	{
 		DXGI_FORMAT_B8G8R8A8_UNORM,
@@ -284,26 +238,22 @@ HRESULT RenderContextResources::CreateVideoTextures(
 
 	_videoTextureSize = { 640, 480 };
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateTexture2D(&desc, NULL, &_videoTexture));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateShaderResourceView(_videoTexture.Get(), NULL, &_videoTextureSrv));
-
-	return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateFramebuffers(
+void RenderContextResources::CreateFramebuffers(
 	Size framebufferSize,
 	ID3D11Device* device)
 {
-	HRESULT hr;
-
 	DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	UINT formatSupport = 0;
-	hr = device->CheckFormatSupport(DXGI_FORMAT_R10G10B10A2_UNORM, &formatSupport);
+	HRESULT hr = device->CheckFormatSupport(DXGI_FORMAT_R10G10B10A2_UNORM, &formatSupport);
 	if (SUCCEEDED(hr) &&
 		(formatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) &&
 		(formatSupport & D3D11_FORMAT_SUPPORT_SHADER_LOAD) &&
@@ -337,13 +287,13 @@ HRESULT RenderContextResources::CreateFramebuffers(
 		renderTargetFormat
 	};
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateTexture2D(
 			&desc,
 			NULL,
 			&_framebuffers[(int32_t)RenderContextFramebuffer::Game].texture));
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateShaderResourceView(
 			_framebuffers[(int32_t)RenderContextFramebuffer::Game].texture.Get(),
 			&srvDesc,
@@ -354,104 +304,92 @@ HRESULT RenderContextResources::CreateFramebuffers(
 		renderTargetFormat
 	};
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateRenderTargetView(
 			_framebuffers[(int32_t)RenderContextFramebuffer::Game].texture.Get(),
 			&rtvDesc,
 			&_framebuffers[(int32_t)RenderContextFramebuffer::Game].rtv));
 
 	desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateTexture2D(
 			&desc,
 			NULL,
 			&_framebuffers[(int32_t)RenderContextFramebuffer::GammaCorrected].texture));
 
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateShaderResourceView(
 			_framebuffers[(int32_t)RenderContextFramebuffer::GammaCorrected].texture.Get(),
 			&srvDesc,
 			&_framebuffers[(int32_t)RenderContextFramebuffer::GammaCorrected].srv));
 
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateRenderTargetView(
 			_framebuffers[(int32_t)RenderContextFramebuffer::GammaCorrected].texture.Get(),
 			&rtvDesc,
 			&_framebuffers[(int32_t)RenderContextFramebuffer::GammaCorrected].rtv));
 
 	desc.Format = DXGI_FORMAT_R16_TYPELESS;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateTexture2D(
 			&desc,
 			NULL,
 			&_framebuffers[(int32_t)RenderContextFramebuffer::SurfaceId].texture));
 
 	srvDesc.Format = DXGI_FORMAT_R16_UNORM;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateShaderResourceView(
 			_framebuffers[(int32_t)RenderContextFramebuffer::SurfaceId].texture.Get(),
 			&srvDesc,
 			&_framebuffers[(int32_t)RenderContextFramebuffer::SurfaceId].srv));
 
 	rtvDesc.Format = DXGI_FORMAT_R16_UNORM;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateRenderTargetView(
 			_framebuffers[(int32_t)RenderContextFramebuffer::SurfaceId].texture.Get(),
 			&rtvDesc,
 			&_framebuffers[(int32_t)RenderContextFramebuffer::SurfaceId].rtv));
-
-	return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateRasterizerState(
+void RenderContextResources::CreateRasterizerState(
 	ID3D11Device* device)
 {
-	HRESULT hr;
-
 	CD3D11_RASTERIZER_DESC rasterizerDesc{ CD3D11_DEFAULT() };
 
 	rasterizerDesc.CullMode = D3D11_CULL_NONE;
 	rasterizerDesc.DepthClipEnable = false;
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.ScissorEnable = FALSE;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateRasterizerState(&rasterizerDesc, &_rasterizerStateNoScissor));
 
 	rasterizerDesc.ScissorEnable = TRUE;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateRasterizerState(&rasterizerDesc, &_rasterizerState));
-
-	return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateSamplerStates(
+void RenderContextResources::CreateSamplerStates(
 	ID3D11Device* device)
 {
-	HRESULT hr;
-
 	CD3D11_SAMPLER_DESC samplerDesc{ CD3D11_DEFAULT() };
 
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateSamplerState(&samplerDesc, _samplerState[0].GetAddressOf()));
 
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateSamplerState(&samplerDesc, _samplerState[1].GetAddressOf()));
-
-	return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateBlendStates(
+void RenderContextResources::CreateBlendStates(
 	ID3D11Device* device)
 {
-	HRESULT hr;
-
 	for (int32_t i = 0; i < (int32_t)AlphaBlend::Count; ++i)
 	{
 		AlphaBlend alphaBlend = (AlphaBlend)i;
@@ -545,20 +483,16 @@ HRESULT RenderContextResources::CreateBlendStates(
 			assert(false && "Unhandled alphablend.");
 		}
 
-		D2DX_RETURN_IF_FAILED(
+		D2DX_CHECK_HR(
 			device->CreateBlendState(&blendDesc, &_blendStates[i]));
 	}
-
-	return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateVertexBuffer(
+void RenderContextResources::CreateVertexBuffer(
 	uint32_t vbSizeBytes,
 	ID3D11Device* device)
 {
-	HRESULT hr;
-
 	const CD3D11_BUFFER_DESC vbDesc
 	{
 		vbSizeBytes,
@@ -567,19 +501,15 @@ HRESULT RenderContextResources::CreateVertexBuffer(
 		D3D11_CPU_ACCESS_WRITE
 	};
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateBuffer(&vbDesc, NULL, &_vb));
-
-	return hr;
 }
 
 _Use_decl_annotations_
-HRESULT RenderContextResources::CreateConstantBuffer(
+void RenderContextResources::CreateConstantBuffer(
 	uint32_t cbSizeBytes,
 	ID3D11Device* device)
 {
-	HRESULT hr;
-
 	CD3D11_BUFFER_DESC desc
 	{
 		cbSizeBytes,
@@ -588,9 +518,6 @@ HRESULT RenderContextResources::CreateConstantBuffer(
 		D3D11_CPU_ACCESS_WRITE
 	};
 
-	D2DX_RETURN_IF_FAILED(
+	D2DX_CHECK_HR(
 		device->CreateBuffer(&desc, NULL, _cb.GetAddressOf()));
-	
-	return hr;
 }
-

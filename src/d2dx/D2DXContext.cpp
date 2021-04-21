@@ -73,8 +73,8 @@ static Options GetCommandLineOptions()
 
 _Use_decl_annotations_
 D2DXContext::D2DXContext(
-	IGameHelper* gameHelper,
-	ISimd* simd) :
+	const std::shared_ptr<IGameHelper>& gameHelper,
+	const std::shared_ptr<ISimd>& simd) :
 	_frame(0),
 	_majorGameState(MajorGameState::Unknown),
 	_vertexLayout(0xFF),
@@ -99,8 +99,15 @@ D2DXContext::D2DXContext(
 
 	if (!_options.noResMod)
 	{
-		HRESULT hr = MakeAndInitialize<BuiltinResMod>(&_builtinResMod, GetModuleHandleA("glide3x.dll"), _gameHelper.Get());
-		if (FAILED(hr) || !_builtinResMod->IsActive())
+		try
+		{
+			_builtinResMod = std::make_unique<BuiltinResMod>(GetModuleHandleA("glide3x.dll"), _gameHelper);
+			if (!_builtinResMod->IsActive())
+			{
+				_options.noResMod = true;
+			}
+		}
+		catch (...)
 		{
 			_options.noResMod = true;
 		}
@@ -202,12 +209,12 @@ void D2DXContext::OnSstWinOpen(
 
 	if (!_renderContext)
 	{
-		_renderContext = Make<RenderContext>(
+		_renderContext = std::make_shared<RenderContext>(
 			(HWND)hWnd,
 			gameSize,
 			windowSize * _options.defaultZoomLevel,
-			_options,
-			_simd.Get());
+			this,
+			_simd);
 	}
 	else
 	{
@@ -653,8 +660,8 @@ void D2DXContext::UpdateBatchSurfaceId(
 	uint64_t drawCallTexture = (uint64_t)batch.GetTextureIndex() | ((uint64_t)batch.GetTextureAtlas() << 32ULL);
 
 	if (_majorGameState != MajorGameState::InGame ||
-		(batch.GetRgbCombine() == RgbCombine::ConstantColor && 
-		batch.GetAlphaBlend() == AlphaBlend::SrcAlphaInvSrcAlpha))
+		(batch.GetRgbCombine() == RgbCombine::ConstantColor &&
+			batch.GetAlphaBlend() == AlphaBlend::SrcAlphaInvSrcAlpha))
 	{
 		surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
 	}
@@ -778,7 +785,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	uint32_t gameContext)
 {
 	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
-	
+
 	switch (mode)
 	{
 	case GR_TRIANGLE_FAN:
@@ -871,7 +878,7 @@ void D2DXContext::OnTexDownloadTable(
 		{
 			_paletteKeys.items[i] = hash;
 			_scratchBatch.SetPaletteIndex(i);
-			
+
 			uint32_t* palette = (uint32_t*)data;
 
 			for (int32_t i = 0; i < 256; ++i)
@@ -1106,4 +1113,9 @@ Size D2DXContext::GetSuggestedCustomResolution()
 void D2DXContext::DisableBuiltinResMod()
 {
 	_options.noResMod = true;
+}
+
+Options& D2DXContext::GetOptions()
+{
+	return _options;
 }

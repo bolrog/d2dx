@@ -22,11 +22,11 @@
 
 namespace d2dx
 {
-	class SimdSse2 final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		ISimd>
+	class SimdSse2 final : public ISimd
 	{
 	public:
+		virtual ~SimdSse2() noexcept {}
+
 		virtual int32_t IndexOfUInt32(
 			_In_reads_(itemsCount) const uint32_t* __restrict items,
 			_In_ uint32_t itemsCount,

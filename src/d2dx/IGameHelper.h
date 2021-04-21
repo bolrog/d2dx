@@ -22,9 +22,10 @@
 
 namespace d2dx
 {
-	MIDL_INTERFACE("2C7585A9-7A8F-42B7-9FAC-C75C004AD8C3")
-		IGameHelper : public IUnknown
+	struct IGameHelper abstract
 	{
+		virtual ~IGameHelper() {}
+
 		virtual GameVersion GetVersion() const = 0;
 
 		virtual _Ret_z_ const char* GetVersionString() const = 0;

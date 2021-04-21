@@ -23,10 +23,7 @@
 
 namespace d2dx 
 {
-	class GameHelper final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		IGameHelper
-	>
+	class GameHelper final : public IGameHelper
 	{
 	public:
 		GameHelper();

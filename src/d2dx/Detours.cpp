@@ -28,7 +28,7 @@ using namespace d2dx;
 
 bool hasDetoured = false;
 
-static ComPtr<IWin32InterceptionHandler> GetWin32InterceptionHandler()
+static IWin32InterceptionHandler* GetWin32InterceptionHandler()
 {
     ID2DXContext* d2dxContext = D2DXContextFactory::GetInstance();
 
@@ -37,9 +37,7 @@ static ComPtr<IWin32InterceptionHandler> GetWin32InterceptionHandler()
         return nullptr;
     }
 
-    ComPtr<IWin32InterceptionHandler> handler;
-    d2dxContext->QueryInterface(IID_PPV_ARGS(&handler));
-    return handler;
+    return dynamic_cast<IWin32InterceptionHandler*>(d2dxContext);
 }
 
 COLORREF(WINAPI* GetPixel_real)(
@@ -209,7 +207,7 @@ void d2dx::AttachDetours()
     LONG lError = DetourTransactionCommit();
 
     if (lError != NO_ERROR) {
-        fatal("Failed to detour Win32 functions.");
+        D2DX_FATAL_ERROR("Failed to detour Win32 functions.");
     }
 }
 

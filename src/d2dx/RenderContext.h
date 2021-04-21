@@ -49,20 +49,17 @@ namespace d2dx
 		ResizeBuffers = 1,
 	};
 
-	class RenderContext final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		IRenderContext
-	>
+	class RenderContext final : public IRenderContext
 	{
 	public:
 		RenderContext(
-			HWND hWnd,
-			Size gameSize,
-			Size windowSize,
-			Options& options,
-			ISimd* simd);
-
-		virtual ~RenderContext();
+			_In_ HWND hWnd,
+			_In_ Size gameSize,
+			_In_ Size windowSize,
+			_In_ ID2DXContext* d2dxContext,
+			_In_ const std::shared_ptr<ISimd>& simd);
+		
+		virtual ~RenderContext() noexcept {}
 
 		virtual HWND GetHWnd() const override;
 
@@ -89,7 +86,7 @@ namespace d2dx
 			_In_reads_(width* height) const uint32_t* pixels,
 			_In_ int32_t width,
 			_In_ int32_t height) override;
-		
+
 		virtual void SetPalette(
 			_In_ int32_t paletteIndex,
 			_In_reads_(256) const uint32_t* palette) override;
@@ -161,39 +158,6 @@ namespace d2dx
 
 		static_assert(sizeof(Constants) == 8 * 4, "size of Constants");
 
-		uint32_t _frameCount;
-		Size _gameSize;
-		Rect _renderRect;
-		Size _windowSize;
-		Size _desktopSize;
-		int32_t _desktopClientMaxHeight;
-
-		uint32_t _vbWriteIndex;
-		uint32_t _vbCapacity;
-
-		Constants _constants;
-
-		ComPtr<RenderContextResources> _resources;
-
-		RenderContextSyncStrategy _syncStrategy;
-		RenderContextSwapStrategy _swapStrategy;
-		RenderContextBackbufferSizingStrategy _backbufferSizingStrategy;
-
-		DWORD _swapChainCreateFlags;
-		bool _dxgiAllowTearingFlagSupported;
-		bool _frameLatencyWaitableObjectSupported;
-		D3D_FEATURE_LEVEL _featureLevel;
-		ComPtr<ID3D11Device> _device;
-		ComPtr<ID3D11Device3> _device3;
-		ComPtr<ID3D11DeviceContext> _deviceContext;
-		ComPtr<ID3D11DeviceContext1> _deviceContext1;
-		ComPtr<IDXGISwapChain1> _swapChain1;
-		ComPtr<IDXGISwapChain2> _swapChain2;
-		ComPtr<ID3D11RenderTargetView> _backbufferRtv;
-
-		HWND _hWnd;
-		Options& _options;
-
 		struct DeviceContextState final
 		{
 			Constants constants;
@@ -206,10 +170,36 @@ namespace d2dx
 			ID3D11RenderTargetView* rtv0 = nullptr;
 			ID3D11RenderTargetView* rtv1 = nullptr;
 		};
-		
-		DeviceContextState _shadowState;
 
-		HANDLE _frameLatencyWaitableObject;
-		ComPtr<ISimd> _simd;
+		ComPtr<ID3D11Device> _device;
+		ComPtr<ID3D11Device3> _device3;
+		ComPtr<ID3D11DeviceContext> _deviceContext;
+		ComPtr<ID3D11DeviceContext1> _deviceContext1;
+		ComPtr<IDXGISwapChain1> _swapChain1;
+		ComPtr<IDXGISwapChain2> _swapChain2;
+		ComPtr<ID3D11RenderTargetView> _backbufferRtv;
+		std::unique_ptr<RenderContextResources> _resources;
+		std::shared_ptr<ISimd> _simd;
+
+		uint32_t _frameCount = 0;
+		Size _gameSize = { 0, 0 };
+		Rect _renderRect = { 0,0,0,0 };
+		Size _windowSize = { 0,0 };
+		Size _desktopSize = { 0,0 };
+		int32_t _desktopClientMaxHeight = 0;
+		uint32_t _vbWriteIndex = 0;
+		uint32_t _vbCapacity = 0;
+		Constants _constants;
+		RenderContextSyncStrategy _syncStrategy = RenderContextSyncStrategy::AllowTearing;
+		RenderContextSwapStrategy _swapStrategy = RenderContextSwapStrategy::FlipDiscard;
+		RenderContextBackbufferSizingStrategy _backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::SetSourceSize;
+		DWORD _swapChainCreateFlags = 0;
+		bool _dxgiAllowTearingFlagSupported = false;
+		bool _frameLatencyWaitableObjectSupported = false;
+		D3D_FEATURE_LEVEL _featureLevel = D3D_FEATURE_LEVEL_11_0;
+		HWND _hWnd = nullptr;
+		ID2DXContext* _d2dxContext = nullptr;
+		DeviceContextState _shadowState;
+		EventHandle _frameLatencyWaitableObject;
 	};
 }

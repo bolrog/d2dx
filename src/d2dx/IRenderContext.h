@@ -26,9 +26,10 @@ namespace d2dx
 	class Vertex;
 	class Batch;
 
-	MIDL_INTERFACE("6446AA96-F9CD-4CF4-8401-F2EE6EC7082F")
-		IRenderContext : public IUnknown
+	struct IRenderContext abstract
 	{
+		virtual ~IRenderContext() {}
+
 		virtual HWND GetHWnd() const = 0;
 
 		virtual void LoadGammaTable(

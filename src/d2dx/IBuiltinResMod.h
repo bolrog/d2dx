@@ -18,11 +18,14 @@
 */
 #pragma once
 
+#include "Types.h"
+
 namespace d2dx
 {
-    MIDL_INTERFACE("B1901B75-AB2B-442E-9EC0-E3403B2E7405")
-        IBuiltinResMod : public IUnknown
+    struct IBuiltinResMod abstract
     {
+        virtual ~IBuiltinResMod() {}
+
         virtual bool IsActive() const = 0;
     };
 }

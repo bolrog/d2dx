@@ -25,7 +25,7 @@
 using namespace d2dx;
 
 static bool destroyed = false;
-static ComPtr<ID2DXContext> instance;
+static std::shared_ptr<ID2DXContext> instance;
 
 ID2DXContext* D2DXContextFactory::GetInstance()
 {
@@ -33,12 +33,12 @@ ID2DXContext* D2DXContextFactory::GetInstance()
 
 	if (!instance && !destroyed)
 	{
-		auto gameHelper = Make<GameHelper>();
-		auto simd = Make<SimdSse2>();
-		instance = Make<D2DXContext>(gameHelper.Get(), simd.Get());
+		auto gameHelper = std::make_shared<GameHelper>();
+		auto simd = std::make_shared<SimdSse2>();
+		instance = std::make_shared<D2DXContext>(gameHelper, simd);
 	}
 
-	return instance.Get();
+	return instance.get();
 }
 
 void D2DXContextFactory::DestroyInstance()

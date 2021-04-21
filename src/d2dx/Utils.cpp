@@ -120,7 +120,9 @@ static DWORD WINAPI WriteToLogFileWorkItemFunc(PVOID pvContext)
     return 0;
 }
 
-void d2dx::AlwaysPrint(const char* s)
+_Use_decl_annotations_
+void d2dx::detail::Log(
+    const char* s)
 {
     EnsureLogFileOpened();
     QueueUserWorkItem(WriteToLogFileWorkItemFunc, _strdup(s), WT_EXECUTEDEFAULT);
@@ -163,4 +165,52 @@ Buffer<char> d2dx::ReadTextFile(
     fclose(cfgFile);
 
     return str;
+}
+
+_Use_decl_annotations_
+char* d2dx::detail::GetMessageForHRESULT(
+    HRESULT hr,
+    const char* func,
+    int32_t line) noexcept
+{
+    static Buffer<char> buffer(4096);
+    auto msg = std::system_category().message(hr);
+    sprintf_s(buffer.items, buffer.capacity, "%s line %i\nHRESULT: 0x%08x\nMessage: %s", func, line, hr, msg.c_str());
+    return buffer.items;
+}
+
+_Use_decl_annotations_
+void d2dx::detail::ThrowFromHRESULT(
+    HRESULT hr,
+    const char* func,
+    int32_t line)
+{
+#ifndef NDEBUG
+    __debugbreak();
+#endif
+
+    throw ComException(hr, func, line);
+}
+
+void d2dx::detail::FatalException() noexcept
+{
+    try
+    {
+        std::rethrow_exception(std::current_exception());
+    }
+    catch (const std::exception& e)
+    {
+        ALWAYS_PRINT("%s", e.what());
+        MessageBoxA(nullptr, e.what(), "D2DX Fatal Error", MB_OK | MB_ICONSTOP);
+        TerminateProcess(GetCurrentProcess(), -1);
+    }
+}
+
+_Use_decl_annotations_
+void d2dx::detail::FatalError(
+    const char* msg) noexcept
+{
+    ALWAYS_PRINT("%s", msg);
+    MessageBoxA(nullptr, msg, "D2DX Fatal Error", MB_OK | MB_ICONSTOP);
+    TerminateProcess(GetCurrentProcess(), -1);
 }

@@ -35,6 +35,9 @@
 #include <combaseapi.h>
 #include <wrl/implements.h>
 #include <wrl.h>
+#include <memory>
+#include <comdef.h>
+#include <system_error>
 #include <emmintrin.h>
 #include <string.h>
 
@@ -65,5 +68,7 @@ using RuntimeClassType = Microsoft::WRL::RuntimeClassType;
 using Microsoft::WRL::Details::Make;
 
 using Microsoft::WRL::Details::MakeAndInitialize;
+
+using EventHandle = Microsoft::WRL::Wrappers::HandleT<Microsoft::WRL::Wrappers::HandleTraits::EventTraits>;
 
 #endif //PCH_H

@@ -18,11 +18,14 @@
 */
 #pragma once
 
+#include "Utils.h"
+
 namespace d2dx
 {
-	MIDL_INTERFACE("D071E3C6-03D3-4C4C-A498-92C0A6C13447") 
-		ISimd abstract : public IUnknown
+	struct ISimd abstract
 	{
+		virtual ~ISimd() {}
+
 		virtual int32_t IndexOfUInt32(
 			_In_reads_(itemsCount) const uint32_t* __restrict items,
 			_In_ uint32_t itemsCount,

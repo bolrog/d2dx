@@ -22,10 +22,18 @@
 
 namespace d2dx
 {
+	namespace detail
+	{
+		__declspec(noinline) void Log(_In_z_ const char* s);
+		__declspec(noinline) void ThrowFromHRESULT(HRESULT hr, _In_z_ const char* func, int32_t line);
+		__declspec(noinline) char* GetMessageForHRESULT(HRESULT hr, _In_z_ const char* func, int32_t line) noexcept;
+		[[noreturn]] __declspec(noinline) void FatalException() noexcept;
+		[[noreturn]] __declspec(noinline) void FatalError(_In_z_ const char* msg) noexcept;
+	}
+
 	int64_t TimeStart();
 	float TimeEndMs(int64_t start);
 
-	void AlwaysPrint(const char* s);
 
 #ifdef NDEBUG
 #define DEBUG_PRINT(fmt, ...)
@@ -34,7 +42,7 @@ namespace d2dx
 	{ \
 		static char ss[256]; \
 		sprintf_s(ss, fmt "\n", __VA_ARGS__); \
-		d2dx::AlwaysPrint(ss); \
+		d2dx::detail::Log(ss); \
 	}
 #endif
 
@@ -42,38 +50,28 @@ namespace d2dx
 	{ \
 		static char ssss[256]; \
 		sprintf_s(ssss, fmt "\n", __VA_ARGS__); \
-		d2dx::AlwaysPrint(ssss); \
+		d2dx::detail::Log(ssss); \
 	}
 
-	static __declspec(noreturn) void fatal(const char* msg)
+	struct ComException final : public std::runtime_error
 	{
-		d2dx::AlwaysPrint(msg);
-		MessageBoxA(nullptr, msg, "D2DX Fatal Error", MB_OK | MB_ICONSTOP);
-		TerminateProcess(GetCurrentProcess(), -1);
-	}
-
-	static void release_check(bool expr, const char* exprString)
-	{
-		if (!expr)
+		ComException(HRESULT hr_, const char* func_, int32_t line_) :
+			std::runtime_error(detail::GetMessageForHRESULT(hr, func_, line_)),
+			hr{ hr_ },
+			func{ func_ },
+			line{ line_ } 
 		{
-			OutputDebugStringA(exprString);
-			fatal(exprString);
 		}
-	}
 
-	static void release_check_hr(HRESULT hr, const char* exprString)
-	{
-		if (FAILED(hr))
-		{
-			OutputDebugStringA(exprString);
-			fatal(exprString);
-		}
-	}
+		HRESULT hr;
+		const char* func;
+		int32_t line;
+	};
 
-	#define D2DX_RELEASE_CHECK(expr) release_check(expr, #expr)
-	#define D2DX_RELEASE_CHECK_HR(expr) release_check_hr(expr, #expr)
-
-	#define D2DX_RETURN_IF_FAILED(expr) { hr = (expr); if (FAILED(hr)) { return hr; } }
+	#define D2DX_THROW_HR(hr) detail::ThrowFromHRESULT(hr, __FUNCTION__, __LINE__)
+	#define D2DX_CHECK_HR(expr) { HRESULT hr = (expr); if (FAILED(hr)) { detail::ThrowFromHRESULT((hr), __FUNCTION__, __LINE__); } }
+	#define D2DX_FATAL_EXCEPTION detail::FatalException()
+	#define D2DX_FATAL_ERROR(msg) detail::FatalError(msg)
 
 	struct WindowsVersion 
 	{

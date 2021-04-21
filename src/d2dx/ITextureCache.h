@@ -18,8 +18,8 @@
 */
 #pragma once
 
-#include "Utils.h"
 #include "ISimd.h"
+#include "Types.h"
 
 namespace d2dx
 {
@@ -33,9 +33,10 @@ namespace d2dx
 
 	static_assert(sizeof(TextureCacheLocation) == 4, "sizeof(TextureCacheLocation) == 4");
 
-	MIDL_INTERFACE("64DBFE90-2B5D-4E58-AFD1-6E876928B81F")
-		ITextureCache abstract : public IUnknown
+	struct ITextureCache abstract
 	{
+		virtual ~ITextureCache() {}
+
 		virtual void OnNewFrame() = 0;
 
 		virtual TextureCacheLocation FindTexture(

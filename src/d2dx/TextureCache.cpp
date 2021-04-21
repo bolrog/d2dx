@@ -26,13 +26,13 @@ using namespace d2dx;
 using namespace std;
 
 _Use_decl_annotations_
-HRESULT TextureCache::RuntimeClassInitialize(
+TextureCache::TextureCache(
 	int32_t width,
 	int32_t height,
 	uint32_t capacity,
 	uint32_t texturesPerAtlas,
 	ID3D11Device* device,
-	ISimd* simd)
+	const std::shared_ptr<ISimd>& simd)
 {
 	assert(_atlasCount <= 4);
 
@@ -42,8 +42,6 @@ HRESULT TextureCache::RuntimeClassInitialize(
 	_texturesPerAtlas = texturesPerAtlas;
 	_atlasCount = (int32_t)max(1, capacity / texturesPerAtlas);
 	_policy = TextureCachePolicyBitPmru(capacity, simd);
-
-	HRESULT hr = S_OK;
 
 #ifndef D2DX_UNITTEST
 
@@ -62,28 +60,13 @@ HRESULT TextureCache::RuntimeClassInitialize(
 
 	for (int32_t partition = 0; partition < 4; ++partition)
 	{
-		hr = device->CreateTexture2D(&desc, nullptr, &_textures[partition]);
-		if (FAILED(hr))
-		{
-			return hr;
-		}
-
-		hr = device->CreateShaderResourceView(_textures[partition].Get(), NULL, _srvs[partition].GetAddressOf());
-		if (FAILED(hr))
-		{
-			return hr;
-		}
+		D2DX_CHECK_HR(device->CreateTexture2D(&desc, nullptr, &_textures[partition]));
+		D2DX_CHECK_HR(device->CreateShaderResourceView(_textures[partition].Get(), NULL, _srvs[partition].GetAddressOf()));
 	}
 
 	device->GetImmediateContext(&_deviceContext);
 	assert(_deviceContext);
 #endif
-
-	return hr;
-}
-
-TextureCache::~TextureCache()
-{
 }
 
 uint32_t TextureCache::GetMemoryFootprint() const

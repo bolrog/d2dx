@@ -23,20 +23,18 @@
 
 namespace d2dx
 {
-	class TextureCache final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		ITextureCache>
+	class TextureCache final : public ITextureCache
 	{
 	public:
-		HRESULT RuntimeClassInitialize(
+		TextureCache(
 			_In_ int32_t width,
 			_In_ int32_t height,
 			_In_ uint32_t capacity,
 			_In_ uint32_t texturesPerAtlas,
 			_In_ ID3D11Device* device,
-			_In_ ISimd* simd);
-
-		virtual ~TextureCache();
+			_In_ const std::shared_ptr<ISimd>& simd);
+		
+		virtual ~TextureCache() noexcept {}
 
 		virtual void OnNewFrame() override;
 

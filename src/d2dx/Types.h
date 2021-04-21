@@ -136,7 +136,7 @@ namespace d2dx
 		int32_t x = 0;
 		int32_t y = 0;
 
-		bool operator==(const Offset& rhs) const
+		bool operator==(const Offset& rhs) const noexcept
 		{
 			return x == rhs.x && y == rhs.y;
 		}
@@ -147,17 +147,17 @@ namespace d2dx
 		int32_t width = 0;
 		int32_t height = 0;
 
-		Size operator*(int32_t value)
+		Size operator*(int32_t value) noexcept
 		{
 			return { width * value, height * value };
 		}
 
-		Size operator*(uint32_t value)
+		Size operator*(uint32_t value) noexcept
 		{
 			return { width * (int32_t)value, height * (int32_t)value };
 		}
 
-		bool operator==(const Size& rhs) const
+		bool operator==(const Size& rhs) const noexcept
 		{
 			return width == rhs.width && height == rhs.height;
 		}
@@ -168,12 +168,12 @@ namespace d2dx
 		Offset offset;
 		Size size;
 
-		bool IsValid() const
+		bool IsValid() const noexcept
 		{
 			return size.width > 0 && size.height > 0;
 		}
 
-		bool operator==(const Rect& rhs) const
+		bool operator==(const Rect& rhs) const noexcept
 		{
 			return offset == rhs.offset && size == rhs.size;
 		}

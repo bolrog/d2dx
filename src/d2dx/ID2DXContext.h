@@ -22,9 +22,10 @@
 
 namespace d2dx
 {
-	MIDL_INTERFACE("89F801A7-BB81-4729-BD97-AE9090E5612A")
-		ID2DXContext : public IGlide3x
+	struct ID2DXContext abstract : public IGlide3x
 	{
+		virtual ~ID2DXContext() {}
+
 		virtual void SetCustomResolution(
 			_In_ Size size) = 0;
 
@@ -33,5 +34,7 @@ namespace d2dx
 		virtual GameVersion GetGameVersion() const = 0;
 
 		virtual void DisableBuiltinResMod() = 0;
+
+		virtual Options& GetOptions() = 0;
 	};
 }

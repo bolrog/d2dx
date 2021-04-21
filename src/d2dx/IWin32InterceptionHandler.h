@@ -18,13 +18,14 @@
 */
 #pragma once
 
-#include "IGlide3x.h"
+#include "Types.h"
 
 namespace d2dx
 {
-	MIDL_INTERFACE("E98AB1CA-859B-4DBF-A602-0BE9BEB7C6B9")
-		IWin32InterceptionHandler : public IUnknown
+	struct IWin32InterceptionHandler abstract
 	{
+		virtual ~IWin32InterceptionHandler() {}
+
 		virtual Offset OnSetCursorPos(
 			_In_ Offset pos) = 0;
 

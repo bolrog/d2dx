@@ -148,7 +148,7 @@ static const struct MetricsTableEntry metricsTable[] =
 _Use_decl_annotations_
 Size d2dx::Metrics::GetSuggestedGameSize(
 	Size desktopSize,
-	bool wide)
+	bool wide) noexcept
 {
 	for (int32_t i = 0; i < ARRAYSIZE(metricsTable); ++i)
 	{
@@ -184,7 +184,7 @@ _Use_decl_annotations_
 Rect d2dx::Metrics::GetRenderRect(
 	Size gameSize,
 	Size desktopSize,
-	bool wide)
+	bool wide) noexcept
 {
 	int32_t scaleFactor = 1;
 
@@ -238,7 +238,7 @@ Rect d2dx::Metrics::GetRenderRect(
 	return rect;
 }
 
-Buffer<Size> d2dx::Metrics::GetStandardDesktopSizes()
+Buffer<Size> d2dx::Metrics::GetStandardDesktopSizes() noexcept
 {
 	Buffer<Size> standardDesktopSizes(ARRAYSIZE(metricsTable));
 

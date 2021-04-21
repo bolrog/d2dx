@@ -9,13 +9,13 @@ namespace d2dx
 	{
 		Size GetSuggestedGameSize(
 			_In_ Size desktopSize,
-			_In_ bool wide);
+			_In_ bool wide) noexcept;
 		
 		Rect GetRenderRect(
 			_In_ Size gameSize,
 			_In_ Size desktopSize,
-			_In_ bool wide);
+			_In_ bool wide) noexcept;
 		
-		Buffer<Size> GetStandardDesktopSizes();
+		Buffer<Size> GetStandardDesktopSizes() noexcept;
 	}
 }

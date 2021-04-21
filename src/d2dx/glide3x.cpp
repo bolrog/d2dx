@@ -18,6 +18,7 @@
 */
 #include "pch.h"
 #include "D2DXContextFactory.h"
+#include "Utils.h"
 
 using namespace d2dx;
 using namespace std;
@@ -47,25 +48,29 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("grDrawLine v1=%p v2=%p\n", v1, v2);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		const auto returnAddress = (uintptr_t)_ReturnAddress();
+		D2DXContextFactory::GetInstance()->OnDrawLine(v1, v2, returnAddress);
 	}
-
-	const auto returnAddress = (uintptr_t)_ReturnAddress();
-	D2DXContextFactory::GetInstance()->OnDrawLine(v1, v2, returnAddress);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
 	grVertexLayout(FxU32 param, FxI32 offset, FxU32 mode)
 {
-	if (!D2DXContextFactory::GetInstance())
-	{
-		return;
-	}
-
 	D2DX_LOG("grVertexLayout param=%s offset=%i mode=%u\n", GetVertexLayoutParamString(param), offset, mode);
-	D2DXContextFactory::GetInstance()->OnVertexLayout(param, mode ? offset : 0xFF);
+	try
+	{ 
+		D2DXContextFactory::GetInstance()->OnVertexLayout(param, mode ? offset : 0xFF);
+	}
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -73,13 +78,15 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("grDrawVertexArray mode=%s count=%u pointers=%p\n", GetPrimitiveTypeString(mode), Count, pointers);
 		
-	if (!D2DXContextFactory::GetInstance())
-	{
-		return;
-	}
-
 	const auto returnAddress = (uintptr_t)_ReturnAddress();
-	D2DXContextFactory::GetInstance()->OnDrawVertexArray(mode, Count, (uint8_t**)pointers, returnAddress);	
+	try
+	{
+		D2DXContextFactory::GetInstance()->OnDrawVertexArray(mode, Count, (uint8_t**)pointers, returnAddress);	
+	}
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -87,13 +94,16 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("grDrawVertexArrayContiguous mode=%s count=%u vertex=%p stride=%u\n", GetPrimitiveTypeString(mode), Count, vertex, stride);
 
-	if (!D2DXContextFactory::GetInstance())
-	{
-		return;
-	}
-
 	const auto returnAddress = (uintptr_t)_ReturnAddress();
-	D2DXContextFactory::GetInstance()->OnDrawVertexArrayContiguous(mode, Count, (uint8_t*)vertex, stride, returnAddress);
+
+	try
+	{
+		D2DXContextFactory::GetInstance()->OnDrawVertexArrayContiguous(mode, Count, (uint8_t*)vertex, stride, returnAddress);
+	}
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -107,12 +117,14 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("grBufferSwap swap_interval=%u\n", swap_interval);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnBufferSwap();
 	}
-
-	D2DXContextFactory::GetInstance()->OnBufferSwap();
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -153,11 +165,6 @@ FX_ENTRY GrContext_t FX_CALL
 	D2DX_LOG("grSstWinOpen hWnd=%u screen_resolution=%u refresh_rate=%u color_format=%u origin_location=%u nColBuffers=%i nAuxBuffers=%i\n",
 		hWnd, screen_resolution, refresh_rate, color_format, origin_location, nColBuffers, nAuxBuffers);
 
-	if (!D2DXContextFactory::GetInstance())
-	{
-		return 0;
-	}
-
 	if (lfbInfo.lfbPtr)
 	{
 		memset(lfbInfo.lfbPtr, 0, 640 * 480 * 4);
@@ -184,7 +191,15 @@ FX_ENTRY GrContext_t FX_CALL
 		break;
 	}
 
-	D2DXContextFactory::GetInstance()->OnSstWinOpen(hWnd, width, height);
+	try
+	{
+		D2DXContextFactory::GetInstance()->OnSstWinOpen(hWnd, width, height);
+	}
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
+
 	return 1;
 }
 
@@ -220,12 +235,14 @@ FX_ENTRY void FX_CALL
 		GetAlphaBlendFncString(alpha_sf),
 		GetAlphaBlendFncString(alpha_df));
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnAlphaBlendFunction(rgb_sf, rgb_df, alpha_sf, alpha_df);
 	}
-
-	D2DXContextFactory::GetInstance()->OnAlphaBlendFunction(rgb_sf, rgb_df, alpha_sf, alpha_df);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -255,12 +272,14 @@ FX_ENTRY void FX_CALL
 		GetCombineOtherString(other),
 		invert ? 1 : 0);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnAlphaCombine(function, factor, local, other, invert);
 	}
-
-	D2DXContextFactory::GetInstance()->OnAlphaCombine(function, factor, local, other, invert);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -268,12 +287,14 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("grChromakeyMode mode=%i\n", mode);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnChromakeyMode(mode);
 	}
-
-	D2DXContextFactory::GetInstance()->OnChromakeyMode(mode);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -311,12 +332,14 @@ FX_ENTRY void FX_CALL
 		GetCombineOtherString(other), 
 		invert ? 1 : 0);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnColorCombine(function, factor, local, other, invert);
 	}
-
-	D2DXContextFactory::GetInstance()->OnColorCombine(function, factor, local, other, invert);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -330,12 +353,14 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("grConstantColorValue value=%u\n", value);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnConstantColorValue((uint32_t)value);
 	}
-
-	D2DXContextFactory::GetInstance()->OnConstantColorValue((uint32_t)value);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -355,12 +380,14 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("grLoadGammaTable nentries=%u red=%p green=%p blue=%p\n", nentries, red, green, blue);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnLoadGammaTable(nentries, (uint32_t *)red, (uint32_t*)green, (uint32_t*)blue);
 	}
-
-	D2DXContextFactory::GetInstance()->OnLoadGammaTable(nentries, (uint32_t *)red, (uint32_t*)green, (uint32_t*)blue);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY FxU32 FX_CALL
@@ -368,12 +395,14 @@ FX_ENTRY FxU32 FX_CALL
 {
 	D2DX_LOG("grGet pname=%u plength=%u params=%p\n", pname, plength, params);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return 0;
+		return D2DXContextFactory::GetInstance()->OnGet(pname, plength, (int32_t*)params);
 	}
-
-	return D2DXContextFactory::GetInstance()->OnGet(pname, plength, (int32_t *)params);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -412,12 +441,14 @@ FX_ENTRY void FX_CALL
 	D2DX_LOG("grTexSource tmu=%i startAddress=%08x evenOdd=%u fmt=%s w=%u h=%u\n",
 		tmu, startAddress, evenOdd, GetTextureFormatString(info->format), w, h);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnTexSource(tmu, startAddress, w, h);
 	}
-
-	D2DXContextFactory::GetInstance()->OnTexSource(tmu, startAddress, w, h);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -469,12 +500,14 @@ FX_ENTRY void FX_CALL
 	FxU32 width, height;
 	GetWidthHeightFromTexInfo(info, &width, &height);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnTexDownload(tmu, (const uint8_t*)info->data, startAddress, (int32_t)width, (int32_t)height);
 	}
-
-	D2DXContextFactory::GetInstance()->OnTexDownload(tmu, (const uint8_t*)info->data, startAddress, (int32_t)width, (int32_t)height);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -483,12 +516,14 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("grTexDownloadTable type=%i data=%p\n", type, data);
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnTexDownloadTable(type, data);
 	}
-
-	D2DXContextFactory::GetInstance()->OnTexDownloadTable(type, data);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL
@@ -506,29 +541,31 @@ FX_ENTRY FxBool FX_CALL
 {
 	D2DX_LOG("grLfbLock\n");
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return FXFALSE;
-	}
-
-	if (type == GR_LFB_WRITE_ONLY && buffer == GR_BUFFER_FRONTBUFFER && writeMode == GR_LFBWRITEMODE_8888 &&
-		origin == GR_ORIGIN_UPPER_LEFT && !pixelPipeline && info && info->size == 20)
-	{
-		if (!lfbInfo.lfbPtr)
+		if (type == GR_LFB_WRITE_ONLY && buffer == GR_BUFFER_FRONTBUFFER && writeMode == GR_LFBWRITEMODE_8888 &&
+			origin == GR_ORIGIN_UPPER_LEFT && !pixelPipeline && info && info->size == 20)
 		{
-			lfbInfo.lfbPtr = (uint8_t*)malloc(640 * 480 * 4);
-			lfbInfo.strideInBytes = 640 * 4;
+			if (!lfbInfo.lfbPtr)
+			{
+				lfbInfo.lfbPtr = (uint8_t*)malloc(640 * 480 * 4);
+				lfbInfo.strideInBytes = 640 * 4;
+			}
+
+			lfbInfo.writeMode = writeMode;
+			lfbInfo.origin = origin;
+			*info = lfbInfo;
+
+			return FXTRUE;
 		}
-
-		lfbInfo.writeMode = writeMode;
-		lfbInfo.origin = origin;
-		*info = lfbInfo;
-
-		return FXTRUE;
+		else
+		{
+			return FXFALSE;
+		}
 	}
-	else
+	catch (...)
 	{
-		return FXFALSE;
+		D2DX_FATAL_EXCEPTION;
 	}
 }
 
@@ -537,19 +574,21 @@ FX_ENTRY FxBool FX_CALL
 {
 	D2DX_LOG("grLfbUnlock\n");
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return FXFALSE;
+		if (type == GR_LFB_WRITE_ONLY && buffer == GR_BUFFER_FRONTBUFFER)
+		{
+			D2DXContextFactory::GetInstance()->OnLfbUnlock((const uint32_t*)lfbInfo.lfbPtr, lfbInfo.strideInBytes);
+			return FXTRUE;
+		}
+		else
+		{
+			return FXFALSE;
+		}
 	}
-
-	if (type == GR_LFB_WRITE_ONLY && buffer == GR_BUFFER_FRONTBUFFER)
+	catch (...)
 	{
-		D2DXContextFactory::GetInstance()->OnLfbUnlock((const uint32_t*)lfbInfo.lfbPtr, lfbInfo.strideInBytes);
-		return FXTRUE;
-	}
-	else
-	{
-		return FXFALSE;
+		D2DX_FATAL_EXCEPTION;
 	}
 }
 
@@ -570,12 +609,14 @@ FX_ENTRY void FX_CALL
 {
 	D2DX_LOG("guGammaCorrectionRGB\n");
 
-	if (!D2DXContextFactory::GetInstance())
+	try
 	{
-		return;
+		D2DXContextFactory::GetInstance()->OnGammaCorrectionRGB(red, green, blue);
 	}
-
-	D2DXContextFactory::GetInstance()->OnGammaCorrectionRGB(red, green, blue);
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 /*

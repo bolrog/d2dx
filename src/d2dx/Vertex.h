@@ -32,7 +32,7 @@ namespace d2dx
 			bool isChromaKeyEnabled,
 			int32_t atlasIndex,
 			int32_t paletteIndex,
-			int32_t surfaceId) :
+			int32_t surfaceId) noexcept :
 			_x(x),
 			_y(y),
 			_s(s),
@@ -50,66 +50,66 @@ namespace d2dx
 			assert(surfaceId >= 0 && surfaceId <= 16383);
 		}
 
-		inline int32_t GetX() const
+		inline int32_t GetX() const noexcept
 		{
 			return _x;
 		}
 
-		inline int32_t GetY() const
+		inline int32_t GetY() const noexcept
 		{
 			return _y;
 		}
 
-		inline void SetX(int32_t x)
+		inline void SetX(int32_t x) noexcept
 		{
 			_x = x;
 		}
 
-		inline void SetY(int32_t y)
+		inline void SetY(int32_t y) noexcept
 		{
 			_y = y;
 		}
 
-		inline void SetSurfaceId(int32_t surfaceId)
+		inline void SetSurfaceId(int32_t surfaceId) noexcept
 		{
 			assert(surfaceId >= 0 && surfaceId <= 16383);
 			_isChromaKeyEnabled_surfaceId &= ~16383;
 			_isChromaKeyEnabled_surfaceId |= surfaceId & 16383;
 		}
 
-		inline int32_t GetS() const
+		inline int32_t GetS() const noexcept
 		{
 			return _s;
 		}
 
-		inline void SetS(int32_t s)
+		inline void SetS(int32_t s) noexcept
 		{
 			assert(s >= 0 && s <= 511);
 			_s = s;
 		}
 
-		inline int32_t GetT() const
+		inline int32_t GetT() const noexcept
 		{
 			return _t;
 		}
 
-		inline void SetT(int32_t t)
+		inline void SetT(int32_t t) noexcept
 		{
 			assert(t >= 0 && t <= 511);
 			_t = t;
 		}
 
-		inline uint32_t GetColor() const
+		inline uint32_t GetColor() const noexcept
 		{
 			return _color;
 		}
 
-		inline void SetColor(uint32_t color)
+		inline void SetColor(uint32_t color) noexcept
 		{
 			_color = color;
 		}
 
-		inline bool IsChromaKeyEnabled() const
+		inline bool IsChromaKeyEnabled() const noexcept
 		{
 			return (_isChromaKeyEnabled_surfaceId & 0x4000) != 0;
 		}

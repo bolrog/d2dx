@@ -31,16 +31,12 @@ namespace d2dx
 {
 	class Vertex;
 
-	class D2DXContext final : public RuntimeClass<
-		RuntimeClassFlags<RuntimeClassType::ClassicCom>,
-		ID2DXContext,
-		IWin32InterceptionHandler
-	>
+	class D2DXContext final : public ID2DXContext, public IWin32InterceptionHandler
 	{
 	public:
 		D2DXContext(
-			_In_ IGameHelper* gameHelper,
-			_In_ ISimd* simd);
+			_In_ const std::shared_ptr<IGameHelper>& gameHelper,
+			_In_ const std::shared_ptr<ISimd>& simd);
 		
 		virtual ~D2DXContext();
 
@@ -154,6 +150,8 @@ namespace d2dx
 
 		virtual void DisableBuiltinResMod() override;
 
+		virtual Options& GetOptions() override;
+
 #pragma endregion ID2DXContext
 
 #pragma region IWin32InterceptionHandler
@@ -194,7 +192,7 @@ namespace d2dx
 		Batch _scratchBatch;
 
 		int32_t _frame;
-		ComPtr<IRenderContext> _renderContext;
+		std::shared_ptr<IRenderContext> _renderContext;
 		MajorGameState _majorGameState;
 
 		Buffer<uint32_t> _paletteKeys;
@@ -212,9 +210,9 @@ namespace d2dx
 		int32_t _vertexCount;
 		Buffer<Vertex> _vertices;
 
-		ComPtr<IGameHelper> _gameHelper;
-		ComPtr<ISimd> _simd;
-		ComPtr<IBuiltinResMod> _builtinResMod;
+		std::shared_ptr<IGameHelper> _gameHelper;
+		std::shared_ptr<ISimd> _simd;
+		std::unique_ptr<IBuiltinResMod> _builtinResMod;
 
 		Options _options;
 		Batch _logoTextureBatch;

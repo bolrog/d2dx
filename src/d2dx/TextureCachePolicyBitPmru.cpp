@@ -26,7 +26,7 @@ using namespace d2dx;
 _Use_decl_annotations_
 TextureCachePolicyBitPmru::TextureCachePolicyBitPmru(
 	uint32_t capacity,
-	ISimd* simd)
+	const std::shared_ptr<ISimd>& simd)
 {
 	assert(!(capacity & 63));
 	assert(simd);
@@ -42,7 +42,7 @@ TextureCachePolicyBitPmru::TextureCachePolicyBitPmru(
 	memset(_mruBits.items, 0, sizeof(uint32_t) * _mruBits.capacity);
 }
 
-TextureCachePolicyBitPmru::~TextureCachePolicyBitPmru()
+TextureCachePolicyBitPmru::~TextureCachePolicyBitPmru() noexcept
 {
 }
 

@@ -29,17 +29,17 @@ bool SDHD_Initialize();
 #endif
 
 _Use_decl_annotations_
-HRESULT BuiltinResMod::RuntimeClassInitialize(
+BuiltinResMod::BuiltinResMod(
     HMODULE hModule,
-    IGameHelper* gameHelper)
+    const std::shared_ptr<IGameHelper>& gameHelper)
 {
     if (!hModule || !gameHelper)
     {
-        return E_INVALIDARG;
+        D2DX_CHECK_HR(E_INVALIDARG);
     }
 
 #ifndef D2DX_UNITTEST
-    if (IsCompatible(gameHelper))
+    if (IsCompatible(gameHelper.get()))
     {
         ALWAYS_PRINT("Writing MPQ.");
         EnsureMpqExists(hModule);
@@ -48,12 +48,15 @@ HRESULT BuiltinResMod::RuntimeClassInitialize(
         SDHD_Initialize();
 
         _isActive = true;
-        return S_OK;
+        return;
     }
 #endif
 
     _isActive = false;
-    return S_OK;
+}
+
+BuiltinResMod::~BuiltinResMod()
+{
 }
 
 bool BuiltinResMod::IsActive() const
