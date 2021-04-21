@@ -24,6 +24,7 @@ namespace d2dx
 	{
 	public:
 		CompatibilityModeDisabler();
+		
 		~CompatibilityModeDisabler() noexcept {}
 
 		void DisableCompatibilityMode();

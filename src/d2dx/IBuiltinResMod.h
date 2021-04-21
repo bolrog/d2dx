@@ -24,7 +24,7 @@ namespace d2dx
 {
     struct IBuiltinResMod abstract
     {
-        virtual ~IBuiltinResMod() {}
+        virtual ~IBuiltinResMod() noexcept {}
 
         virtual bool IsActive() const = 0;
     };

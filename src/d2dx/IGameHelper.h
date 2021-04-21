@@ -24,7 +24,7 @@ namespace d2dx
 {
 	struct IGameHelper abstract
 	{
-		virtual ~IGameHelper() {}
+		virtual ~IGameHelper() noexcept {}
 
 		virtual GameVersion GetVersion() const = 0;
 

@@ -35,7 +35,7 @@ namespace d2dx
 
 	struct ITextureCache abstract
 	{
-		virtual ~ITextureCache() {}
+		virtual ~ITextureCache() noexcept {}
 
 		virtual void OnNewFrame() = 0;
 

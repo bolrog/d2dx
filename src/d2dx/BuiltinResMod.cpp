@@ -55,10 +55,6 @@ BuiltinResMod::BuiltinResMod(
     _isActive = false;
 }
 
-BuiltinResMod::~BuiltinResMod()
-{
-}
-
 bool BuiltinResMod::IsActive() const
 {
     return _isActive;

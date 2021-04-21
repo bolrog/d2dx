@@ -24,7 +24,7 @@ namespace d2dx
 {
 	struct IGlide3x abstract
 	{
-		virtual ~IGlide3x() {}
+		virtual ~IGlide3x() noexcept {}
 
 		virtual const char* OnGetString(
 			_In_ uint32_t pname) = 0;

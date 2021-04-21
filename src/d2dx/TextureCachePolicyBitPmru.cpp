@@ -42,10 +42,6 @@ TextureCachePolicyBitPmru::TextureCachePolicyBitPmru(
 	memset(_mruBits.items, 0, sizeof(uint32_t) * _mruBits.capacity);
 }
 
-TextureCachePolicyBitPmru::~TextureCachePolicyBitPmru() noexcept
-{
-}
-
 _Use_decl_annotations_
 int32_t TextureCachePolicyBitPmru::Find(
 	uint32_t contentKey,

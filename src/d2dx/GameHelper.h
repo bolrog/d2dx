@@ -27,7 +27,7 @@ namespace d2dx
 	{
 	public:
 		GameHelper();
-		virtual ~GameHelper();
+		virtual ~GameHelper() noexcept {}
 
 		virtual GameVersion GetVersion() const override;
 		

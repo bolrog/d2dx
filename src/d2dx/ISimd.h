@@ -24,7 +24,7 @@ namespace d2dx
 {
 	struct ISimd abstract
 	{
-		virtual ~ISimd() {}
+		virtual ~ISimd() noexcept {}
 
 		virtual int32_t IndexOfUInt32(
 			_In_reads_(itemsCount) const uint32_t* __restrict items,

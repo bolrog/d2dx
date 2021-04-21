@@ -24,7 +24,7 @@ namespace d2dx
 {
 	struct IWin32InterceptionHandler abstract
 	{
-		virtual ~IWin32InterceptionHandler() {}
+		virtual ~IWin32InterceptionHandler() noexcept {}
 
 		virtual Offset OnSetCursorPos(
 			_In_ Offset pos) = 0;

@@ -34,13 +34,6 @@ GameHelper::GameHelper() :
 	FixBadRegistrySettings();
 }
 
-GameHelper::~GameHelper()
-{
-	//CloseHandle(_hProcess);
-	//CloseHandle(_hGameExe);
-	//CloseHandle(_hD2ClientDll);
-}
-
 GameVersion GameHelper::GetVersion() const
 {
 	return _version;

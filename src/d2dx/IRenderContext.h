@@ -28,7 +28,7 @@ namespace d2dx
 
 	struct IRenderContext abstract
 	{
-		virtual ~IRenderContext() {}
+		virtual ~IRenderContext() noexcept {}
 
 		virtual HWND GetHWnd() const = 0;
 

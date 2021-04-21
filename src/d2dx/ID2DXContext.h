@@ -24,7 +24,7 @@ namespace d2dx
 {
 	struct ID2DXContext abstract : public IGlide3x
 	{
-		virtual ~ID2DXContext() {}
+		virtual ~ID2DXContext() noexcept {}
 
 		virtual void SetCustomResolution(
 			_In_ Size size) = 0;

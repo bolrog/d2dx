@@ -29,7 +29,8 @@ namespace d2dx
         BuiltinResMod(
             _In_ HMODULE hModule,
             _In_ const std::shared_ptr<IGameHelper>& gameHelper);
-        virtual ~BuiltinResMod();
+        
+        virtual ~BuiltinResMod() noexcept {}
 
         virtual bool IsActive() const override;
 
