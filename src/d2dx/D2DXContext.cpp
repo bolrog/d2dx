@@ -536,6 +536,49 @@ void D2DXContext::OnAlphaBlendFunction(
 	_scratchBatch.SetAlphaBlend(alphaBlend);
 }
 
+_Use_decl_annotations_
+void D2DXContext::OnDrawPoint(
+	const void* pt,
+	uint32_t gameContext)
+{
+	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
+
+	Batch batch = _scratchBatch;
+	batch.SetGameAddress(gameAddress);
+	batch.SetStartVertex(_vertexCount);
+	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
+
+	Vertex centerVertex = ReadVertex((const uint8_t*)pt, _vertexLayout, batch, 0);
+
+	Vertex vertex0 = centerVertex;
+	vertex0.SetX((int32_t)(vertex0.GetX() - 0.5));
+	vertex0.SetY((int32_t)(vertex0.GetY() - 0.5));
+
+	Vertex vertex1 = centerVertex;
+	vertex1.SetX((int32_t)(vertex1.GetX() + 0.5));
+	vertex1.SetY((int32_t)(vertex1.GetY() - 0.5));
+
+	Vertex vertex2 = centerVertex;
+	vertex2.SetX((int32_t)(vertex2.GetX() - 0.5));
+	vertex2.SetY((int32_t)(vertex2.GetY() + 0.5));
+
+	Vertex vertex3 = centerVertex;
+	vertex3.SetX((int32_t)(vertex3.GetX() + 0.5));
+	vertex3.SetY((int32_t)(vertex3.GetY() + 0.5));
+
+	assert((_vertexCount + 6) < _vertices.capacity);
+	_vertices.items[_vertexCount++] = vertex0;
+	_vertices.items[_vertexCount++] = vertex1;
+	_vertices.items[_vertexCount++] = vertex2;
+	_vertices.items[_vertexCount++] = vertex1;
+	_vertices.items[_vertexCount++] = vertex2;
+	_vertices.items[_vertexCount++] = vertex3;
+
+	batch.SetVertexCount(6);
+
+	assert(_batchCount < _batches.capacity);
+	_batches.items[_batchCount++] = batch;
+}
 
 _Use_decl_annotations_
 void D2DXContext::OnDrawLine(

@@ -34,6 +34,15 @@ extern "C" {
 FX_ENTRY void FX_CALL
 	grDrawPoint(const void* pt)
 {
+	try
+	{
+		const auto returnAddress = (uintptr_t)_ReturnAddress();
+		D2DXContextFactory::GetInstance()->OnDrawPoint(pt, returnAddress);
+	}
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL

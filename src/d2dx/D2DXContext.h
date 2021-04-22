@@ -96,7 +96,11 @@ namespace d2dx
 			_In_ GrCombineLocal_t local,
 			_In_ GrCombineOther_t other,
 			_In_ bool invert);
-		
+
+		virtual void OnDrawPoint(
+			_In_ const void* pt,
+			_In_ uint32_t gameContext);
+
 		virtual void OnDrawLine(
 			_In_ const void* v1,
 			_In_ const void* v2,
