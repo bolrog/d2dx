@@ -57,7 +57,6 @@ namespace d2dx
 		void WriteU32(HANDLE module, uint32_t offset, uint32_t value);
 		GameVersion GetGameVersion();
 		void InitializeTextureHashPrefixTable();
-		void FixBadRegistrySettings();
 
 		bool _isPd2;
 		HANDLE _hProcess;
