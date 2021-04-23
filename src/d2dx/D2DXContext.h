@@ -241,6 +241,8 @@ namespace d2dx
 		Rect _previousDrawCallRect;
 		uint64_t _previousDrawCallTexture;
 
+		Buffer<uint32_t> _palettes;
+
 		Size _gameSize;
 	};
 }

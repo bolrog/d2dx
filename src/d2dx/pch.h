@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cassert>
+#include <filesystem>
 
 #include <windows.h>
 #include <windowsx.h>

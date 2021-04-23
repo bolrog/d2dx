@@ -67,6 +67,8 @@ static Options GetCommandLineOptions()
 		dxscale2 ? 2 :
 		1;
 
+	options.debugDumpTextures = CheckOption(commandLine, cfgFile, "-dxdbg_dump");
+
 	options.screenMode = CheckOption(commandLine, cfgFile, "-w") ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
 
 	return options;
@@ -99,7 +101,8 @@ D2DXContext::D2DXContext(
 	_nextSurfaceId{ 0 },
 	_textureHashCache{ D2DX_TMU_MEMORY_SIZE / 256 },
 	_textureHashCacheHits{ 0 },
-	_textureHashCacheMisses{ 0 }
+	_textureHashCacheMisses{ 0 },
+	_palettes{D2DX_MAX_PALETTES * 256}
 {
 	memset(_paletteKeys.items, 0, sizeof(uint32_t) * _paletteKeys.capacity);
 	memset(_textureHashCache.items, 0, sizeof(uint32_t) * _textureHashCache.capacity);
@@ -304,7 +307,7 @@ void D2DXContext::OnTexSource(
 	const uint32_t pixelsSize = width * height;
 
 	uint32_t hash = _textureHashCache.items[startAddress >> 8];
-	
+
 	if (hash)
 	{
 		++_textureHashCacheHits;
@@ -328,6 +331,11 @@ void D2DXContext::OnTexSource(
 	_scratchBatch.SetTextureHash(hash);
 	_scratchBatch.SetTextureSize(width, height);
 	_scratchBatch.SetTextureCategory(_gameHelper->GetTextureCategoryFromHash(hash));
+
+	if (_options.debugDumpTextures)
+	{
+		DumpTexture(hash, width, height, pixels, pixelsSize, (uint32_t)_scratchBatch.GetTextureCategory(), _palettes.items + _scratchBatch.GetPaletteIndex() * 256);
+	}
 }
 
 void D2DXContext::CheckMajorGameState()
@@ -941,6 +949,11 @@ void D2DXContext::OnTexDownloadTable(
 				palette[j] |= 0xFF000000;
 			}
 
+			if (_options.debugDumpTextures)
+			{
+				memcpy(_palettes.items + 256 * i, palette, 1024);
+			}
+
 			_renderContext->SetPalette(i, palette);
 			return;
 		}
@@ -1122,8 +1135,6 @@ Offset D2DXContext::OnSetCursorPos(
 		ClientToScreen(hWnd, (LPPOINT)&pos);
 
 		pos.y = originalPos.y;
-
-		//OnMousePosChanged(mousePos);
 
 		return pos;
 	}

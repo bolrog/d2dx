@@ -53,6 +53,7 @@ namespace d2dx
 		bool noResMod = false;
 		bool noAA = false;
 		bool noCompatModeFix = false;
+		bool debugDumpTextures = false;
 	};
 
 	enum class MajorGameState

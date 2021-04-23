@@ -19,6 +19,9 @@
 #include "pch.h"
 #include "Utils.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION 1
+#include "../../thirdparty/stb_image/stb_image_write.h"
+
 #pragma comment(lib, "Netapi32.lib")
 
 using namespace d2dx;
@@ -231,4 +234,44 @@ void d2dx::detail::FatalError(
     D2DX_LOG("%s", msg);
     MessageBoxA(nullptr, msg, "D2DX Fatal Error", MB_OK | MB_ICONSTOP);
     TerminateProcess(GetCurrentProcess(), -1);
+}
+
+void d2dx::DumpTexture(uint32_t hash, int32_t w, int32_t h, const uint8_t* pixels, uint32_t pixelsSize, uint32_t textureCategory, const uint32_t* palette)
+{
+    char s[256];
+
+    if (!std::filesystem::exists("dump"))
+    {
+        std::filesystem::create_directory("dump");
+    }
+
+    sprintf_s(s, "dump/%u", textureCategory);
+
+    if (!std::filesystem::exists(s))
+    {
+        std::filesystem::create_directory(s);
+    }
+
+    sprintf_s(s, "dump/%u/%08x.bmp", textureCategory, hash);
+
+    if (std::filesystem::exists(s))
+    {
+        return;
+    }
+
+    Buffer<uint32_t> data(w * h * 4);
+
+    for (int32_t j = 0; j < h; ++j)
+    {
+        for (int32_t i = 0; i < w; ++i)
+        {
+            uint8_t idx = pixels[i + j * w];
+            uint32_t c = palette[idx] | 0xFF000000;
+        
+            c = (c & 0xFF00FF00) | ((c & 0xFF) << 16) | ((c >> 16) & 0xFF);
+
+            data.items[i + j * w] = c;
+        }
+    }
+    stbi_write_bmp(s, w, h, 4, data.items);
 }

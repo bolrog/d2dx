@@ -159,6 +159,7 @@
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\D2Version.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\TemplateIncludes.h" />
+    <ClInclude Include="..\..\thirdparty\stb_image\stb_image_write.h" />
     <ClInclude Include="BuiltinResMod.h" />
     <ClInclude Include="CompatibilityModeDisabler.h" />
     <ClInclude Include="D2DXContextFactory.h" />
