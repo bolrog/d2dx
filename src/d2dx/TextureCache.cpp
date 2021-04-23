@@ -161,3 +161,8 @@ void TextureCache::CopyPixels(
 		dstPixels += dstSkip;
 	}
 }
+
+uint32_t TextureCache::GetUsedCount() const
+{
+	return _policy.GetUsedCount();
+}

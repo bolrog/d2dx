@@ -416,6 +416,20 @@ void RenderContext::Present()
 		nullptr,
 		nullptr);
 
+#ifndef NDEBUG
+	if (!(_frameCount & 255))
+	{
+		D2DX_LOG("Texture cache use: %u, %u, %u, %u, %u, %u, %u", 
+			this->_resources->GetTextureCache(8, 8)->GetUsedCount(),
+			this->_resources->GetTextureCache(16, 16)->GetUsedCount(),
+			this->_resources->GetTextureCache(32, 32)->GetUsedCount(),
+			this->_resources->GetTextureCache(64, 64)->GetUsedCount(),
+			this->_resources->GetTextureCache(128, 128)->GetUsedCount(),
+			this->_resources->GetTextureCache(256, 256)->GetUsedCount(),
+			this->_resources->GetTextureCache(256, 128)->GetUsedCount());
+	}
+#endif
+
 	switch (_syncStrategy)
 	{
 	case RenderContextSyncStrategy::AllowTearing:

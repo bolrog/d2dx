@@ -45,11 +45,14 @@ namespace d2dx
 		
 		void OnNewFrame();
 
+		uint32_t GetUsedCount() const;
+
 	private:
 		uint32_t _capacity = 0;
 		std::shared_ptr<ISimd> _simd;
 		Buffer<uint32_t> _contentKeys;
 		Buffer<uint32_t> _usedInFrameBits;
 		Buffer<uint32_t> _mruBits;
+		uint32_t _usedCount = 0;
 	};
 }

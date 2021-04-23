@@ -53,5 +53,7 @@ namespace d2dx
 			_In_ uint32_t atlasIndex) const = 0;
 
 		virtual uint32_t GetMemoryFootprint() const = 0;
+
+		virtual uint32_t GetUsedCount() const = 0;
 	};
 }

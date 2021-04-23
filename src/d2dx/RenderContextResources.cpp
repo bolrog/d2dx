@@ -61,8 +61,15 @@ void RenderContextResources::OnNewFrame()
 	}
 }
 
-ITextureCache* RenderContextResources::GetTextureCache(int32_t textureWidth, int32_t textureHeight) const
+ITextureCache* RenderContextResources::GetTextureCache(
+	int32_t textureWidth,
+	int32_t textureHeight) const
 {
+	if (textureWidth == 256 && textureHeight == 128)
+	{
+		return _textureCaches[6].get();
+	}
+
 	const int32_t longest = max(textureWidth, textureHeight);
 	assert(longest >= 8);
 	uint32_t log2Longest = 0;
@@ -172,7 +179,7 @@ void RenderContextResources::CreateTextureCaches(
 	ID3D11Device* device,
 	const std::shared_ptr<ISimd>& simd)
 {
-	static const uint32_t capacities[6] = { 2048, 2048, 2048, 2048, 2048, 2048 };
+	static const uint32_t capacities[7] = { 512, 1024, 2048, 2048, 1024, 512, 1024 };
 
 	const uint32_t texturesPerAtlas = DetermineMaxTextureArraySize(device);
 	D2DX_LOG("The device supports %u textures per atlas.", texturesPerAtlas);
@@ -181,10 +188,17 @@ void RenderContextResources::CreateTextureCaches(
 	for (int32_t i = 0; i < ARRAYSIZE(_textureCaches); ++i)
 	{
 		int32_t width = 1U << (i + 3);
+		int32_t height = 1U << (i + 3);
 
-		_textureCaches[i] = std::make_unique<TextureCache>(width, width, capacities[i], texturesPerAtlas, device, simd);
+		if (i == 6)
+		{
+			width = 256;
+			height = 128;
+		}
 
-		D2DX_DEBUG_LOG("Creating texture cache for %i x %i with capacity %u (%u kB).", width, width, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
+		_textureCaches[i] = std::make_unique<TextureCache>(width, height, capacities[i], texturesPerAtlas, device, simd);
+
+		D2DX_DEBUG_LOG("Creating texture cache for %i x %i with capacity %u (%u kB).", width, height, capacities[i], _textureCaches[i]->GetMemoryFootprint() / 1024);
 
 		totalSize += _textureCaches[i]->GetMemoryFootprint();
 	}

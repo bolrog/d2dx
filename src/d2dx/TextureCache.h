@@ -52,6 +52,8 @@ namespace d2dx
 			_In_ uint32_t atlasIndex) const override;
 		
 		virtual uint32_t GetMemoryFootprint() const override;
+		
+		virtual uint32_t GetUsedCount() const override;
 
 	private:
 		void CopyPixels(

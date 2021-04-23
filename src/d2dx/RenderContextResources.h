@@ -89,7 +89,9 @@ namespace d2dx
 			return _pixelShaders[(int32_t)pixelShader].Get();
 		}
 
-		ITextureCache* GetTextureCache(int32_t textureWidth, int32_t textureHeight) const;
+		ITextureCache* GetTextureCache(
+			int32_t textureWidth, 
+			int32_t textureHeight) const;
 
 		ID3D11Texture1D* GetTexture1D(RenderContextTexture1D texture1d) const
 		{ 
@@ -216,7 +218,7 @@ namespace d2dx
 		ComPtr<ID3D11Texture2D> _videoTexture;
 		ComPtr<ID3D11ShaderResourceView> _videoTextureSrv;
 
-		std::unique_ptr<ITextureCache> _textureCaches[6];
+		std::unique_ptr<ITextureCache> _textureCaches[7];
 
 		ComPtr<ID3D11RasterizerState> _rasterizerStateNoScissor;
 		ComPtr<ID3D11RasterizerState> _rasterizerState;

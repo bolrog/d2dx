@@ -134,6 +134,11 @@ int32_t TextureCachePolicyBitPmru::Insert(
 
 	evicted = _contentKeys.items[replacementIndex] != 0;
 
+	if (!evicted)
+	{
+		++_usedCount;
+	}
+
 	_contentKeys.items[replacementIndex] = contentKey;
 
 	return replacementIndex;
@@ -142,4 +147,9 @@ int32_t TextureCachePolicyBitPmru::Insert(
 void TextureCachePolicyBitPmru::OnNewFrame()
 {
 	memset(_usedInFrameBits.items, 0, sizeof(uint32_t) * _usedInFrameBits.capacity);
+}
+
+uint32_t TextureCachePolicyBitPmru::GetUsedCount() const
+{
+	return _usedCount;
 }
