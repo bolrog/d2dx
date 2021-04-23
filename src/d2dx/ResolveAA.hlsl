@@ -71,7 +71,7 @@ float4 main(
 #endif
 
 #ifdef SHOW_SURFACE_IDS
-	uint iid = (uint)(idTexture.SampleLevel(PointSampler, tc, 0).x * 16383.0);
+	uint iid = (uint)(idTexture.SampleLevel(PointSampler, ps_in.tc, 0).x * 16383.0);
 	float3 idc;
 	idc.r = (iid & 31) / 31.0;
 	idc.g = ((iid >> 5) & 31) / 31.0;

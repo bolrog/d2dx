@@ -240,5 +240,7 @@ namespace d2dx
 
 		Rect _previousDrawCallRect;
 		uint64_t _previousDrawCallTexture;
+
+		Size _gameSize;
 	};
 }

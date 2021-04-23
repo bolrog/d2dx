@@ -161,6 +161,12 @@ namespace d2dx
 			const auto rgbCombine = GetRgbCombine();
 			uint32_t result = (rgbCombine == RgbCombine::ConstantColor ? constantColor : iteratedColor) & 0x00FFFFFF;
 			result |= constantColor & 0xFF000000;
+
+			if (GetAlphaBlend() != AlphaBlend::SrcAlphaInvSrcAlpha)
+			{
+				result |= 0xFF000000;
+			}
+
 			return result;
 		}
 

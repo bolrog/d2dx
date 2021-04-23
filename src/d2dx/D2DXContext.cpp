@@ -457,6 +457,10 @@ void D2DXContext::OnBufferSwap()
 	_lastScreenOpenMode = _gameHelper->ScreenOpenMode();
 
 	_nextSurfaceId = 0;
+
+	Rect renderRect;
+	Size desktopSize;
+	_renderContext->GetCurrentMetrics(&_gameSize, &renderRect, &desktopSize);
 }
 
 _Use_decl_annotations_
@@ -711,7 +715,8 @@ void D2DXContext::UpdateBatchSurfaceId(
 
 	if (_majorGameState != MajorGameState::InGame ||
 		(batch.GetRgbCombine() == RgbCombine::ConstantColor &&
-			batch.GetAlphaBlend() == AlphaBlend::SrcAlphaInvSrcAlpha))
+			batch.GetAlphaBlend() == AlphaBlend::SrcAlphaInvSrcAlpha) ||
+		(miny >= (_gameSize.height - 48)))
 	{
 		surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
 	}
@@ -931,9 +936,9 @@ void D2DXContext::OnTexDownloadTable(
 
 			uint32_t* palette = (uint32_t*)data;
 
-			for (int32_t i = 0; i < 256; ++i)
+			for (int32_t j = 0; j < 256; ++j)
 			{
-				palette[i] |= 0xFF000000;
+				palette[j] |= 0xFF000000;
 			}
 
 			_renderContext->SetPalette(i, palette);
