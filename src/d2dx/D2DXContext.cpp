@@ -1006,9 +1006,16 @@ void D2DXContext::PrepareLogoTextureBatch()
 	}
 
 	const uint8_t* srcPixels = dx_logo256 + 0x436;
-	uint32_t* palette = (uint32_t*)(dx_logo256 + 0x36);
 
-	_renderContext->SetPalette(D2DX_LOGO_PALETTE_INDEX, palette);
+	Buffer<uint32_t> palette(256);
+	memcpy_s(palette.items, palette.capacity * sizeof(uint32_t), (uint32_t*)(dx_logo256 + 0x36), 256 * sizeof(uint32_t));
+
+	for (int32_t i = 0; i < 256; ++i)
+	{
+		palette.items[i] |= 0xFF000000;
+	}
+
+	_renderContext->SetPalette(D2DX_LOGO_PALETTE_INDEX, palette.items);
 
 	uint32_t hash = fnv_32a_buf((void*)srcPixels, sizeof(uint8_t) * 81 * 40, FNV1_32A_INIT);
 
