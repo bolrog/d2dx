@@ -96,9 +96,13 @@ D2DXContext::D2DXContext(
 	_suggestedGameSize{ 0, 0 },
 	_options{ GetCommandLineOptions() },
 	_lastScreenOpenMode{ 0 },
-	_nextSurfaceId{ 0 }
+	_nextSurfaceId{ 0 },
+	_textureHashCache{ D2DX_TMU_MEMORY_SIZE / 256 },
+	_textureHashCacheHits{ 0 },
+	_textureHashCacheMisses{ 0 }
 {
-	memset(_paletteKeys.items, 0, sizeof(uint32_t)* _paletteKeys.capacity);
+	memset(_paletteKeys.items, 0, sizeof(uint32_t) * _paletteKeys.capacity);
+	memset(_textureHashCache.items, 0, sizeof(uint32_t) * _textureHashCache.capacity);
 
 	if (!_options.noCompatModeFix)
 	{
@@ -273,9 +277,7 @@ void D2DXContext::OnTexDownload(
 		return;
 	}
 
-	_lastOnTexSourceStartAddress = 0;
-	_lastOnTexSourceWidth = 0;
-	_lastOnTexSourceHeight = 0;
+	_textureHashCache.items[startAddress >> 8] = 0;
 
 	uint32_t memRequired = (uint32_t)(width * height);
 
@@ -298,22 +300,21 @@ void D2DXContext::OnTexSource(
 		return;
 	}
 
-	if (startAddress == _lastOnTexSourceStartAddress &&
-		width == _lastOnTexSourceWidth &&
-		height == _lastOnTexSourceHeight)
-	{
-		return;
-	}
-
-	_lastOnTexSourceStartAddress = startAddress;
-	_lastOnTexSourceWidth = width;
-	_lastOnTexSourceHeight = height;
-
 	uint8_t* pixels = _tmuMemory.items + startAddress;
 	const uint32_t pixelsSize = width * height;
 
-	uint32_t hash = fnv_32a_buf(pixels, pixelsSize, FNV1_32A_INIT);
-
+	uint32_t hash = _textureHashCache.items[startAddress >> 8];
+	
+	if (hash)
+	{
+		++_textureHashCacheHits;
+	}
+	else
+	{
+		++_textureHashCacheMisses;
+		hash = fnv_32a_buf(pixels, pixelsSize, FNV1_32A_INIT);
+		_textureHashCache.items[startAddress >> 8] = hash;
+	}
 
 	/* Patch the '5' to not look like '6'. */
 	if (hash == 0x8a12f6bb)
@@ -440,6 +441,15 @@ void D2DXContext::OnBufferSwap()
 	_renderContext->Present();
 
 	++_frame;
+
+	if (!(_frame & 255))
+	{
+		D2DX_DEBUG_LOG("Texture hash cache hits: %u (%i%%) misses %u",
+			_textureHashCacheHits,
+			(int32_t)(100.0f * (float)_textureHashCacheHits / (_textureHashCacheHits + _textureHashCacheMisses)),
+			_textureHashCacheMisses
+			);
+	}
 
 	_batchCount = 0;
 	_vertexCount = 0;

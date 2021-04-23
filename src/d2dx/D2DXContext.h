@@ -210,6 +210,10 @@ namespace d2dx
 
 		uint32_t _vertexLayout;
 
+		Buffer<uint32_t> _textureHashCache;
+		uint32_t _textureHashCacheHits;
+		uint32_t _textureHashCacheMisses;
+
 		int32_t _batchCount;
 		Buffer<Batch> _batches;
 
@@ -236,9 +240,5 @@ namespace d2dx
 
 		Rect _previousDrawCallRect;
 		uint64_t _previousDrawCallTexture;
-
-		uint32_t _lastOnTexSourceStartAddress;
-		int32_t _lastOnTexSourceWidth;
-		int32_t _lastOnTexSourceHeight;
 	};
 }
