@@ -124,5 +124,7 @@ namespace d2dx
 			_In_ float blue) = 0;
 
 		virtual void OnBufferSwap() = 0;
+
+		virtual void OnBufferClear() = 0;
 	};
 }

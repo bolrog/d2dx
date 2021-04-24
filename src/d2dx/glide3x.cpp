@@ -104,6 +104,14 @@ FX_ENTRY void FX_CALL
 FX_ENTRY void FX_CALL
 	grBufferClear(GrColor_t color, GrAlpha_t alpha, FxU32 depth)
 {
+	try
+	{
+		D2DXContextFactory::GetInstance()->OnBufferClear();
+	}
+	catch (...)
+	{
+		D2DX_FATAL_EXCEPTION;
+	}
 }
 
 FX_ENTRY void FX_CALL

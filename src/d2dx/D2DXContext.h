@@ -143,6 +143,8 @@ namespace d2dx
 		
 		virtual void OnBufferSwap();
 
+		virtual void OnBufferClear();
+
 #pragma endregion IGlide3x
 
 #pragma region ID2DXContext
