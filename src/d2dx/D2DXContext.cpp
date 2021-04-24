@@ -409,7 +409,7 @@ void D2DXContext::DrawBatches(
 		else
 		{
 			if (_renderContext->GetTextureCache(batch) != _renderContext->GetTextureCache(mergedBatch) ||
-				(batch.GetTextureAtlas() != mergedBatch.GetTextureAtlas()) ||
+				batch.GetTextureAtlas() != mergedBatch.GetTextureAtlas() ||
 				batch.GetAlphaBlend() != mergedBatch.GetAlphaBlend() ||
 				((mergedBatch.GetVertexCount() + batch.GetVertexCount()) > 65535))
 			{
@@ -429,7 +429,6 @@ void D2DXContext::DrawBatches(
 		_renderContext->Draw(mergedBatch, startVertexLocation);
 		++drawCalls;
 	}
-
 
 	if (!(_frame & 31))
 	{
@@ -469,6 +468,19 @@ void D2DXContext::OnBufferSwap()
 	Rect renderRect;
 	Size desktopSize;
 	_renderContext->GetCurrentMetrics(&_gameSize, &renderRect, &desktopSize);
+
+	_hasAdjustedPlayer = false;
+
+
+	if (!_hasAdjustedPlayer)
+	{
+
+		if (_majorGameState == MajorGameState::InGame)
+		{
+			_gameHelper->GetPlayerPos();
+			_hasAdjustedPlayer = true;
+		}
+	}
 }
 
 _Use_decl_annotations_
@@ -481,11 +493,13 @@ void D2DXContext::OnColorCombine(
 {
 	auto rgbCombine = RgbCombine::ColorMultipliedByTexture;
 
-	if (function == GR_COMBINE_FUNCTION_SCALE_OTHER && factor == GR_COMBINE_FACTOR_LOCAL && local == GR_COMBINE_LOCAL_ITERATED && other == GR_COMBINE_OTHER_TEXTURE)
+	if (function == GR_COMBINE_FUNCTION_SCALE_OTHER && factor == GR_COMBINE_FACTOR_LOCAL &&
+		local == GR_COMBINE_LOCAL_ITERATED && other == GR_COMBINE_OTHER_TEXTURE)
 	{
 		rgbCombine = RgbCombine::ColorMultipliedByTexture;
 	}
-	else if (function == GR_COMBINE_FUNCTION_LOCAL && factor == GR_COMBINE_FACTOR_ZERO && local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
+	else if (function == GR_COMBINE_FUNCTION_LOCAL && factor == GR_COMBINE_FACTOR_ZERO &&
+		local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
 	{
 		rgbCombine = RgbCombine::ConstantColor;
 	}
@@ -507,11 +521,13 @@ void D2DXContext::OnAlphaCombine(
 {
 	auto alphaCombine = AlphaCombine::One;
 
-	if (function == GR_COMBINE_FUNCTION_ZERO && factor == GR_COMBINE_FACTOR_ZERO && local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
+	if (function == GR_COMBINE_FUNCTION_ZERO && factor == GR_COMBINE_FACTOR_ZERO &&
+		local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
 	{
 		alphaCombine = AlphaCombine::One;
 	}
-	else if (function == GR_COMBINE_FUNCTION_LOCAL && factor == GR_COMBINE_FACTOR_ZERO && local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
+	else if (function == GR_COMBINE_FUNCTION_LOCAL && factor == GR_COMBINE_FACTOR_ZERO &&
+		local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
 	{
 		alphaCombine = AlphaCombine::FromColor;
 	}
@@ -744,18 +760,14 @@ void D2DXContext::UpdateBatchSurfaceId(
 		case TextureCategory::Wall:
 		case TextureCategory::Unknown:
 		{
-			if (_previousDrawCallTexture == drawCallTexture ||
-				(
-					(batch.GetTextureWidth() == 32 && batch.GetTextureHeight() == 32) &&
-					(
-						/* 32x32 wall block drawn to the left of the previous one. */
-						(maxx == _previousDrawCallRect.offset.x && miny == _previousDrawCallRect.offset.y) ||
+			if (_previousDrawCallTexture == drawCallTexture || (
+				(batch.GetTextureWidth() == 32 && batch.GetTextureHeight() == 32) && (
+					/* 32x32 wall block drawn to the left of the previous one. */
+					(maxx == _previousDrawCallRect.offset.x && miny == _previousDrawCallRect.offset.y) ||
 
-						/* 32x32 wall block drawn on the next row from the previous one. */
-						(miny == (_previousDrawCallRect.offset.y + _previousDrawCallRect.size.height))
-						)
-					)
-				)
+					/* 32x32 wall block drawn on the next row from the previous one. */
+					(miny == (_previousDrawCallRect.offset.y + _previousDrawCallRect.size.height))
+				)))
 			{
 				surfaceId = _nextSurfaceId;
 			}
@@ -1192,3 +1204,8 @@ Options& D2DXContext::GetOptions()
 {
 	return _options;
 }
+
+void D2DXContext::OnBufferClear()
+{
+}
+	

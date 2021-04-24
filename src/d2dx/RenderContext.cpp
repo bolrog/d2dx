@@ -647,7 +647,7 @@ const Options& RenderContext::GetOptions() const
 	return _d2dxContext->GetOptions();
 }
 
-LRESULT CALLBACK d2dxSubclassWndProc(
+static LRESULT CALLBACK d2dxSubclassWndProc(
 	HWND hWnd,
 	UINT uMsg,
 	WPARAM wParam,
@@ -960,9 +960,9 @@ void RenderContext::ClipCursor()
 	}
 
 	RECT clipRect;
-	GetClientRect(_hWnd, &clipRect);
-	ClientToScreen(_hWnd, (LPPOINT)&clipRect.left);
-	ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
+	::GetClientRect(_hWnd, &clipRect);
+	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.left);
+	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
 	::ClipCursor(&clipRect);
 }
 
