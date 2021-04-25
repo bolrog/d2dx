@@ -20,6 +20,7 @@ Version 0.99.423b
   - Fixes various glitches in the supported game versions.
 
 ## Upcoming
+  - Smooth out the experience. (hint)
   - Suggestions welcome!
 
 ## Requirements
