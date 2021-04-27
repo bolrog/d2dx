@@ -468,19 +468,6 @@ void D2DXContext::OnBufferSwap()
 	Rect renderRect;
 	Size desktopSize;
 	_renderContext->GetCurrentMetrics(&_gameSize, &renderRect, &desktopSize);
-
-	_hasAdjustedPlayer = false;
-
-
-	if (!_hasAdjustedPlayer)
-	{
-
-		if (_majorGameState == MajorGameState::InGame)
-		{
-			_gameHelper->GetPlayerPos();
-			_hasAdjustedPlayer = true;
-		}
-	}
 }
 
 _Use_decl_annotations_
