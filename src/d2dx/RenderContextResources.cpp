@@ -132,12 +132,7 @@ void RenderContextResources::CreateTexture1Ds(
 		D3D11_USAGE_DEFAULT
 	};
 
-	Buffer<uint32_t> initialPalettes(D2DX_MAX_PALETTES * 256);
-	memset(initialPalettes.items, 0, D2DX_MAX_PALETTES * 256 * sizeof(uint32_t));
-	for (int32_t i = 0; i < 256; ++i)
-	{
-		initialPalettes.items[D2DX_WHITE_PALETTE_INDEX * 256 + i] = 0xFFFFFFFF;
-	}
+	Buffer<uint32_t> initialPalettes(D2DX_MAX_PALETTES * 256, true, 0xFFFFFFFF);
 
 	D3D11_SUBRESOURCE_DATA subResourceData[D2DX_MAX_PALETTES];
 	for (int32_t i = 0; i < D2DX_MAX_PALETTES; ++i)

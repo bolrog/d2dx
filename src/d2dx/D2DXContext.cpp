@@ -88,7 +88,7 @@ D2DXContext::D2DXContext(
 	_tmuMemory(D2DX_TMU_MEMORY_SIZE),
 	_sideTmuMemory(D2DX_SIDE_TMU_MEMORY_SIZE),
 	_constantColor(0xFFFFFFFF),
-	_paletteKeys(D2DX_MAX_PALETTES),
+	_paletteKeys(D2DX_MAX_PALETTES, true),
 	_gammaTable(256),
 	_batchCount(0),
 	_batches(D2DX_MAX_BATCHES_PER_FRAME),
@@ -99,14 +99,11 @@ D2DXContext::D2DXContext(
 	_options{ GetCommandLineOptions() },
 	_lastScreenOpenMode{ 0 },
 	_nextSurfaceId{ 0 },
-	_textureHashCache{ D2DX_TMU_MEMORY_SIZE / 256 },
+	_textureHashCache{ D2DX_TMU_MEMORY_SIZE / 256, true },
 	_textureHashCacheHits{ 0 },
 	_textureHashCacheMisses{ 0 },
 	_palettes{D2DX_MAX_PALETTES * 256}
 {
-	memset(_paletteKeys.items, 0, sizeof(uint32_t) * _paletteKeys.capacity);
-	memset(_textureHashCache.items, 0, sizeof(uint32_t) * _textureHashCache.capacity);
-
 	if (!_options.noCompatModeFix)
 	{
 		_compatibilityModeDisabler->DisableCompatibilityMode();

@@ -26,20 +26,15 @@ using namespace d2dx;
 _Use_decl_annotations_
 TextureCachePolicyBitPmru::TextureCachePolicyBitPmru(
 	uint32_t capacity,
-	const std::shared_ptr<ISimd>& simd)
+	const std::shared_ptr<ISimd>& simd) :
+	_capacity{ capacity },
+	_contentKeys{ capacity, true },
+	_usedInFrameBits{ capacity >> 5, true },
+	_mruBits{ capacity >> 5, true },
+	_simd{ simd }
 {
 	assert(!(capacity & 63));
 	assert(simd);
-
-	_capacity = capacity;
-	_contentKeys = capacity;
-	_usedInFrameBits = capacity >> 5;
-	_mruBits = capacity >> 5;
-	_simd = simd;
-	
-	memset(_contentKeys.items, 0, sizeof(uint32_t) * _contentKeys.capacity);
-	memset(_usedInFrameBits.items, 0, sizeof(uint32_t) * _usedInFrameBits.capacity);
-	memset(_mruBits.items, 0, sizeof(uint32_t) * _mruBits.capacity);
 }
 
 _Use_decl_annotations_

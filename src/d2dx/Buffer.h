@@ -29,11 +29,32 @@ namespace d2dx
 		{
 		}
 
-		Buffer(uint32_t capacity_) noexcept :
+		Buffer(uint32_t capacity_, bool zeroFill = false) noexcept :
 			items((T* __restrict)_aligned_malloc(sizeof(T)* capacity_, 256)),
 			capacity(capacity_)
 		{
 			assert(items);
+			
+			if (!zeroFill)
+			{
+				return;
+			}
+
+			::memset(items, 0, sizeof(T) * capacity);
+		}
+
+		Buffer(uint32_t capacity_, bool fill, T fillValue) noexcept : 
+			Buffer(capacity_, false)
+		{
+			if (!fill)
+			{
+				return;
+			}
+
+			for (int32_t i = 0; i < capacity; ++i)
+			{
+				items[i] = fillValue;
+			}
 		}
 
 		Buffer(const Buffer&) = delete;

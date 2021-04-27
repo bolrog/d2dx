@@ -373,30 +373,27 @@ static const Hashes hashesPerCategory[(int)TextureCategory::Count] =
 
 static bool isInitialized = false;
 static Buffer<uint32_t> prefixTable[256];
-static uint32_t prefixCounts[256];
+static Buffer<uint32_t> prefixCounts(256, true);
 
 void GameHelper::InitializeTextureHashPrefixTable()
 {
-	memset(prefixCounts, 0, sizeof(uint32_t) * 256);
-
 	for (int32_t category = 0; category < ARRAYSIZE(hashesPerCategory); ++category)
 	{
 		const Hashes& hashes = hashesPerCategory[category];
 
 		for (int32_t hashIndex = 0; hashIndex < hashes.count; ++hashIndex)
 		{
-			++prefixCounts[(hashes.hashes[hashIndex] >> 24)&0xFF];
+			++prefixCounts.items[(hashes.hashes[hashIndex] >> 24)&0xFF];
 		}
 	}
 
 	for (int32_t prefix = 0; prefix < 256; ++prefix)
 	{
-		const uint32_t count = prefixCounts[prefix];
+		const uint32_t count = prefixCounts.items[prefix];
 
 		if (count > 0)
 		{
-			prefixTable[prefix] = Buffer<uint32_t>(count);
-			memset(prefixTable[prefix].items, 0, sizeof(uint32_t) * count);
+			prefixTable[prefix] = Buffer<uint32_t>(count, true);
 		}
 		else
 		{
@@ -411,7 +408,7 @@ void GameHelper::InitializeTextureHashPrefixTable()
 		{
 			const uint32_t hash = hashes.hashes[j];
 			const uint32_t prefix = hash >> 24;
-			const uint32_t position = --prefixCounts[prefix];
+			const uint32_t position = --prefixCounts.items[prefix];
 			prefixTable[prefix].items[position] = (((uint32_t)category & 0xFF) << 24) | (hash & 0x00FFFFFF);
 		}
 	}
