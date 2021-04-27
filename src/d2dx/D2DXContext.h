@@ -27,6 +27,7 @@
 #include "IRenderContext.h"
 #include "IWin32InterceptionHandler.h"
 #include "CompatibilityModeDisabler.h"
+#include "SurfaceIdTracker.h"
 
 namespace d2dx
 {
@@ -182,9 +183,6 @@ namespace d2dx
 		void DrawBatches(
 			_In_ uint32_t startVertexLocation);
 
-		void UpdateBatchSurfaceId(
-			_Inout_ Batch& batch);
-
 		const Batch PrepareBatchForSubmit(
 			_In_ Batch batch,
 			_In_ PrimitiveType primitiveType,
@@ -238,10 +236,7 @@ namespace d2dx
 
 		uint32_t _lastScreenOpenMode;
 
-		int32_t _nextSurfaceId;
-
-		Rect _previousDrawCallRect;
-		uint64_t _previousDrawCallTexture;
+		SurfaceIdTracker _surfaceIdTracker;
 
 		Buffer<uint32_t> _palettes;
 

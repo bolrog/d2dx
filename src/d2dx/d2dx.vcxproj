@@ -176,6 +176,7 @@
     <ClInclude Include="ITextureCache.h" />
     <ClInclude Include="Metrics.h" />
     <ClInclude Include="RenderContextResources.h" />
+    <ClInclude Include="SurfaceIdTracker.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="Batch.h" />
@@ -262,6 +263,7 @@
     <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="Metrics.cpp" />
     <ClCompile Include="RenderContextResources.cpp" />
+    <ClCompile Include="SurfaceIdTracker.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="RenderContext.cpp" />

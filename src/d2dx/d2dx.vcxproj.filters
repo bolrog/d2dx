@@ -92,6 +92,7 @@
     <ClCompile Include="D2DXContextFactory.cpp" />
     <ClCompile Include="RenderContextResources.cpp" />
     <ClCompile Include="CompatibilityModeDisabler.cpp" />
+    <ClCompile Include="SurfaceIdTracker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -237,6 +238,7 @@
     <ClInclude Include="..\..\thirdparty\stb_image\stb_image_write.h">
       <Filter>thirdparty\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="SurfaceIdTracker.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

@@ -98,7 +98,6 @@ D2DXContext::D2DXContext(
 	_suggestedGameSize{ 0, 0 },
 	_options{ GetCommandLineOptions() },
 	_lastScreenOpenMode{ 0 },
-	_nextSurfaceId{ 0 },
 	_textureHashCache{ D2DX_TMU_MEMORY_SIZE / 256, true },
 	_textureHashCacheHits{ 0 },
 	_textureHashCacheMisses{ 0 },
@@ -460,7 +459,7 @@ void D2DXContext::OnBufferSwap()
 
 	_lastScreenOpenMode = _gameHelper->ScreenOpenMode();
 
-	_nextSurfaceId = 0;
+	_surfaceIdTracker.OnNewFrame();
 
 	Rect renderRect;
 	Size desktopSize;
@@ -586,6 +585,8 @@ void D2DXContext::OnDrawPoint(
 
 	batch.SetVertexCount(3);
 
+	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
+
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;
 }
@@ -639,6 +640,8 @@ void D2DXContext::OnDrawLine(
 	_vertices.items[_vertexCount++] = vertex3;
 
 	batch.SetVertexCount(6);
+
+	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
 
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;
@@ -698,85 +701,6 @@ const Batch D2DXContext::PrepareBatchForSubmit(
 }
 
 _Use_decl_annotations_
-void D2DXContext::UpdateBatchSurfaceId(
-	Batch& batch)
-{
-	uint32_t surfaceId = 0;
-	int32_t firstVertexInBatch = _vertexCount - batch.GetVertexCount();
-
-	int32_t minx = INT_MAX;
-	int32_t miny = INT_MAX;
-	int32_t maxx = INT_MIN;
-	int32_t maxy = INT_MIN;
-
-	for (uint32_t i = 0; i < batch.GetVertexCount(); ++i)
-	{
-		int32_t x = (int32_t)_vertices.items[firstVertexInBatch + i].GetX();
-		int32_t y = (int32_t)_vertices.items[firstVertexInBatch + i].GetY();
-		minx = min(minx, x);
-		miny = min(miny, y);
-		maxx = max(maxx, x);
-		maxy = max(maxy, y);
-	}
-
-	uint64_t drawCallTexture = (uint64_t)batch.GetTextureIndex() | ((uint64_t)batch.GetTextureAtlas() << 32ULL);
-
-	if (_majorGameState != MajorGameState::InGame ||
-		(batch.GetRgbCombine() == RgbCombine::ConstantColor &&
-			batch.GetAlphaBlend() == AlphaBlend::SrcAlphaInvSrcAlpha) ||
-		(miny >= (_gameSize.height - 48)))
-	{
-		surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
-	}
-	else
-	{
-		switch (batch.GetTextureCategory())
-		{
-		case TextureCategory::MousePointer:
-		case TextureCategory::UserInterface:
-		case TextureCategory::Font:
-		case TextureCategory::LoadingScreen:
-		case TextureCategory::TitleScreen:
-			surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
-			break;
-		default:
-		case TextureCategory::Floor:
-		case TextureCategory::Wall:
-		case TextureCategory::Unknown:
-		{
-			if (_previousDrawCallTexture == drawCallTexture || (
-				(batch.GetTextureWidth() == 32 && batch.GetTextureHeight() == 32) && (
-					/* 32x32 wall block drawn to the left of the previous one. */
-					(maxx == _previousDrawCallRect.offset.x && miny == _previousDrawCallRect.offset.y) ||
-
-					/* 32x32 wall block drawn on the next row from the previous one. */
-					(miny == (_previousDrawCallRect.offset.y + _previousDrawCallRect.size.height))
-				)))
-			{
-				surfaceId = _nextSurfaceId;
-			}
-			else
-			{
-				surfaceId = ++_nextSurfaceId;
-			}
-			break;
-		}
-		}
-	}
-
-	for (uint32_t i = 0; i < batch.GetVertexCount(); ++i)
-	{
-		_vertices.items[firstVertexInBatch + i].SetSurfaceId(surfaceId);
-	}
-
-	_previousDrawCallTexture = drawCallTexture;
-	_previousDrawCallRect.offset.x = minx;
-	_previousDrawCallRect.offset.y = miny;
-	_previousDrawCallRect.size.width = maxx - minx;
-	_previousDrawCallRect.size.height = maxy - miny;
-}
-
-_Use_decl_annotations_
 void D2DXContext::OnDrawVertexArray(
 	uint32_t mode,
 	uint32_t count,
@@ -829,7 +753,7 @@ void D2DXContext::OnDrawVertexArray(
 		return;
 	}
 
-	UpdateBatchSurfaceId(batch);
+	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
 
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;
@@ -897,7 +821,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 		return;
 	}
 
-	UpdateBatchSurfaceId(batch);
+	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
 
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;
@@ -1192,4 +1116,3 @@ Options& D2DXContext::GetOptions()
 void D2DXContext::OnBufferClear()
 {
 }
-	
