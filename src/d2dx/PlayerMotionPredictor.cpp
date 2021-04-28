@@ -40,7 +40,7 @@ void PlayerMotionPredictor::Update(
 
 	auto playerPos = _gameHelper->GetPlayerPos();
 
-	if (max(abs(playerPos.x - _predictedPlayerPos.x), abs(playerPos.y - _predictedPlayerPos.y)) > 50 * 65536)
+	if (max(abs(playerPos.x - _predictedPlayerPos.x), abs(playerPos.y - _predictedPlayerPos.y)) > 15 * 65536)
 	{
 		this->_predictedPlayerPos = playerPos;
 	}
