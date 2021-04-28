@@ -36,14 +36,21 @@ float4 main(
 {
 	float4 c = sceneTexture.SampleLevel(PointSampler, ps_in.tc, 0);
 
-	float id = idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(1,-1));
+	/*
+	 A B C
+	 D E F
+	 G H I	
+	*/
 
 	float2 tcShifted = ps_in.tc - 0.5 * ps_in.textureSize_invTextureSize.zw;
-	
+
+	float idC = idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(1,-1));
+	float4 idDEBA = idTexture.Gather(BilinearSampler, tcShifted);
+	float4 idHIFE = idTexture.Gather(BilinearSampler, tcShifted, int2(1, 1));
+	float idG = idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(-1, 1));
+
 	bool isEdge =
-		idTexture.SampleLevel(PointSampler, ps_in.tc, 0, int2(-1, 1)) != id ||
-		idTexture.SampleLevel(BilinearSampler, tcShifted, 0) != id ||
-		idTexture.SampleLevel(BilinearSampler, tcShifted, 0, int2(1, 1)) != id;
+		idDEBA.y < (1.0-1.0/16383.0) && (idG != idC || any(idDEBA - idC) || any(idHIFE - idC));
 
 	if (isEdge)
 	{
