@@ -101,7 +101,7 @@ void SurfaceIdTracker::UpdateBatchSurfaceId(
 		{
 			surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
 		}
-		else if ((_gameHelper->ScreenOpenMode() & 2) && maxx < gameSize.width / 2)
+		else if ((_gameHelper->ScreenOpenMode() & 2) && maxx <= gameSize.width / 2)
 		{
 			surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
 		}
