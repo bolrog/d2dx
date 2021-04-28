@@ -40,10 +40,7 @@ namespace d2dx
 		int64_t _lastPlayerPosChangeTime = 0;
 		Offset _lastPlayerPos = { 0, 0 };
 		Offset _velocity = { 0, 0 };
-		int64_t _dt = 0;
 		Offset _predictedPlayerPos = { 0, 0 };
 		int64_t _dtLastPosChange = 0;
-		int32_t _screenOffsetX = 0;
-		int32_t _screenOffsetY = 0;
 	};
 }

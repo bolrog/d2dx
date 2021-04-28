@@ -36,7 +36,7 @@ void PlayerMotionPredictor::Update(
 	IRenderContext* renderContext)
 {
 	int64_t newTime = (int64_t)(65536.0 * TimeEndMs(_timeStart) / 1000.0);
-	int64_t dt = (int64_t)(renderContext->GetFrameTime() * 65536.0);
+	int32_t dt = (int32_t)(renderContext->GetFrameTime() * 65536.0);
 
 	auto playerPos = _gameHelper->GetPlayerPos();
 
