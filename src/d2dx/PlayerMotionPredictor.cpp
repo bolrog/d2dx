@@ -38,56 +38,43 @@ void PlayerMotionPredictor::Update(
 	int64_t newTime = (int64_t)(65536.0 * TimeEndMs(_timeStart) / 1000.0);
 	int64_t dt = (int64_t)(renderContext->GetFrameTime() * 65536.0);
 
-	auto playerPosition = _gameHelper->GetPlayerPos();
+	auto playerPos = _gameHelper->GetPlayerPos();
 
-	int64_t x = playerPosition.x;
-	int64_t y = playerPosition.y;
-
-	if (max(abs(x - _itpPlayerX), abs(y - _itpPlayerY)) > 50 * 65536)
+	if (max(abs(playerPos.x - _predictedPlayerPos.x), abs(playerPos.y - _predictedPlayerPos.y)) > 50 * 65536)
 	{
-		this->_itpPlayerTargetX = x;
-		this->_itpPlayerTargetY = y;
-		this->_itpPlayerX = x;
-		this->_itpPlayerY = y;
+		this->_predictedPlayerPos = playerPos;
 	}
 
-	int64_t dx = x - _lastPlayerX[0];
-	int64_t dy = y - _lastPlayerY[0];
+	int32_t dx = playerPos.x - _lastPlayerPos.x;
+	int32_t dy = playerPos.y - _lastPlayerPos.y;
 
 	_dtLastPosChange += dt;
 
 	if (dx != 0 || dy != 0)// || _dtLastPosChange > (65536/25))
 	{
-		int64_t ex = x - _itpPlayerTargetX;
-		int64_t ey = y - _itpPlayerTargetY;
+		int32_t ex = playerPos.x - _predictedPlayerPos.x;
+		int32_t ey = playerPos.y - _predictedPlayerPos.y;
 
-		_velocityX = 25 * dx + 4 * ex;
-		_velocityY = 25 * dy + 4 * ey;
+		_velocity.x = 25 * dx + 4 * ex;
+		_velocity.y = 25 * dy + 4 * ey;
 
-		_lastPlayerX[0] = x;
-		_lastPlayerY[0] = y;
+		_lastPlayerPos = playerPos;
 		_lastPlayerPosChangeTime = newTime;
 		_dtLastPosChange = 0;
 	}
 
-	if (_velocityX != 0.0f || _velocityY != 0.0f)
+	if (_velocity.x != 0 || _velocity.y != 0)
 	{
 		if (_dtLastPosChange < (65536 / 25))
 		{
-			_itpPlayerTargetX += (dt * _velocityX) >> 16;
-			_itpPlayerTargetY += (dt * _velocityY) >> 16;
+			_predictedPlayerPos.x += (int32_t)(((int64_t)dt * _velocity.x) >> 16);
+			_predictedPlayerPos.y += (int32_t)(((int64_t)dt * _velocity.y) >> 16);
 		}
 	}
-
-	_itpPlayerX = _itpPlayerTargetX;
-	_itpPlayerY = _itpPlayerTargetY;
-
-	//_itpPlayerX += ((_itpPlayerTargetX - _itpPlayerX) * 65000) >> 16;
-	//_itpPlayerY += ((_itpPlayerTargetY - _itpPlayerY) * 65000) >> 16;
 }
 
 void PlayerMotionPredictor::GetOffset(float& offsetX, float& offsetY)
 {
-	offsetX = (_itpPlayerX - _lastPlayerX[0]) / 65536.0f;
-	offsetY = (_itpPlayerY - _lastPlayerY[0]) / 65536.0f;
+	offsetX = (_predictedPlayerPos.x - _lastPlayerPos.x) / 65536.0f;
+	offsetY = (_predictedPlayerPos.y - _lastPlayerPos.y) / 65536.0f;
 }

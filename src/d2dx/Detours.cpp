@@ -232,6 +232,8 @@ D2Gfx_DrawImageFunc D2Gfx_DrawImage_Real = nullptr;
 D2Gfx_DrawShadowFunc D2Gfx_DrawShadow_Real = nullptr;
 D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
 
+Offset playerScreenPos = { 0, 0 };
+
 #pragma optimize("", off)
 __declspec(noinline) void __stdcall  D2Gfx_DrawImage_Hooked(CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE* pPalette)
 {
@@ -245,35 +247,37 @@ __declspec(noinline) void __stdcall  D2Gfx_DrawImage_Hooked(CellContext* pData, 
         pData->_8,
         pData->_9);*/
 
-   auto d2GfxInterceptionHandler = GetD2GfxInterceptionHandler();
+    auto d2GfxInterceptionHandler = GetD2GfxInterceptionHandler();
     
     if (d2GfxInterceptionHandler)
     {
-        
-            TextureCategory textureCategory = TextureCategory::Unknown;
+        TextureCategory textureCategory = TextureCategory::Unknown;
 
-            if (pData->dwClass > 0 && pData->dwUnit == 0)
-            {
-                textureCategory = TextureCategory::Player;
-            }
-            else if (nXpos == 480 && nYpos == 262)
-            {
-                textureCategory = TextureCategory::Player;
-            }
-           
+        if (pData->dwClass > 0 && pData->dwUnit == 0)
+        {
+            // The player unit itself.
+            textureCategory = TextureCategory::Player;
+            playerScreenPos = { nXpos, nYpos };
+        }
+        else if (playerScreenPos.x > 0 &&
+            nXpos == playerScreenPos.x &&
+            nYpos == playerScreenPos.y)
+        {
+            // Overlays will be drawn at the player position, so mark them as part of the player.
+            textureCategory = TextureCategory::Player;
+        }
 
-            if (textureCategory != TextureCategory::Unknown)
-            {
-                d2GfxInterceptionHandler->SetTextureCategory(textureCategory);
-            }
+        if (textureCategory != TextureCategory::Unknown)
+        {
+            d2GfxInterceptionHandler->SetTextureCategory(textureCategory);
+        }
     }
 
     D2Gfx_DrawImage_Real(pData, nXpos, nYpos, dwGamma, nDrawMode, pPalette);
 
     if (d2GfxInterceptionHandler)
     {
-            d2GfxInterceptionHandler->SetTextureCategory(TextureCategory::Unknown);
-   
+        d2GfxInterceptionHandler->SetTextureCategory(TextureCategory::Unknown);
     }
 }
 
