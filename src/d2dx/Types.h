@@ -54,6 +54,7 @@ namespace d2dx
 		bool noAA = false;
 		bool noCompatModeFix = false;
 		bool debugDumpTextures = false;
+		bool testMoP = false;
 	};
 
 	enum class MajorGameState
@@ -100,7 +101,7 @@ namespace d2dx
 	{
 		Unknown = 0,
 		MousePointer = 1,
-		Font = 2,
+		Player = 2,
 		LoadingScreen = 3,
 		Floor = 4,
 		TitleScreen = 5,
@@ -129,7 +130,7 @@ namespace d2dx
 		DrawShadow = 4,
 		DrawDynamic = 5,
 		DrawSomething1 = 6,
-		DrawSomething2 = 7,
+		DrawLine = 7,
 		Count = 8,
 	};
 

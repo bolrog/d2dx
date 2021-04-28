@@ -52,7 +52,15 @@ namespace d2dx
 
 		virtual bool TryApplyFpsFix() override;
 
+		virtual Offset GetPlayerPos()  override;
+
+		virtual Offset GetPlayerTargetPos() const override;
+
+		virtual void* GetFunction(
+			_In_ D2Function function) const override;
+
 	private:
+		uint16_t ReadU16(HANDLE module, uint32_t offset) const;
 		uint32_t ReadU32(HANDLE module, uint32_t offset) const;
 		void WriteU32(HANDLE module, uint32_t offset, uint32_t value);
 		GameVersion GetGameVersion();
@@ -62,6 +70,8 @@ namespace d2dx
 		HANDLE _hProcess;
 		HANDLE _hGameExe;
 		HANDLE _hD2ClientDll;
+		HMODULE _hD2GfxDll;
+		HMODULE _hD2WinDll;
 		GameVersion _version;
 	};
 }

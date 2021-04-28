@@ -18,6 +18,7 @@
 */
 #include "pch.h"
 #include "D2DXContext.h"
+#include "Detours.h"
 #include "BuiltinResMod.h"
 #include "RenderContext.h"
 #include "GameHelper.h"
@@ -71,6 +72,8 @@ static Options GetCommandLineOptions()
 
 	options.screenMode = CheckOption(commandLine, cfgFile, "-w") ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
 
+	options.testMoP = CheckOption(commandLine, cfgFile, "-dxtestmop");
+
 	return options;
 }
 
@@ -101,7 +104,9 @@ D2DXContext::D2DXContext(
 	_textureHashCache{ D2DX_TMU_MEMORY_SIZE / 256, true },
 	_textureHashCacheHits{ 0 },
 	_textureHashCacheMisses{ 0 },
-	_palettes{D2DX_MAX_PALETTES * 256}
+	_palettes{ D2DX_MAX_PALETTES * 256 },
+	_surfaceIdTracker{ gameHelper },
+	_playerMotionPredictor{ gameHelper }
 {
 	if (!_options.noCompatModeFix)
 	{
@@ -112,6 +117,21 @@ D2DXContext::D2DXContext(
 	auto actualWindowsVersion = GetActualWindowsVersion();
 	D2DX_LOG("Apparent Windows version: %u.%u (build %u).", apparentWindowsVersion.major, apparentWindowsVersion.minor, apparentWindowsVersion.build);
 	D2DX_LOG("Actual Windows version: %u.%u (build %u).", actualWindowsVersion.major, actualWindowsVersion.minor, actualWindowsVersion.build);
+
+	if (_options.testMoP)
+	{
+		if (_gameHelper->GetVersion() == GameVersion::Lod112 ||
+			_gameHelper->GetVersion() == GameVersion::Lod113c ||
+			_gameHelper->GetVersion() == GameVersion::Lod113d)
+		{
+			D2DX_LOG("MoP testing enabled.");
+		}
+		else
+		{
+			D2DX_LOG("MoP not yet supported on this game version. Disabling.");
+			_options.testMoP = false;
+		}
+	}
 
 	if (!_options.noResMod)
 	{
@@ -200,7 +220,7 @@ void D2DXContext::OnSstWinOpen(
 	uint32_t hWnd,
 	int32_t width,
 	int32_t height)
-{
+{	
 	Size windowSize = _gameHelper->GetConfiguredGameSize();
 	if (!_options.noResMod)
 	{
@@ -326,7 +346,11 @@ void D2DXContext::OnTexSource(
 	_scratchBatch.SetTextureStartAddress(startAddress);
 	_scratchBatch.SetTextureHash(hash);
 	_scratchBatch.SetTextureSize(width, height);
-	_scratchBatch.SetTextureCategory(_gameHelper->GetTextureCategoryFromHash(hash));
+	
+	if (_scratchBatch.GetTextureCategory() == TextureCategory::Unknown)
+	{
+		_scratchBatch.SetTextureCategory(_gameHelper->GetTextureCategoryFromHash(hash));
+	}
 
 	if (_options.debugDumpTextures)
 	{
@@ -358,6 +382,7 @@ void D2DXContext::CheckMajorGameState()
 			if ((GameAddress)batch.GetGameAddress() == GameAddress::DrawFloor)
 			{
 				_majorGameState = MajorGameState::InGame;
+				AttachLateDetours(_gameHelper.get());
 				break;
 			}
 		}
@@ -434,8 +459,41 @@ void D2DXContext::DrawBatches(
 
 void D2DXContext::OnBufferSwap()
 {
+	if (_options.testMoP && _majorGameState == MajorGameState::InGame)
+	{
+		_playerMotionPredictor.Update(_renderContext.get());
+	}
+
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
+
+	if (_options.testMoP && _majorGameState == MajorGameState::InGame)
+	{
+		float offsetX, offsetY;
+		_playerMotionPredictor.GetOffset(offsetX, offsetY);
+
+		int32_t screenOffsetX = (int32_t)(32.0f * (offsetX - offsetY) / sqrt(2.0f) + 0.5f);
+		int32_t screenOffsetY = (int32_t)(16.0f * (offsetX + offsetY) / sqrt(2.0f) + 0.5f);
+
+		for (int32_t i = 0; i < _batchCount; ++i)
+		{
+			const Batch& batch = _batches.items[i];
+			auto surfaceId = _vertices.items[batch.GetStartVertex()].GetSurfaceId();
+
+			if (surfaceId != D2DX_SURFACE_ID_USER_INTERFACE && batch.GetTextureCategory() != TextureCategory::Player)
+			{
+				for (uint32_t j = 0; j < batch.GetVertexCount(); ++j)
+				{
+					int32_t x = _vertices.items[batch.GetStartVertex() + j].GetX();
+					int32_t y = _vertices.items[batch.GetStartVertex() + j].GetY();
+					x -= screenOffsetX;
+					y -= screenOffsetY;
+					_vertices.items[batch.GetStartVertex() + j].SetX(x);
+					_vertices.items[batch.GetStartVertex() + j].SetY(y);
+				}
+			}
+		}
+	}
 
 	auto startVertexLocation = _renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
 
@@ -451,7 +509,7 @@ void D2DXContext::OnBufferSwap()
 			_textureHashCacheHits,
 			(int32_t)(100.0f * (float)_textureHashCacheHits / (_textureHashCacheHits + _textureHashCacheMisses)),
 			_textureHashCacheMisses
-			);
+		);
 	}
 
 	_batchCount = 0;
@@ -464,6 +522,8 @@ void D2DXContext::OnBufferSwap()
 	Rect renderRect;
 	Size desktopSize;
 	_renderContext->GetCurrentMetrics(&_gameSize, &renderRect, &desktopSize);
+
+	//D2DX_LOG("Time %f, Player %f,  %f (interpolated %f, %f)", _time, _lastPlayerX, _lastPlayerY, _itpPlayerX, _itpPlayerY);
 }
 
 _Use_decl_annotations_
@@ -597,12 +657,10 @@ void D2DXContext::OnDrawLine(
 	const void* v2,
 	uint32_t gameContext)
 {
-	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
-
 	Batch batch = _scratchBatch;
-	batch.SetGameAddress(gameAddress);
+	batch.SetGameAddress(GameAddress::DrawLine);
 	batch.SetStartVertex(_vertexCount);
-	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
+	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), GameAddress::DrawLine));
 
 	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, 0);
 	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, 0);
@@ -1115,4 +1173,14 @@ Options& D2DXContext::GetOptions()
 
 void D2DXContext::OnBufferClear()
 {
+}
+
+void D2DXContext::SetTextureCategory(TextureCategory textureCategory)
+{
+	_scratchBatch.SetTextureCategory(textureCategory);
+}
+
+TextureCategory D2DXContext::GetTextureCategory() const
+{
+	return _scratchBatch.GetTextureCategory();
 }

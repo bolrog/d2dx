@@ -22,6 +22,13 @@
 
 namespace d2dx
 {
+	enum class D2Function
+	{
+		D2Gfx_DrawImage = 0, /* call dword ptr [eax+84h] */
+		D2Gfx_DrawShadow = 1, /* call dword ptr [eax+90h] */
+		D2Win_DrawText = 2, /* mov ebx, [esp+4+arg_8] */
+	};
+
 	struct IGameHelper abstract
 	{
 		virtual ~IGameHelper() noexcept {}
@@ -48,5 +55,12 @@ namespace d2dx
 			_In_ GameAddress gameAddress) const = 0;
 
 		virtual bool TryApplyFpsFix() = 0;
+
+		virtual Offset GetPlayerPos()  = 0;
+
+		virtual Offset GetPlayerTargetPos() const = 0;
+
+		virtual void* GetFunction(
+			_In_ D2Function function) const = 0;
 	};
 }

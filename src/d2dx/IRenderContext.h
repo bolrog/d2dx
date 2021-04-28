@@ -75,5 +75,7 @@ namespace d2dx
 			_Out_ Size* desktopSize) const = 0;
 
 		virtual void ToggleFullscreen() = 0;
+
+		virtual float GetFrameTime() const = 0;
 	};
 }

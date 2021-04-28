@@ -20,6 +20,12 @@
 
 namespace d2dx
 {
+	struct IGameHelper;
+
 	void AttachDetours();
+
+	void AttachLateDetours(
+		_In_ IGameHelper* gameHelper);
+
 	void DetachDetours();
 }

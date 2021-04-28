@@ -106,6 +106,8 @@ namespace d2dx
 
 		virtual void ToggleFullscreen() override;
 
+		virtual float GetFrameTime() const override;
+
 		void ClipCursor();
 		void UnclipCursor();
 
@@ -201,5 +203,9 @@ namespace d2dx
 		ID2DXContext* _d2dxContext = nullptr;
 		DeviceContextState _shadowState;
 		EventHandle _frameLatencyWaitableObject;
+		int64_t _timeStart;
+
+		double _prevTime;
+		double _frameTimeMs;
 	};
 }

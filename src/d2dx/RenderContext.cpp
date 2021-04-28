@@ -56,6 +56,8 @@ RenderContext::RenderContext(
 {
 	HRESULT hr = S_OK;
 
+	_timeStart = TimeStart();
+
 	_hWnd = hWnd;
 	_d2dxContext = d2dxContext;
 	_simd = simd;
@@ -439,12 +441,20 @@ void RenderContext::Present()
 		D2DX_CHECK_HR(_swapChain1->Present(0, 0));
 		break;
 	case RenderContextSyncStrategy::FrameLatencyWaitableObject:
-		_deviceContext->Flush();
 		D2DX_CHECK_HR(_swapChain1->Present(0, 0));
 		::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
 		break;
 	case RenderContextSyncStrategy::Interval1:
-		D2DX_CHECK_HR(_swapChain1->Present(1, 0));
+		D2DX_CHECK_HR(_swapChain1->Present(1, 0));		
+		/*
+		ComPtr<IDXGIOutput> output;
+		_swapChain1->GetContainingOutput(&output);
+
+		output->WaitForVBlank();*/
+
+		double curTime = TimeEndMs(_timeStart);
+		_frameTimeMs = curTime - _prevTime;
+		_prevTime = curTime;
 		break;
 	}
 
@@ -969,4 +979,9 @@ void RenderContext::ClipCursor()
 void RenderContext::UnclipCursor()
 {
 	::ClipCursor(NULL);
+}
+
+float RenderContext::GetFrameTime() const
+{
+	return _frameTimeMs / 1000.0;
 }

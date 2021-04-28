@@ -28,7 +28,9 @@ GameHelper::GameHelper() :
 	_version(GetGameVersion()),
 	_hProcess(GetCurrentProcess()),
 	_hGameExe(GetModuleHandleA("game.exe")),
-	_hD2ClientDll(LoadLibraryA("D2Client.dll"))
+	_hD2ClientDll(LoadLibraryA("D2Client.dll")),
+	_hD2GfxDll(LoadLibraryA("D2Gfx.dll")),
+	_hD2WinDll(LoadLibraryA("D2Win.dll"))
 {
 	InitializeTextureHashPrefixTable();
 }
@@ -153,6 +155,14 @@ uint32_t GameHelper::ReadU32(HANDLE hModule, uint32_t offset) const
 	return result;
 }
 
+uint16_t GameHelper::ReadU16(HANDLE hModule, uint32_t offset) const
+{
+	uint16_t result;
+	DWORD bytesRead;
+	ReadProcessMemory(_hProcess, (LPCVOID)((uintptr_t)hModule + offset), &result, sizeof(WORD), &bytesRead);
+	return result;
+}
+
 void GameHelper::WriteU32(HANDLE hModule, uint32_t offset, uint32_t value)
 {
 	DWORD bytesWritten;
@@ -213,7 +223,7 @@ static const uint32_t gameAddresses_113d[] =
 	0x6f857199, /* DrawWall1 */
 	0x6f85718b, /* DrawWall2 */
 	0x6f85c17c, /* DrawFloor */
-	0x50a995, /* DrawShadow */
+	0x6f859ef5, /* DrawShadow */
 	0x6f859ce4,  /* DrawDynamic */
 	0x0050c38d, /* DrawSomething1 */
 	0x0050c0de, /* DrawSomething2 */
@@ -441,6 +451,11 @@ TextureCategory GameHelper::RefineTextureCategoryFromGameAddress(
 	TextureCategory previousCategory,
 	GameAddress gameAddress) const
 {
+	if (previousCategory != TextureCategory::Unknown) 
+	{
+		return previousCategory;
+	}
+
 	switch (gameAddress)
 	{
 	case GameAddress::DrawFloor:
@@ -605,4 +620,146 @@ bool GameHelper::TryApplyFpsFix()
 
 	D2DX_LOG("Fps fix applied.");
 	return true;
+}
+
+Offset GameHelper::GetPlayerPos()
+{
+	Offset pos = { 0,0 };
+	uint32_t* unit = nullptr;
+	uint32_t* path = nullptr;
+
+	static int32_t offset = 0;
+	switch (_version)
+	{
+	case GameVersion::Lod112:
+		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11C3D0);
+		break;
+	case GameVersion::Lod113c:
+		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11BBFC);
+		break;
+	case GameVersion::Lod113d:
+		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11D050);
+		break;
+	case GameVersion::Lod114d:
+		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x3A6A70);
+		break;
+	default:
+		break;
+	}
+	if (!unit)
+	{
+		return pos;
+	}
+	path = (uint32_t*)unit[0x2c / 4];
+	//D2DX_LOG("unit id %u %p %p", unit[1], unit, path);
+	if (path)
+	{
+		pos.x = path[0];
+		pos.y = path[1];
+	}
+	return pos;
+}
+
+Offset GameHelper::GetPlayerTargetPos() const
+{
+	Offset pos = { 0,0 };
+	return pos;
+}
+
+_Use_decl_annotations_
+void* GameHelper::GetFunction(
+	D2Function function) const
+{
+	HMODULE hModule = nullptr;
+	int32_t ordinal = 0;
+
+	switch (_version)
+	{
+	case GameVersion::Lod109d:
+	case GameVersion::Lod110:
+		switch (function)
+		{
+		case D2Function::D2Gfx_DrawImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10072;
+			break;
+		case D2Function::D2Gfx_DrawShadow:
+			hModule = _hD2GfxDll;
+			ordinal = 10075;
+			break;
+		case D2Function::D2Win_DrawText:
+			hModule = _hD2WinDll;
+			ordinal = 10117;
+			break;
+		default:
+			break;
+		}
+		break;
+	case GameVersion::Lod112:
+		switch (function)
+		{
+		case D2Function::D2Gfx_DrawImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10024;
+			break;
+		case D2Function::D2Gfx_DrawShadow:
+			hModule = _hD2GfxDll;
+			ordinal = 10030;
+			break;
+		case D2Function::D2Win_DrawText:
+			hModule = _hD2WinDll;
+			ordinal = 10001;
+			break;
+		default:
+			break;
+		}
+		break;
+	case GameVersion::Lod113c:
+		switch (function)
+		{
+		case D2Function::D2Gfx_DrawImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10041;
+			break;
+		case D2Function::D2Gfx_DrawShadow:
+			hModule = _hD2GfxDll;
+			ordinal = 10011;
+			break;
+		case D2Function::D2Win_DrawText:
+			hModule = _hD2WinDll;
+			ordinal = 10096;
+			break;
+		default:
+			break;
+		}
+		break;
+	case GameVersion::Lod113d:
+		switch (function)
+		{
+		case D2Function::D2Gfx_DrawImage:
+			hModule = _hD2GfxDll; 
+			ordinal = 10042;
+			break;
+		case D2Function::D2Gfx_DrawShadow:
+			hModule = _hD2GfxDll;
+			ordinal = 10084;
+			break;
+		case D2Function::D2Win_DrawText:
+			hModule = _hD2WinDll;
+			ordinal = 10076;
+			break;
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+
+	if (!hModule || !ordinal)
+	{
+		return nullptr;
+	}
+
+	return GetProcAddress(hModule, MAKEINTRESOURCEA(ordinal));
 }

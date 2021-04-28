@@ -77,6 +77,11 @@ namespace d2dx
 			_isChromaKeyEnabled_surfaceId |= surfaceId & 16383;
 		}
 
+		inline int32_t GetSurfaceId() const noexcept
+		{
+			return _isChromaKeyEnabled_surfaceId & 16383;
+		}
+
 		inline int32_t GetS() const noexcept
 		{
 			return _s;

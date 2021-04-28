@@ -51,7 +51,7 @@ namespace d2dx
 				return;
 			}
 
-			for (int32_t i = 0; i < capacity; ++i)
+			for (uint32_t i = 0; i < capacity; ++i)
 			{
 				items[i] = fillValue;
 			}

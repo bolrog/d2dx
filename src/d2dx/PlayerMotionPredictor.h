@@ -18,34 +18,37 @@
 */
 #pragma once
 
-#include "Types.h"
+#include "IGameHelper.h"
+#include "IRenderContext.h"
 
 namespace d2dx
 {
-	class Batch;
-	class Vertex;
-	struct IGameHelper;
-
-	class SurfaceIdTracker final
+	class PlayerMotionPredictor
 	{
 	public:
-		SurfaceIdTracker(
+		PlayerMotionPredictor(
 			_In_ const std::shared_ptr<IGameHelper>& gameHelper);
 
-		void OnNewFrame();
+		void Update(
+			_In_ IRenderContext* renderContext);
 
-		void UpdateBatchSurfaceId(
-			_Inout_ Batch& batch,
-			_In_ MajorGameState majorGameState,
-			_In_ Size gameSize,
-			_Inout_updates_all_(batchVerticesCount) Vertex* batchVertices,
-			_In_ int32_t batchVerticesCount);
+		void GetOffset(float& offsetX, float& offsetY);
 
 	private:
 		std::shared_ptr<IGameHelper> _gameHelper;
-		int32_t _nextSurfaceId = 0;
-		int32_t _previousSurfaceId = -1;
-		Rect _previousDrawCallRect = { 0,0,0,0 };
-		uint64_t _previousDrawCallTexture = 0;
+		int64_t _timeStart;
+		int64_t _lastPlayerPosChangeTime = 0;
+		int64_t _lastPlayerX[2] = { 0, 0 };
+		int64_t _lastPlayerY[2] = { 0, 0 };
+		int64_t _velocityX = 0;
+		int64_t _velocityY = 0;
+		int64_t _dt = 0;
+		int64_t _itpPlayerX = 0;
+		int64_t _itpPlayerY = 0;
+		int64_t _itpPlayerTargetX = 0;
+		int64_t _itpPlayerTargetY = 0;
+		int64_t _dtLastPosChange = 0;
+		int32_t _screenOffsetX = 0;
+		int32_t _screenOffsetY = 0;
 	};
 }

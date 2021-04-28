@@ -175,6 +175,7 @@
     <ClInclude Include="IRenderContext.h" />
     <ClInclude Include="ITextureCache.h" />
     <ClInclude Include="Metrics.h" />
+    <ClInclude Include="PlayerMotionPredictor.h" />
     <ClInclude Include="RenderContextResources.h" />
     <ClInclude Include="SurfaceIdTracker.h" />
     <ClInclude Include="TextureCache.h" />
@@ -262,6 +263,7 @@
     <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="Metrics.cpp" />
+    <ClCompile Include="PlayerMotionPredictor.cpp" />
     <ClCompile Include="RenderContextResources.cpp" />
     <ClCompile Include="SurfaceIdTracker.cpp" />
     <ClCompile Include="TextureCache.cpp" />

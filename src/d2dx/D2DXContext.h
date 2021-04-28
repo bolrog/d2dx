@@ -28,12 +28,16 @@
 #include "IWin32InterceptionHandler.h"
 #include "CompatibilityModeDisabler.h"
 #include "SurfaceIdTracker.h"
+#include "PlayerMotionPredictor.h"
 
 namespace d2dx
 {
 	class Vertex;
 
-	class D2DXContext final : public ID2DXContext, public IWin32InterceptionHandler
+	class D2DXContext final :
+		public ID2DXContext,
+		public IWin32InterceptionHandler,
+		public ID2GfxInterceptionHandler
 	{
 	public:
 		D2DXContext(
@@ -173,6 +177,14 @@ namespace d2dx
 
 #pragma endregion IWin32InterceptionHandler
 
+#pragma region ID2GfxInterceptionHandler
+
+		virtual void SetTextureCategory(TextureCategory textureCategory) override;
+
+		virtual TextureCategory GetTextureCategory() const override;
+
+#pragma endregion IWin32InterceptionHandler
+
 	private:
 		void CheckMajorGameState();
 
@@ -203,7 +215,6 @@ namespace d2dx
 
 		Buffer<uint32_t> _paletteKeys;
 
-		float _gamma[3];
 		Buffer<uint32_t> _gammaTable;
 
 		uint32_t _constantColor;
@@ -241,5 +252,7 @@ namespace d2dx
 		Buffer<uint32_t> _palettes;
 
 		Size _gameSize;
+
+		PlayerMotionPredictor _playerMotionPredictor;
 	};
 }

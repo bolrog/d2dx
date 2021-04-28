@@ -21,12 +21,14 @@
 #include "Utils.h"
 #include "D2DXContextFactory.h"
 #include "IWin32InterceptionHandler.h"
+#include "IGameHelper.h"
 
 using namespace d2dx;
 
 #pragma comment(lib, "../../thirdparty/detours/detours.lib")
 
 bool hasDetoured = false;
+bool hasLateDetoured = false;
 
 static IWin32InterceptionHandler* GetWin32InterceptionHandler()
 {
@@ -38,6 +40,18 @@ static IWin32InterceptionHandler* GetWin32InterceptionHandler()
     }
 
     return dynamic_cast<IWin32InterceptionHandler*>(d2dxContext);
+}
+
+static ID2GfxInterceptionHandler* GetD2GfxInterceptionHandler()
+{
+    ID2DXContext* d2dxContext = D2DXContextFactory::GetInstance();
+
+    if (!d2dxContext)
+    {
+        return nullptr;
+    }
+
+    return dynamic_cast<ID2GfxInterceptionHandler*>(d2dxContext);
 }
 
 COLORREF(WINAPI* GetPixel_real)(
@@ -186,6 +200,138 @@ int(
         _Inout_ LPRECT lprc,
         _In_ UINT format) = DrawTextA;
 
+
+struct CellContext		//size 0x48
+{
+    DWORD nCellNo;					//0x00
+    DWORD _0a;						//0x04
+    DWORD dwUnit;					//0x08
+    DWORD dwClass;					//0x0C
+    DWORD dwMode;					//0x10
+    DWORD _3;						//0x14
+    DWORD _4;						//0x18
+    BYTE _5;						//0x1C
+    BYTE _5a;						//0x1D
+    WORD _6;						//0x1E
+    DWORD _7;						//0x20
+    DWORD _8;						//0x24
+    DWORD _9;						//0x28
+    char* szName;					//0x2C
+    DWORD _11;						//0x30
+    void* pCellFile;			//0x34 also pCellInit
+    DWORD _12;						//0x38
+    void* pGfxCells;				//0x3C
+    DWORD direction;				//0x40
+    DWORD _14;						//0x44
+};
+typedef void (__stdcall* D2Gfx_DrawImageFunc)(CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE* pPalette);
+typedef void(__stdcall* D2Gfx_DrawShadowFunc)(CellContext* pData, int nXpos, int nYpos);
+typedef void(__fastcall* D2Win_DrawTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD dwUnk);
+
+D2Gfx_DrawImageFunc D2Gfx_DrawImage_Real = nullptr;
+D2Gfx_DrawShadowFunc D2Gfx_DrawShadow_Real = nullptr;
+D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
+
+#pragma optimize("", off)
+__declspec(noinline) void __stdcall  D2Gfx_DrawImage_Hooked(CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE* pPalette)
+{
+    /*
+   D2DX_LOG("draw image %i, %i: '%p' nDrawMode %i, class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p", nXpos, nYpos, pData->szName, nDrawMode, pData->dwClass, pData->dwUnit,
+        pData->dwMode,
+        pData->_11,
+        pData->_12,
+        pData->_14, 
+        pData->_7,
+        pData->_8,
+        pData->_9);*/
+
+   auto d2GfxInterceptionHandler = GetD2GfxInterceptionHandler();
+    
+    if (d2GfxInterceptionHandler)
+    {
+        
+            TextureCategory textureCategory = TextureCategory::Unknown;
+
+            if (pData->dwClass > 0 && pData->dwUnit == 0)
+            {
+                textureCategory = TextureCategory::Player;
+            }
+            else if (nXpos == 480 && nYpos == 262)
+            {
+                textureCategory = TextureCategory::Player;
+            }
+           
+
+            if (textureCategory != TextureCategory::Unknown)
+            {
+                d2GfxInterceptionHandler->SetTextureCategory(textureCategory);
+            }
+    }
+
+    D2Gfx_DrawImage_Real(pData, nXpos, nYpos, dwGamma, nDrawMode, pPalette);
+
+    if (d2GfxInterceptionHandler)
+    {
+            d2GfxInterceptionHandler->SetTextureCategory(TextureCategory::Unknown);
+   
+    }
+}
+
+#pragma optimize("", off)
+__declspec(noinline) void __stdcall  D2Gfx_DrawShadow_Hooked(CellContext* pData, int nXpos, int nYpos)
+{
+    //D2DX_LOG("draw shadow %i, %i: '%p' class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p", nXpos, nYpos, pData->szName, pData->dwClass, pData->dwUnit,
+    //    pData->dwMode,
+    //    pData->_9,
+    //    pData->_12,
+    //    pData->_14,
+    //    pData->_3,
+    //    pData->_4,
+    //    pData->_7);
+
+    auto d2GfxInterceptionHandler = GetD2GfxInterceptionHandler();
+
+    if (d2GfxInterceptionHandler)
+    {
+        TextureCategory textureCategory = TextureCategory::Unknown;
+
+        if (pData->dwClass > 0 && pData->dwUnit == 0)
+        {
+            textureCategory = TextureCategory::Player;
+        }
+
+        if (textureCategory != TextureCategory::Unknown)
+        {
+            d2GfxInterceptionHandler->SetTextureCategory(textureCategory);
+        }
+    }
+
+    D2Gfx_DrawShadow_Real(pData, nXpos, nYpos);
+
+    if (d2GfxInterceptionHandler)
+    {
+        d2GfxInterceptionHandler->SetTextureCategory(TextureCategory::Unknown);
+    }
+}
+
+#pragma optimize("", off)
+__declspec(noinline) void __fastcall D2Win_DrawText_Hooked(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD dwUnk)
+{
+    auto d2GfxInterceptionHandler = GetD2GfxInterceptionHandler();
+
+    if (d2GfxInterceptionHandler)
+    {
+        d2GfxInterceptionHandler->SetTextureCategory(TextureCategory::UserInterface);
+    }
+
+    D2Win_DrawText_Real(wStr, xPos, yPos, dwColor, dwUnk);
+
+    if (d2GfxInterceptionHandler)
+    {
+        d2GfxInterceptionHandler->SetTextureCategory(TextureCategory::Unknown);
+    }
+}
+
 void d2dx::AttachDetours()
 {
     if (hasDetoured)
@@ -202,12 +348,57 @@ void d2dx::AttachDetours()
     DetourAttach(&(PVOID&)SendMessageA_Real, SendMessageA_Hooked);
     DetourAttach(&(PVOID&)ShowCursor_Real, ShowCursor_Hooked);
     DetourAttach(&(PVOID&)SetCursorPos_Real, SetCursorPos_Hooked);
-    DetourAttach(&(PVOID&)SetWindowPos_Real, SetWindowPos_Hooked);
+    auto r = DetourAttach(&(PVOID&)SetWindowPos_Real, SetWindowPos_Hooked);
 
     LONG lError = DetourTransactionCommit();
 
     if (lError != NO_ERROR) {
         D2DX_FATAL_ERROR("Failed to detour Win32 functions.");
+    }
+}
+
+_Use_decl_annotations_
+void d2dx::AttachLateDetours(
+    IGameHelper* gameHelper)
+{
+    if (hasLateDetoured)
+    {
+        return;
+    }
+
+    hasLateDetoured = true;
+
+    D2Gfx_DrawImage_Real = (D2Gfx_DrawImageFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawImage);
+    D2Gfx_DrawShadow_Real = (D2Gfx_DrawShadowFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawShadow);
+    D2Win_DrawText_Real =  (D2Win_DrawTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawText);
+
+    if (!D2Gfx_DrawImage_Real && !D2Gfx_DrawShadow_Real && !D2Win_DrawText_Real)
+    {
+        return;
+    }
+
+    DetourTransactionBegin();
+    DetourUpdateThread(GetCurrentThread());
+
+    if (D2Gfx_DrawImage_Real)
+    {
+        DetourAttach(&(PVOID&)D2Gfx_DrawImage_Real, D2Gfx_DrawImage_Hooked);
+    }
+
+    if (D2Gfx_DrawShadow_Real)
+    {
+        DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
+    }
+
+    if (D2Win_DrawText_Real)
+    {
+        DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
+    }
+
+    LONG lError = DetourTransactionCommit();
+
+    if (lError != NO_ERROR) {
+        D2DX_FATAL_ERROR("Failed to detour D2Gfx functions.");
     }
 }
 
