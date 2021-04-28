@@ -83,7 +83,7 @@ void SurfaceIdTracker::UpdateBatchSurfaceId(
 	else
 	{
 		if (batch.GetAlphaBlend() == AlphaBlend::Opaque &&
-			miny < (gameSize.height / 2) && ((maxy - miny) == 26))
+			miny < (gameSize.height / 3) && ((maxy - miny) == 26))
 		{
 			/* Entering xxxx text */
 			surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;

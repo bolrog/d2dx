@@ -234,6 +234,8 @@ D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
 
 Offset playerScreenPos = { 0, 0 };
 
+bool drawingText = false;
+
 #pragma optimize("", off)
 __declspec(noinline) void __stdcall  D2Gfx_DrawImage_Hooked(CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE* pPalette)
 {
@@ -249,7 +251,7 @@ __declspec(noinline) void __stdcall  D2Gfx_DrawImage_Hooked(CellContext* pData, 
 
     auto d2GfxInterceptionHandler = GetD2GfxInterceptionHandler();
     
-    if (d2GfxInterceptionHandler)
+    if (d2GfxInterceptionHandler && !drawingText)
     {
         TextureCategory textureCategory = TextureCategory::Unknown;
 
@@ -266,6 +268,14 @@ __declspec(noinline) void __stdcall  D2Gfx_DrawImage_Hooked(CellContext* pData, 
             // Overlays will be drawn at the player position, so mark them as part of the player.
             textureCategory = TextureCategory::Player;
         }
+        else if (
+            nDrawMode == 1 &&
+            pData->dwClass == 0 &&
+            pData->dwUnit == 0 &&
+            pData->dwMode == 0)
+        {
+            textureCategory = TextureCategory::UserInterface;
+        }
 
         if (textureCategory != TextureCategory::Unknown)
         {
@@ -275,7 +285,7 @@ __declspec(noinline) void __stdcall  D2Gfx_DrawImage_Hooked(CellContext* pData, 
 
     D2Gfx_DrawImage_Real(pData, nXpos, nYpos, dwGamma, nDrawMode, pPalette);
 
-    if (d2GfxInterceptionHandler)
+    if (d2GfxInterceptionHandler && !drawingText)
     {
         d2GfxInterceptionHandler->SetTextureCategory(TextureCategory::Unknown);
     }
@@ -328,7 +338,11 @@ __declspec(noinline) void __fastcall D2Win_DrawText_Hooked(const wchar_t* wStr, 
         d2GfxInterceptionHandler->SetTextureCategory(TextureCategory::UserInterface);
     }
 
+    drawingText = true;
+
     D2Win_DrawText_Real(wStr, xPos, yPos, dwColor, dwUnk);
+
+    drawingText = false;
 
     if (d2GfxInterceptionHandler)
     {
