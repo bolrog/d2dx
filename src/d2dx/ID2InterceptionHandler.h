@@ -18,28 +18,24 @@
 */
 #pragma once
 
-#include "IGlide3x.h"
-#include "IWin32InterceptionHandler.h"
-#include "ID2InterceptionHandler.h"
+#include "Types.h"
 
 namespace d2dx
 {
-	struct ID2DXContext abstract : 
-		public IGlide3x,
-		public IWin32InterceptionHandler,
-		public ID2InterceptionHandler
+	struct CellContext;
+
+	struct ID2InterceptionHandler abstract
 	{
-		virtual ~ID2DXContext() noexcept {}
+		virtual ~ID2InterceptionHandler() noexcept {}
 
-		virtual void SetCustomResolution(
-			_In_ Size size) = 0;
+		virtual void BeginDrawText() = 0;
 
-		virtual Size GetSuggestedCustomResolution() = 0;
+		virtual void EndDrawText() = 0;
 
-		virtual GameVersion GetGameVersion() const = 0;
+		virtual void BeginDrawImage(
+			_In_ CellContext* pCellContext,
+			_In_ Offset pos) = 0;
 
-		virtual void DisableBuiltinResMod() = 0;
-
-		virtual Options& GetOptions() = 0;
+		virtual void EndDrawImage() = 0;
 	};
 }

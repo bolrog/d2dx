@@ -241,6 +241,7 @@
     </ClInclude>
     <ClInclude Include="SurfaceIdTracker.h" />
     <ClInclude Include="PlayerMotionPredictor.h" />
+    <ClInclude Include="ID2InterceptionHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

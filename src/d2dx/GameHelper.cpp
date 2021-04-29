@@ -683,6 +683,22 @@ void* GameHelper::GetFunction(
 			hModule = _hD2GfxDll;
 			ordinal = 10072;
 			break;
+		case D2Function::D2Gfx_DrawShiftedImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10073;
+			break;
+		case D2Function::D2Gfx_DrawVerticalCropImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10074;
+			break;
+		case D2Function::D2Gfx_DrawClippedImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10077;
+			break;
+		case D2Function::D2Gfx_DrawImageFast:
+			hModule = _hD2GfxDll;
+			ordinal = 10076;
+			break;
 		case D2Function::D2Gfx_DrawShadow:
 			hModule = _hD2GfxDll;
 			ordinal = 10075;
@@ -740,6 +756,22 @@ void* GameHelper::GetFunction(
 			hModule = _hD2GfxDll; 
 			ordinal = 10042;
 			break;
+		case D2Function::D2Gfx_DrawShiftedImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10067;
+			break;
+		case D2Function::D2Gfx_DrawVerticalCropImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10082;
+			break;
+		case D2Function::D2Gfx_DrawClippedImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10015;
+			break;
+		case D2Function::D2Gfx_DrawImageFast:
+			hModule = _hD2GfxDll;
+			ordinal = 10006;
+			break;
 		case D2Function::D2Gfx_DrawShadow:
 			hModule = _hD2GfxDll;
 			ordinal = 10084;
@@ -757,6 +789,10 @@ void* GameHelper::GetFunction(
 		{
 		case D2Function::D2Gfx_DrawImage:
 			return (void*)((uintptr_t)_hGameExe + 0xF6480);
+		case D2Function::D2Gfx_DrawShiftedImage:
+			return (void*)((uintptr_t)_hGameExe + 0xF64B0);
+		case D2Function::D2Gfx_DrawVerticalCropImage:
+			return (void*)((uintptr_t)_hGameExe + 0xF64E0);
 		case D2Function::D2Gfx_DrawShadow:
 			return (void*)((uintptr_t)_hGameExe + 0xF6540);
 		case D2Function::D2Win_DrawText:

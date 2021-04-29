@@ -1176,12 +1176,57 @@ void D2DXContext::OnBufferClear()
 {
 }
 
-void D2DXContext::SetTextureCategory(TextureCategory textureCategory)
+void D2DXContext::BeginDrawText()
 {
-	_scratchBatch.SetTextureCategory(textureCategory);
+	_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
+	_isDrawingText = true;
 }
 
-TextureCategory D2DXContext::GetTextureCategory() const
+void D2DXContext::EndDrawText()
 {
-	return _scratchBatch.GetTextureCategory();
+	_scratchBatch.SetTextureCategory(TextureCategory::Unknown);
+	_isDrawingText = false;
+}
+
+_Use_decl_annotations_
+void D2DXContext::BeginDrawImage(
+	CellContext* pCellContext, 
+	Offset pos)
+{
+	if (_isDrawingText)
+	{
+		return;
+	}
+
+	if (pCellContext->dwClass > 0 && pCellContext->dwUnit == 0)
+	{
+		// The player unit itself.
+		_scratchBatch.SetTextureCategory(TextureCategory::Player);
+		_playerScreenPos = pos;
+	}
+	else if (_playerScreenPos.x > 0 &&
+		pos.x == _playerScreenPos.x &&
+		pos.y == _playerScreenPos.y)
+	{
+		// Overlays will be drawn at the player position, so mark them as part of the player.
+		_scratchBatch.SetTextureCategory(TextureCategory::Player);
+	}
+	else if (
+		pCellContext->dwClass == 0 &&
+		pCellContext->dwUnit == 0 &&
+		pCellContext->dwMode == 0)
+	{
+		// UI elements have neither class nor unit set.
+		_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
+	}
+}
+
+void D2DXContext::EndDrawImage()
+{
+	if (_isDrawingText)
+	{
+		return;
+	}
+
+	_scratchBatch.SetTextureCategory(TextureCategory::Unknown);
 }

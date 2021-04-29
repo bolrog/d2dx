@@ -169,6 +169,7 @@
     <ClInclude Include="dx256_bmp.h" />
     <ClInclude Include="IBuiltinResMod.h" />
     <ClInclude Include="ID2DXContext.h" />
+    <ClInclude Include="ID2InterceptionHandler.h" />
     <ClInclude Include="IWin32InterceptionHandler.h" />
     <ClInclude Include="IGameHelper.h" />
     <ClInclude Include="IGlide3x.h" />

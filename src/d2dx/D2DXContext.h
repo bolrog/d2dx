@@ -35,9 +35,7 @@ namespace d2dx
 	class Vertex;
 
 	class D2DXContext final :
-		public ID2DXContext,
-		public IWin32InterceptionHandler,
-		public ID2GfxInterceptionHandler
+		public ID2DXContext
 	{
 	public:
 		D2DXContext(
@@ -179,9 +177,15 @@ namespace d2dx
 
 #pragma region ID2GfxInterceptionHandler
 
-		virtual void SetTextureCategory(TextureCategory textureCategory) override;
+		virtual void BeginDrawText() override;
 
-		virtual TextureCategory GetTextureCategory() const override;
+		virtual void EndDrawText() override;
+
+		virtual void BeginDrawImage(
+			_In_ CellContext* pCellContext,
+			_In_ Offset pos) override;
+
+		virtual void EndDrawImage() override;
 
 #pragma endregion IWin32InterceptionHandler
 
@@ -254,5 +258,8 @@ namespace d2dx
 		Size _gameSize;
 
 		PlayerMotionPredictor _playerMotionPredictor;
+
+		bool _isDrawingText = false;
+		Offset _playerScreenPos = { 0,0 };
 	};
 }

@@ -983,5 +983,5 @@ void RenderContext::UnclipCursor()
 
 float RenderContext::GetFrameTime() const
 {
-	return _frameTimeMs / 1000.0;
+	return (float)(_frameTimeMs / 1000.0);
 }

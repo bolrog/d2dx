@@ -22,15 +22,6 @@
 
 namespace d2dx
 {
-	struct ID2GfxInterceptionHandler abstract
-	{
-		virtual ~ID2GfxInterceptionHandler() noexcept {}
-
-		virtual void SetTextureCategory(TextureCategory textureCategory) = 0;
-		
-		virtual TextureCategory GetTextureCategory() const = 0;
-	};
-
 	struct IWin32InterceptionHandler abstract
 	{
 		virtual ~IWin32InterceptionHandler() noexcept {}
