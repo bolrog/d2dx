@@ -97,6 +97,11 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   -dxnoaa
   ```
   
+  In window mode, keeps window in upper-left corner
+  ```
+  -dxnowindowmove
+  ```
+  
   In windowed mode, scale the size by 2 or 3:
   ```
   -dxscale2
