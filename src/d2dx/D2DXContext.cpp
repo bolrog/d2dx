@@ -256,7 +256,7 @@ void D2DXContext::OnSstWinOpen(
 			windowSize.width = width;
 			windowSize.height = height;
 		}
-		_renderContext->SetSizes(gameSize, windowSize);
+		_renderContext->SetSizes(gameSize, windowSize * _options.defaultZoomLevel);
 	}
 
 	_batchCount = 0;
