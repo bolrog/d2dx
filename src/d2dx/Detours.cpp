@@ -269,7 +269,6 @@ __declspec(noinline) void __stdcall  D2Gfx_DrawImage_Hooked(CellContext* pData, 
             textureCategory = TextureCategory::Player;
         }
         else if (
-            nDrawMode == 1 &&
             pData->dwClass == 0 &&
             pData->dwUnit == 0 &&
             pData->dwMode == 0)
