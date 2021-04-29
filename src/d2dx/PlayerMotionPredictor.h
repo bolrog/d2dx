@@ -36,8 +36,6 @@ namespace d2dx
 
 	private:
 		std::shared_ptr<IGameHelper> _gameHelper;
-		int64_t _timeStart;
-		int64_t _lastPlayerPosChangeTime = 0;
 		Offset _lastPlayerPos = { 0, 0 };
 		Offset _velocity = { 0, 0 };
 		Offset _predictedPlayerPos = { 0, 0 };

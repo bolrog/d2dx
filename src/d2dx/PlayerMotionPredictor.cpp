@@ -26,8 +26,7 @@ using namespace d2dx;
 _Use_decl_annotations_
 PlayerMotionPredictor::PlayerMotionPredictor(
 	const std::shared_ptr<IGameHelper>& gameHelper) :
-	_gameHelper{ gameHelper },
-	_timeStart{ TimeStart() }
+	_gameHelper{ gameHelper }
 {
 }
 
@@ -35,10 +34,8 @@ _Use_decl_annotations_
 void PlayerMotionPredictor::Update(
 	IRenderContext* renderContext)
 {
-	int64_t newTime = (int64_t)(65536.0 * TimeEndMs(_timeStart) / 1000.0);
-	int32_t dt = (int32_t)(renderContext->GetFrameTime() * 65536.0);
-
-	auto playerPos = _gameHelper->GetPlayerPos();
+	const int32_t dt = (int32_t)(renderContext->GetFrameTime() * 65536.0);
+	const Offset playerPos = _gameHelper->GetPlayerPos();
 
 	if (max(abs(playerPos.x - _predictedPlayerPos.x), abs(playerPos.y - _predictedPlayerPos.y)) > 15 * 65536)
 	{
@@ -46,12 +43,12 @@ void PlayerMotionPredictor::Update(
 		_correctedPlayerPos = playerPos;
 	}
 
-	int32_t dx = playerPos.x - _lastPlayerPos.x;
-	int32_t dy = playerPos.y - _lastPlayerPos.y;
+	const int32_t dx = playerPos.x - _lastPlayerPos.x;
+	const int32_t dy = playerPos.y - _lastPlayerPos.y;
 
 	_dtLastPosChange += dt;
 
-	if (dx != 0 || dy != 0 || _dtLastPosChange >= (65536/25))
+	if (dx != 0 || dy != 0 || _dtLastPosChange >= (65536 / 25))
 	{
 		_correctedPlayerPos = playerPos;
 
@@ -59,7 +56,6 @@ void PlayerMotionPredictor::Update(
 		_velocity.y = 25 * dy;
 
 		_lastPlayerPos = playerPos;
-		_lastPlayerPosChangeTime = newTime;
 		_dtLastPosChange = 0;
 	}
 
@@ -67,18 +63,24 @@ void PlayerMotionPredictor::Update(
 	{
 		if (_dtLastPosChange < (65536 / 25))
 		{
-			_predictedPlayerPos.x += (int32_t)(((int64_t)dt * _velocity.x) >> 16);
-			_predictedPlayerPos.y += (int32_t)(((int64_t)dt * _velocity.y) >> 16);
-			
-			_correctedPlayerPos.x += (int32_t)(((int64_t)dt * _velocity.x) >> 16);
-			_correctedPlayerPos.y += (int32_t)(((int64_t)dt * _velocity.y) >> 16);
+			Offset vStep{
+				(int32_t)(((int64_t)dt * _velocity.x) >> 16),
+				(int32_t)(((int64_t)dt * _velocity.y) >> 16) };
+
+			_predictedPlayerPos.x += vStep.x;
+			_predictedPlayerPos.y += vStep.y;
+
+			_correctedPlayerPos.x += vStep.x;
+			_correctedPlayerPos.y += vStep.y;
 
 			int32_t ex = _correctedPlayerPos.x - _predictedPlayerPos.x;
 			int32_t ey = _correctedPlayerPos.y - _predictedPlayerPos.y;
-			
-			int32_t correctionAmount = 10000;
-			_predictedPlayerPos.x = (int32_t)(((int64_t)_predictedPlayerPos.x * (65536 - correctionAmount) + (int64_t)_correctedPlayerPos.x * correctionAmount) >> 16);
-			_predictedPlayerPos.y = (int32_t)(((int64_t)_predictedPlayerPos.y * (65536 - correctionAmount) + (int64_t)_correctedPlayerPos.y * correctionAmount) >> 16);
+
+			const int32_t correctionAmount = 10000;
+			const int32_t oneMinusCorrectionAmount = 65536 - correctionAmount;
+
+			_predictedPlayerPos.x = (int32_t)(((int64_t)_predictedPlayerPos.x * oneMinusCorrectionAmount + (int64_t)_correctedPlayerPos.x * correctionAmount) >> 16);
+			_predictedPlayerPos.y = (int32_t)(((int64_t)_predictedPlayerPos.y * oneMinusCorrectionAmount + (int64_t)_correctedPlayerPos.y * correctionAmount) >> 16);
 
 			ex = _correctedPlayerPos.x - _predictedPlayerPos.x;
 			ey = _correctedPlayerPos.y - _predictedPlayerPos.y;
