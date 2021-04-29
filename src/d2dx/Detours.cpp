@@ -426,41 +426,13 @@ void d2dx::AttachLateDetours(
 
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-
-	if (D2Gfx_DrawImage_Real)
-	{
-		DetourAttach(&(PVOID&)D2Gfx_DrawImage_Real, D2Gfx_DrawImage_Hooked);
-	}
-
-	if (D2Gfx_DrawShiftedImage_Real)
-	{
-		DetourAttach(&(PVOID&)D2Gfx_DrawShiftedImage_Real, D2Gfx_DrawShiftedImage_Hooked);
-	}
-
-	if (D2Gfx_DrawVerticalCropImage_Real)
-	{
-		DetourAttach(&(PVOID&)D2Gfx_DrawVerticalCropImage_Real, D2Gfx_DrawVerticalCropImage_Hooked);
-	}
-
-	if (D2Gfx_DrawClippedImage_Real)
-	{
-		DetourAttach(&(PVOID&)D2Gfx_DrawClippedImage_Real, D2Gfx_DrawClippedImage_Hooked);
-	}
-
-	if (D2Gfx_DrawImageFast_Real)
-	{
-		DetourAttach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
-	}
-
-	if (D2Gfx_DrawShadow_Real)
-	{
-		DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
-	}
-
-	if (D2Win_DrawText_Real)
-	{
-		DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
-	}
+	DetourAttach(&(PVOID&)D2Gfx_DrawImage_Real, D2Gfx_DrawImage_Hooked);
+	DetourAttach(&(PVOID&)D2Gfx_DrawShiftedImage_Real, D2Gfx_DrawShiftedImage_Hooked);
+	DetourAttach(&(PVOID&)D2Gfx_DrawVerticalCropImage_Real, D2Gfx_DrawVerticalCropImage_Hooked);
+	DetourAttach(&(PVOID&)D2Gfx_DrawClippedImage_Real, D2Gfx_DrawClippedImage_Hooked);
+	DetourAttach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
+	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
+	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 
 	LONG lError = DetourTransactionCommit();
 
