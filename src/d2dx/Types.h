@@ -53,6 +53,7 @@ namespace d2dx
 		bool noResMod = false;
 		bool noAA = false;
 		bool noCompatModeFix = false;
+		bool noTitleChange = false;
 		bool debugDumpTextures = false;
 		bool testMoP = false;
 	};
