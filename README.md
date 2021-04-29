@@ -2,7 +2,7 @@
 
 D2DX is a project for running classic Diablo II/LoD on modern PCs, with enhancements that honor the original look and feel. Play in a window or in fullscreen, glitch-free, with (or without) enhancements like widescreen and anti-aliasing.
 
-Version 0.99.429
+Version 0.99.430
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
@@ -103,6 +103,11 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   -dxscale3
   ```
 
+### Experimental motion prediction mode
+
+  See the Wiki page on Motion Prediction.
+
+
 ### Experimental widescreen (windowed and fullscreen) modes 
   PLEASE NOTE: This only works with 1.12, 1.13c and 1.13d at this time.
 
@@ -136,6 +141,10 @@ This project uses the following third party libraries:
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
 ## Release history
+
+### 0.99.430
+  - Add experimental motion prediction ("smooth movement") feature. This gives actual in-game fps above 25. It is a work in progress, see
+    the Wiki page (https://github.com/bolrog/d2dx/wiki/Motion-Prediction) for info on how to enable it.
 
 ### 0.99.429
   - Fix AA being applied on merc portraits, and on text (again).
