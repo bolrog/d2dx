@@ -87,7 +87,7 @@ void SurfaceIdTracker::UpdateBatchSurfaceId(
 		{
 			surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
 		}
-		else if (miny >= (gameSize.height - 54))
+		else if (miny >= (gameSize.height - 48))
 		{
 			surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
 		}
