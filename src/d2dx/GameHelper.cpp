@@ -641,7 +641,7 @@ Offset GameHelper::GetPlayerPos()
 		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11D050);
 		break;
 	case GameVersion::Lod114d:
-		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x3A6A70);
+		unit = (uint32_t*)ReadU32(_hGameExe, 0x3A6A70);
 		break;
 	default:
 		break;
@@ -748,6 +748,19 @@ void* GameHelper::GetFunction(
 			hModule = _hD2WinDll;
 			ordinal = 10076;
 			break;
+		default:
+			break;
+		}
+		break;
+	case GameVersion::Lod114d:
+		switch (function)
+		{
+		case D2Function::D2Gfx_DrawImage:
+			return (void*)((uintptr_t)_hGameExe + 0xF6480);
+		case D2Function::D2Gfx_DrawShadow:
+			return (void*)((uintptr_t)_hGameExe + 0xF6540);
+		case D2Function::D2Win_DrawText:
+			return (void*)((uintptr_t)_hGameExe + 0x102320);
 		default:
 			break;
 		}

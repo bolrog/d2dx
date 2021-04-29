@@ -65,12 +65,6 @@ void SurfaceIdTracker::UpdateBatchSurfaceId(
 		maxy = max(maxy, y);
 	}
 
-	//if (_previousSurfaceId == D2DX_SURFACE_ID_USER_INTERFACE)
-	//{
-	//	/* Once the UI has started being drawn, assume the following draw calls are UI too. */
-	//	surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
-	//}
-	//else
 	if (majorGameState != MajorGameState::InGame)
 	{
 		surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
