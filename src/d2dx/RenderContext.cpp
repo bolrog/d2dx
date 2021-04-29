@@ -817,10 +817,15 @@ void RenderContext::AdjustWindowPlacement(
 		AdjustWindowRect(&windowRect, windowStyle, FALSE);
 		const int32_t newWindowWidth = windowRect.right - windowRect.left;
 		const int32_t newWindowHeight = windowRect.bottom - windowRect.top;
-		const int32_t newWindowCenterX = centerOnCurrentPosition ? oldWindowCenterX : desktopCenterX;
-		const int32_t newWindowCenterY = centerOnCurrentPosition ? oldWindowCenterY : desktopCenterY;
-		const int32_t newWindowX = newWindowCenterX - newWindowWidth / 2;
-		const int32_t newWindowY = newWindowCenterY - newWindowHeight / 2;
+		int32_t newWindowX = 0;
+		int32_t newWindowY = 0;
+
+		if (!_d2dxContext->GetOptions().noWindowMove) {
+			const int32_t newWindowCenterX = centerOnCurrentPosition ? oldWindowCenterX : desktopCenterX;
+			const int32_t newWindowCenterY = centerOnCurrentPosition ? oldWindowCenterY : desktopCenterY;
+			newWindowX = newWindowCenterX - newWindowWidth / 2;
+			newWindowY = newWindowCenterY - newWindowHeight / 2;
+		}
 
 		SetWindowLongPtr(hWnd, GWL_STYLE, windowStyle);
 		SetWindowPos_Real(hWnd, HWND_TOP, newWindowX, newWindowY, newWindowWidth, newWindowHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);

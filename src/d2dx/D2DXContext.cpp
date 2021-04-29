@@ -60,6 +60,7 @@ static Options GetCommandLineOptions()
 	options.noVSync = CheckOption(commandLine, cfgFile, "-dxnovsync");
 	options.noAA = CheckOption(commandLine, cfgFile, "-dxnoaa");
 	options.noCompatModeFix = CheckOption(commandLine, cfgFile, "-dxnocompatmodefix");
+	options.noWindowMove = CheckOption(commandLine, cfgFile, "-dxnowindowmove");
 
 	bool dxscale2 = CheckOption(commandLine, cfgFile, "-dxscale2");
 	bool dxscale3 = CheckOption(commandLine, cfgFile, "-dxscale3");
