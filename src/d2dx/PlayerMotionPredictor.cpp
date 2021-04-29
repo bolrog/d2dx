@@ -42,7 +42,8 @@ void PlayerMotionPredictor::Update(
 
 	if (max(abs(playerPos.x - _predictedPlayerPos.x), abs(playerPos.y - _predictedPlayerPos.y)) > 15 * 65536)
 	{
-		this->_predictedPlayerPos = playerPos;
+		_predictedPlayerPos = playerPos;
+		_correctedPlayerPos = playerPos;
 	}
 
 	int32_t dx = playerPos.x - _lastPlayerPos.x;
@@ -50,13 +51,12 @@ void PlayerMotionPredictor::Update(
 
 	_dtLastPosChange += dt;
 
-	if (dx != 0 || dy != 0)// || _dtLastPosChange > (65536/25))
+	if (dx != 0 || dy != 0 || _dtLastPosChange >= (65536/25))
 	{
-		int32_t ex = playerPos.x - _predictedPlayerPos.x;
-		int32_t ey = playerPos.y - _predictedPlayerPos.y;
+		_correctedPlayerPos = playerPos;
 
-		_velocity.x = 25 * dx + 4 * ex;
-		_velocity.y = 25 * dy + 4 * ey;
+		_velocity.x = 25 * dx;
+		_velocity.y = 25 * dy;
 
 		_lastPlayerPos = playerPos;
 		_lastPlayerPosChangeTime = newTime;
@@ -69,6 +69,20 @@ void PlayerMotionPredictor::Update(
 		{
 			_predictedPlayerPos.x += (int32_t)(((int64_t)dt * _velocity.x) >> 16);
 			_predictedPlayerPos.y += (int32_t)(((int64_t)dt * _velocity.y) >> 16);
+			
+			_correctedPlayerPos.x += (int32_t)(((int64_t)dt * _velocity.x) >> 16);
+			_correctedPlayerPos.y += (int32_t)(((int64_t)dt * _velocity.y) >> 16);
+
+			int32_t ex = _correctedPlayerPos.x - _predictedPlayerPos.x;
+			int32_t ey = _correctedPlayerPos.y - _predictedPlayerPos.y;
+			
+			int32_t correctionAmount = 10000;
+			_predictedPlayerPos.x = (int32_t)(((int64_t)_predictedPlayerPos.x * (65536 - correctionAmount) + (int64_t)_correctedPlayerPos.x * correctionAmount) >> 16);
+			_predictedPlayerPos.y = (int32_t)(((int64_t)_predictedPlayerPos.y * (65536 - correctionAmount) + (int64_t)_correctedPlayerPos.y * correctionAmount) >> 16);
+
+			ex = _correctedPlayerPos.x - _predictedPlayerPos.x;
+			ey = _correctedPlayerPos.y - _predictedPlayerPos.y;
+			D2DX_DEBUG_LOG("Error %f %f", ex / 65536.0f, ey / 65536.0f);
 		}
 	}
 }

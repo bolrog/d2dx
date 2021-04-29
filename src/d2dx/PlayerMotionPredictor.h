@@ -41,6 +41,7 @@ namespace d2dx
 		Offset _lastPlayerPos = { 0, 0 };
 		Offset _velocity = { 0, 0 };
 		Offset _predictedPlayerPos = { 0, 0 };
+		Offset _correctedPlayerPos = { 0, 0 };
 		int64_t _dtLastPosChange = 0;
 	};
 }
