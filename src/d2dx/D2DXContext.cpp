@@ -120,18 +120,7 @@ D2DXContext::D2DXContext(
 
 	if (_options.testMoP)
 	{
-		if (_gameHelper->GetVersion() == GameVersion::Lod112 ||
-			_gameHelper->GetVersion() == GameVersion::Lod113c ||
-			_gameHelper->GetVersion() == GameVersion::Lod113d ||
-			_gameHelper->GetVersion() == GameVersion::Lod114d)
-		{
-			D2DX_LOG("MoP testing enabled.");
-		}
-		else
-		{
-			D2DX_LOG("MoP not yet supported on this game version. Disabling.");
-			_options.testMoP = false;
-		}
+		D2DX_LOG("MoP testing enabled.");
 	}
 
 	if (!_options.noResMod)
