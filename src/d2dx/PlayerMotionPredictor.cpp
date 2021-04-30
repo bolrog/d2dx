@@ -51,6 +51,7 @@ void PlayerMotionPredictor::Update(
 	if (dx != 0 || dy != 0 || _dtLastPosChange >= (65536 / 25))
 	{
 		_correctedPlayerPos = playerPos;
+		D2DX_DEBUG_LOG("Server %f %f", playerPos.x / 65536.0f, playerPos.y / 65536.0f);
 
 		_velocity.x = 25 * dx;
 		_velocity.y = 25 * dy;
@@ -67,24 +68,22 @@ void PlayerMotionPredictor::Update(
 				(int32_t)(((int64_t)dt * _velocity.x) >> 16),
 				(int32_t)(((int64_t)dt * _velocity.y) >> 16) };
 
+			const int32_t correctionAmount = 3000;
+			const int32_t oneMinusCorrectionAmount = 65536 - correctionAmount;
+
+			_predictedPlayerPos.x = (int32_t)(((int64_t)_predictedPlayerPos.x * oneMinusCorrectionAmount + (int64_t)_correctedPlayerPos.x * correctionAmount) >> 16);
+			_predictedPlayerPos.y = (int32_t)(((int64_t)_predictedPlayerPos.y * oneMinusCorrectionAmount + (int64_t)_correctedPlayerPos.y * correctionAmount) >> 16);
+			//D2DX_DEBUG_LOG("Predicted %f %f", _predictedPlayerPos.x / 65536.0f, _predictedPlayerPos.y / 65536.0f);
+
+			int32_t ex = _correctedPlayerPos.x - _predictedPlayerPos.x;
+			int32_t ey = _correctedPlayerPos.y - _predictedPlayerPos.y;
+			D2DX_DEBUG_LOG("Error %f %f", ex / 65536.0f, ey / 65536.0f);
+
 			_predictedPlayerPos.x += vStep.x;
 			_predictedPlayerPos.y += vStep.y;
 
 			_correctedPlayerPos.x += vStep.x;
 			_correctedPlayerPos.y += vStep.y;
-
-			int32_t ex = _correctedPlayerPos.x - _predictedPlayerPos.x;
-			int32_t ey = _correctedPlayerPos.y - _predictedPlayerPos.y;
-
-			const int32_t correctionAmount = 10000;
-			const int32_t oneMinusCorrectionAmount = 65536 - correctionAmount;
-
-			_predictedPlayerPos.x = (int32_t)(((int64_t)_predictedPlayerPos.x * oneMinusCorrectionAmount + (int64_t)_correctedPlayerPos.x * correctionAmount) >> 16);
-			_predictedPlayerPos.y = (int32_t)(((int64_t)_predictedPlayerPos.y * oneMinusCorrectionAmount + (int64_t)_correctedPlayerPos.y * correctionAmount) >> 16);
-
-			ex = _correctedPlayerPos.x - _predictedPlayerPos.x;
-			ey = _correctedPlayerPos.y - _predictedPlayerPos.y;
-			D2DX_DEBUG_LOG("Error %f %f", ex / 65536.0f, ey / 65536.0f);
 		}
 	}
 }
