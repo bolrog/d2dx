@@ -1177,6 +1177,8 @@ void D2DXContext::EndDrawText()
 	_isDrawingText = false;
 }
 
+#define MAKE_PLAYER_TYPE(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
+
 _Use_decl_annotations_
 void D2DXContext::BeginDrawImage(
 	CellContext* pCellContext, 
@@ -1187,7 +1189,15 @@ void D2DXContext::BeginDrawImage(
 		return;
 	}
 
-	if (pCellContext->dwClass > 0 && pCellContext->dwUnit == 0)
+	if (pCellContext->dwUnit == 0 && (
+		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('A', 'M', ' ', ' ') ||
+		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('S', 'O', ' ', ' ') ||
+		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('N', 'E', ' ', ' ') ||
+		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('P', 'A', ' ', ' ') ||
+		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('B', 'A', ' ', ' ') ||
+		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('A', 'M', ' ', ' ') ||
+		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('D', 'Z', ' ', ' ') ||
+		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('A', 'I', ' ', ' ')))
 	{
 		// The player unit itself.
 		_scratchBatch.SetTextureCategory(TextureCategory::Player);

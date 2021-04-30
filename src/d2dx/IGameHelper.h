@@ -41,7 +41,7 @@ namespace d2dx
 		DWORD dwClass;					//0x0C
 		DWORD dwMode;					//0x10
 		DWORD _3;						//0x14
-		DWORD _4;						//0x18
+		DWORD dwPlayerType;				//0x18
 		BYTE _5;						//0x1C
 		BYTE _5a;						//0x1D
 		WORD _6;						//0x1E
@@ -56,6 +56,8 @@ namespace d2dx
 		DWORD direction;				//0x40
 		DWORD _14;						//0x44
 	};
+
+	static_assert(sizeof(CellContext) == 0x48, "CellContext size");
 
 	struct IGameHelper abstract
 	{
