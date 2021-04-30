@@ -840,12 +840,14 @@ void RenderContext::AdjustWindowPlacement(
 
 	ClipCursor();
 
-	char newWindowText[256];
-	sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
-		_gameSize.width,
-		_gameSize.height,
-		(int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
-	SetWindowTextA(hWnd, newWindowText);
+	if (!_d2dxContext->GetOptions().noTitleChange) {
+		char newWindowText[256];
+		sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
+			_gameSize.width,
+			_gameSize.height,
+			(int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
+		SetWindowTextA(hWnd, newWindowText);
+	}
 
 	D2DX_LOG("Sizes: desktop %ix%i, window %ix%i, game %ix%i, render %ix%i", 
 		_desktopSize.width,

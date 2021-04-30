@@ -72,6 +72,11 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   -dxnologo
   ``` 
   
+  Disable custom D2DX window title
+  ```
+  -dxnotitlechange
+  ```
+  
   Disable widescreen mode
   ```
   -dxnowide 
