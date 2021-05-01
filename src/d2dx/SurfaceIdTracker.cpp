@@ -76,13 +76,7 @@ void SurfaceIdTracker::UpdateBatchSurfaceId(
 	}
 	else
 	{
-		if (batch.GetAlphaBlend() == AlphaBlend::Opaque &&
-			miny < (gameSize.height / 3) && ((maxy - miny) == 26))
-		{
-			/* Entering xxxx text */
-			surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
-		}
-		else if (batch.GetGameAddress() == GameAddress::DrawLine &&
+		if (batch.GetGameAddress() == GameAddress::DrawLine &&
 			(maxy - miny) == 1)
 		{
 			surfaceId = D2DX_SURFACE_ID_USER_INTERFACE;
