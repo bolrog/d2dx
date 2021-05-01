@@ -236,7 +236,15 @@ void d2dx::detail::FatalError(
     TerminateProcess(GetCurrentProcess(), -1);
 }
 
-void d2dx::DumpTexture(uint32_t hash, int32_t w, int32_t h, const uint8_t* pixels, uint32_t pixelsSize, uint32_t textureCategory, const uint32_t* palette)
+_Use_decl_annotations_
+void d2dx::DumpTexture(
+    uint32_t hash,
+    int32_t w,
+    int32_t h,
+    const uint8_t* pixels,
+    uint32_t pixelsSize,
+    uint32_t textureCategory,
+    const uint32_t* palette)
 {
     char s[256];
 

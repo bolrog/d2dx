@@ -87,5 +87,12 @@ namespace d2dx
 	Buffer<char> ReadTextFile(
 		_In_z_ const char* filename);
 
-	void DumpTexture(uint32_t hash, int32_t w, int32_t h, const uint8_t* pixels, uint32_t pixelsSize, uint32_t textureCategory, const uint32_t* palette);
+	void DumpTexture(
+		_In_ uint32_t hash,
+		_In_ int32_t w,
+		_In_ int32_t h,
+		_In_reads_(pixelsSize) const uint8_t* pixels,
+		_In_ uint32_t pixelsSize,
+		_In_ uint32_t textureCategory,
+		_In_reads_(256) const uint32_t* palette);
 }
