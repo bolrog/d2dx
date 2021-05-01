@@ -146,6 +146,17 @@ namespace d2dx
 		}
 	};
 
+	struct OffsetF final
+	{
+		float x = 0;
+		float y = 0;
+
+		bool operator==(const OffsetF& rhs) const noexcept
+		{
+			return x == rhs.x && y == rhs.y;
+		}
+	};
+
 	struct Size final
 	{
 		int32_t width = 0;

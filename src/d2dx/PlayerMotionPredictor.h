@@ -32,7 +32,7 @@ namespace d2dx
 		void Update(
 			_In_ IRenderContext* renderContext);
 
-		void GetOffset(float& offsetX, float& offsetY);
+		OffsetF GetOffset() const;
 
 	private:
 		std::shared_ptr<IGameHelper> _gameHelper;

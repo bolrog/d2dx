@@ -460,27 +460,24 @@ void D2DXContext::OnBufferSwap()
 
 	if (_options.testMoP && _majorGameState == MajorGameState::InGame)
 	{
-		float offsetX, offsetY;
-		_playerMotionPredictor.GetOffset(offsetX, offsetY);
+		auto offset = _playerMotionPredictor.GetOffset();
 
-		int32_t screenOffsetX = (int32_t)(32.0f * (offsetX - offsetY) / sqrt(2.0f) + 0.5f);
-		int32_t screenOffsetY = (int32_t)(16.0f * (offsetX + offsetY) / sqrt(2.0f) + 0.5f);
+		int32_t screenOffsetX = (int32_t)(32.0f * (offset.x - offset.y) / sqrt(2.0f) + 0.5f);
+		int32_t screenOffsetY = (int32_t)(16.0f * (offset.x + offset.y) / sqrt(2.0f) + 0.5f);
 
 		for (int32_t i = 0; i < _batchCount; ++i)
 		{
 			const Batch& batch = _batches.items[i];
 			auto surfaceId = _vertices.items[batch.GetStartVertex()].GetSurfaceId();
 
-			if (surfaceId != D2DX_SURFACE_ID_USER_INTERFACE && batch.GetTextureCategory() != TextureCategory::Player)
+			if (surfaceId != D2DX_SURFACE_ID_USER_INTERFACE &&
+				batch.GetTextureCategory() != TextureCategory::Player)
 			{
-				for (uint32_t j = 0; j < batch.GetVertexCount(); ++j)
+				const auto batchVertexCount = batch.GetVertexCount();
+				int32_t vertexIndex = batch.GetStartVertex();
+				for (uint32_t j = 0; j < batchVertexCount; ++j)
 				{
-					int32_t x = _vertices.items[batch.GetStartVertex() + j].GetX();
-					int32_t y = _vertices.items[batch.GetStartVertex() + j].GetY();
-					x -= screenOffsetX;
-					y -= screenOffsetY;
-					_vertices.items[batch.GetStartVertex() + j].SetX(x);
-					_vertices.items[batch.GetStartVertex() + j].SetY(y);
+					_vertices.items[vertexIndex++].AddOffset({ -screenOffsetX, -screenOffsetY });
 				}
 			}
 		}

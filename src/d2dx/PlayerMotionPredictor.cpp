@@ -88,8 +88,7 @@ void PlayerMotionPredictor::Update(
 	}
 }
 
-void PlayerMotionPredictor::GetOffset(float& offsetX, float& offsetY)
+OffsetF PlayerMotionPredictor::GetOffset() const
 {
-	offsetX = (_predictedPlayerPos.x - _lastPlayerPos.x) / 65536.0f;
-	offsetY = (_predictedPlayerPos.y - _lastPlayerPos.y) / 65536.0f;
+	return { (_predictedPlayerPos.x - _lastPlayerPos.x) / 65536.0f, (_predictedPlayerPos.y - _lastPlayerPos.y) / 65536.0f };
 }

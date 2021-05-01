@@ -50,6 +50,13 @@ namespace d2dx
 			assert(surfaceId >= 0 && surfaceId <= 16383);
 		}
 
+		inline void AddOffset(
+			_In_ Offset offset) noexcept
+		{
+			_x += offset.x;
+			_y += offset.y;
+		}
+
 		inline int32_t GetX() const noexcept
 		{
 			return _x;
