@@ -584,15 +584,27 @@ bool GameHelper::TryApplyFpsFix()
 	return true;
 }
 
+typedef uint32_t* (__stdcall* GetClientPlayerFunc)();
+
 Offset GameHelper::GetPlayerPos()
 {
 	Offset pos = { 0,0 };
+	int32_t pathOffset = 0x2c;
 	uint32_t* unit = nullptr;
 	uint32_t* path = nullptr;
+	GetClientPlayerFunc f;
 
-	static int32_t offset = 0;
 	switch (_version)
 	{
+	case GameVersion::Lod109d:
+		f = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x8CFC0);
+		unit = f();
+		pathOffset = 0x38;
+		break;
+	case GameVersion::Lod110:
+		f = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x883D0);
+		unit = f();
+		break;
 	case GameVersion::Lod112:
 		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11C3D0);
 		break;
@@ -608,17 +620,21 @@ Offset GameHelper::GetPlayerPos()
 	default:
 		break;
 	}
+
 	if (!unit)
 	{
 		return pos;
 	}
-	path = (uint32_t*)unit[0x2c / 4];
+
+	path = (uint32_t*)unit[pathOffset / 4];
 	//D2DX_LOG("unit id %u %p %p", unit[1], unit, path);
+
 	if (path)
 	{
 		pos.x = path[0];
 		pos.y = path[1];
 	}
+
 	return pos;
 }
 
@@ -747,7 +763,7 @@ void* GameHelper::GetFunction(
 		switch (function)
 		{
 		case D2Function::D2Gfx_DrawImage:
-			hModule = _hD2GfxDll; 
+			hModule = _hD2GfxDll;
 			ordinal = 10042;
 			break;
 		case D2Function::D2Gfx_DrawShiftedImage:
