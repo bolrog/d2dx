@@ -182,7 +182,7 @@ namespace d2dx
 		virtual void EndDrawText() override;
 
 		virtual void BeginDrawImage(
-			_In_ CellContext* pCellContext,
+			_In_ const CellContext* cellContext,
 			_In_ Offset pos) override;
 
 		virtual void EndDrawImage() override;
@@ -210,7 +210,7 @@ namespace d2dx
 			_In_ uint32_t vertexLayout,
 			_In_ const Batch& batch,
 			_In_ int32_t batchIndex);
-		
+
 		Batch _scratchBatch;
 
 		int32_t _frame;

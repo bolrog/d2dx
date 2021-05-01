@@ -1179,7 +1179,7 @@ void D2DXContext::EndDrawText()
 
 _Use_decl_annotations_
 void D2DXContext::BeginDrawImage(
-	CellContext* pCellContext, 
+	const CellContext* cellContext, 
 	Offset pos)
 {
 	if (_isDrawingText)
@@ -1187,15 +1187,17 @@ void D2DXContext::BeginDrawImage(
 		return;
 	}
 
-	if (pCellContext->dwUnit == 0 && (
-		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('A', 'M', ' ', ' ') ||
-		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('S', 'O', ' ', ' ') ||
-		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('N', 'E', ' ', ' ') ||
-		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('P', 'A', ' ', ' ') ||
-		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('B', 'A', ' ', ' ') ||
-		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('A', 'M', ' ', ' ') ||
-		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('D', 'Z', ' ', ' ') ||
-		pCellContext->dwPlayerType == MAKE_PLAYER_TYPE('A', 'I', ' ', ' ')))
+	DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
+
+	if (drawParameters.unitType == 0 && (
+		drawParameters.unitToken == MAKE_PLAYER_TYPE('A', 'M', ' ', ' ') ||
+		drawParameters.unitToken == MAKE_PLAYER_TYPE('S', 'O', ' ', ' ') ||
+		drawParameters.unitToken == MAKE_PLAYER_TYPE('N', 'E', ' ', ' ') ||
+		drawParameters.unitToken == MAKE_PLAYER_TYPE('P', 'A', ' ', ' ') ||
+		drawParameters.unitToken == MAKE_PLAYER_TYPE('B', 'A', ' ', ' ') ||
+		drawParameters.unitToken == MAKE_PLAYER_TYPE('A', 'M', ' ', ' ') ||
+		drawParameters.unitToken == MAKE_PLAYER_TYPE('D', 'Z', ' ', ' ') ||
+		drawParameters.unitToken == MAKE_PLAYER_TYPE('A', 'I', ' ', ' ')))
 	{
 		// The player unit itself.
 		_scratchBatch.SetTextureCategory(TextureCategory::Player);
@@ -1209,17 +1211,17 @@ void D2DXContext::BeginDrawImage(
 		_scratchBatch.SetTextureCategory(TextureCategory::Player);
 	}
 	else if (
-		pCellContext->dwClass == 0 &&
-		pCellContext->dwUnit == 0 &&
-		pCellContext->dwMode == 0)
+		drawParameters.unitId == 0 &&
+		drawParameters.unitType == 0 &&
+		cellContext->dwMode == 0)
 	{
-		// UI elements have neither class nor unit set.
+		// UI elements have zero unit ID and unit type.
 		_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 	}
 }
 
 void D2DXContext::EndDrawImage()
-{
+{ 
 	if (_isDrawingText)
 	{
 		return;

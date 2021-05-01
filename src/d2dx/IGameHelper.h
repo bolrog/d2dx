@@ -59,6 +59,13 @@ namespace d2dx
 
 	static_assert(sizeof(CellContext) == 0x48, "CellContext size");
 
+	struct DrawParameters
+	{
+		uint32_t unitId;
+		uint32_t unitType;
+		uint32_t unitToken;
+	};
+
 	struct IGameHelper abstract
 	{
 		virtual ~IGameHelper() noexcept {}
@@ -89,5 +96,8 @@ namespace d2dx
 
 		virtual void* GetFunction(
 			_In_ D2Function function) const = 0;
+
+		virtual DrawParameters GetDrawParameters(
+			_In_ const CellContext* cellContext) const = 0;
 	};
 }

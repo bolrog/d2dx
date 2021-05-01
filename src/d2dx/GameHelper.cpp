@@ -556,18 +556,18 @@ Offset GameHelper::GetPlayerPos()
 	int32_t pathOffset = 0x2c;
 	uint32_t* unit = nullptr;
 	uint32_t* path = nullptr;
-	GetClientPlayerFunc f;
+	GetClientPlayerFunc getClientPlayerFunc;
 
 	switch (_version)
 	{
 	case GameVersion::Lod109d:
-		f = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x8CFC0);
-		unit = f();
+		getClientPlayerFunc = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x8CFC0);
+		unit = getClientPlayerFunc();
 		pathOffset = 0x38;
 		break;
 	case GameVersion::Lod110:
-		f = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x883D0);
-		unit = f();
+		getClientPlayerFunc = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x883D0);
+		unit = getClientPlayerFunc();
 		break;
 	case GameVersion::Lod112:
 		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11C3D0);
@@ -789,4 +789,25 @@ void* GameHelper::GetFunction(
 	}
 
 	return GetProcAddress(hModule, MAKEINTRESOURCEA(ordinal));
+}
+
+_Use_decl_annotations_
+DrawParameters GameHelper::GetDrawParameters(
+	const CellContext* cellContext) const
+{
+	DrawParameters drawParameters;
+
+	drawParameters.unitId =
+		GetVersion() == GameVersion::Lod109d ||
+		GetVersion() == GameVersion::Lod110 ? cellContext->_8 : cellContext->dwClass;
+
+	drawParameters.unitType =
+		GetVersion() == GameVersion::Lod109d ||
+		GetVersion() == GameVersion::Lod110 ? cellContext->_9 : cellContext->dwUnit;
+
+	drawParameters.unitToken =
+		GetVersion() == GameVersion::Lod109d ||
+		GetVersion() == GameVersion::Lod110 ? cellContext->_11 : cellContext->dwPlayerType;
+
+	return drawParameters;
 }

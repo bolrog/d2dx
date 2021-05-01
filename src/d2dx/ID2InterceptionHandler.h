@@ -33,7 +33,7 @@ namespace d2dx
 		virtual void EndDrawText() = 0;
 
 		virtual void BeginDrawImage(
-			_In_ CellContext* pCellContext,
+			_In_ const CellContext* cellContext,
 			_In_ Offset pos) = 0;
 
 		virtual void EndDrawImage() = 0;

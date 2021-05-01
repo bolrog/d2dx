@@ -56,6 +56,9 @@ namespace d2dx
 		virtual void* GetFunction(
 			_In_ D2Function function) const override;
 
+		virtual DrawParameters GetDrawParameters(
+			const CellContext* cellContext) const override;
+
 	private:
 		uint16_t ReadU16(HANDLE module, uint32_t offset) const;
 		uint32_t ReadU32(HANDLE module, uint32_t offset) const;
