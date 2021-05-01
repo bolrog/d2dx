@@ -111,42 +111,6 @@ Size GameHelper::GetConfiguredGameSize() const
 	}
 }
 
-_Use_decl_annotations_
-void GameHelper::SetIngameMousePos(
-	Offset pos)
-{
-	pos.x = max(0, pos.x);
-	pos.y = max(0, pos.y);
-
-	switch (_version)
-	{
-	case GameVersion::Lod109d:
-		WriteU32(_hD2ClientDll, 0x12B168, (uint32_t)pos.x);
-		WriteU32(_hD2ClientDll, 0x12B16C, (uint32_t)pos.y);
-		break;
-	case GameVersion::Lod110:
-		WriteU32(_hD2ClientDll, 0x121AE4, (uint32_t)pos.x);
-		WriteU32(_hD2ClientDll, 0x121AE8, (uint32_t)pos.y);
-		break;
-	case GameVersion::Lod112:
-		WriteU32(_hD2ClientDll, 0x101638, (uint32_t)pos.x);
-		WriteU32(_hD2ClientDll, 0x101634, (uint32_t)pos.y);
-		break;
-	case GameVersion::Lod113c:
-		WriteU32(_hD2ClientDll, 0x11B828, (uint32_t)pos.x);
-		WriteU32(_hD2ClientDll, 0x11B824, (uint32_t)pos.y);
-		break;
-	case GameVersion::Lod113d:
-		WriteU32(_hD2ClientDll, 0x11C950, (uint32_t)pos.x);
-		WriteU32(_hD2ClientDll, 0x11C94C, (uint32_t)pos.y);
-		break;
-	case GameVersion::Lod114d:
-		WriteU32(_hGameExe, 0x3A6AB0, (uint32_t)pos.x);
-		WriteU32(_hGameExe, 0x3A6AAC, (uint32_t)pos.y);
-		break;
-	}
-}
-
 uint32_t GameHelper::ReadU32(HANDLE hModule, uint32_t offset) const
 {
 	uint32_t result;

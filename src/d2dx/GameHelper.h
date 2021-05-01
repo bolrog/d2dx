@@ -37,9 +37,6 @@ namespace d2dx
 		
 		virtual Size GetConfiguredGameSize() const override;
 		
-		virtual void SetIngameMousePos(
-			_In_ Offset pos) override;
-
 		virtual GameAddress IdentifyGameAddress(
 			_In_ uint32_t returnAddress) const override;
 
