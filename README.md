@@ -138,8 +138,13 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
 ### It's ugly/slow/buggy.
   Let me know by filing an issue! I'd like to keep improving D2DX (within the scope of the project).
 
-## Third-party libraries
-This project uses the following third party libraries:
+## Credits
+Main development/maintenance: bolrog
+Patch contributions: Xenthalon
+
+The research of many people in the Diablo II community over twenty years made this project possible.
+
+D2DX uses the following third party libraries:
 - FNV1a hash reference implementation, which is in the public domain.
 - Detours by Microsoft.
 - SlashDiablo-HD/D2HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
