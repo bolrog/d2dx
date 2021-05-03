@@ -42,7 +42,6 @@ namespace d2dx
 			Offset lastPos = { 0, 0 };
 			Offset velocity = { 0, 0 };
 			Offset predictedPos = { 0, 0 };
-			Offset predictedPos2 = { 0, 0 };
 			Offset correctedPos = { 0, 0 };
 			int64_t dtLastPosChange = 0;
 		};

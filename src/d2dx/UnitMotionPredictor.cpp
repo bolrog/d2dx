@@ -47,7 +47,7 @@ void UnitMotionPredictor::Update(
 
 		UnitMotion& um = _unitMotions[i];
 
-		if ((_frame - um.lastUsedFrame) > 3 || unit->dwUnitId == 0xFFFFFFFF)
+		if ((_frame - um.lastUsedFrame) > 1 || unit->dwUnitId == 0xFFFFFFFF || unit->dwUnitId == 0)
 		{
 			_unitPtrs[i] = nullptr;
 			continue;
@@ -55,10 +55,12 @@ void UnitMotionPredictor::Update(
 
 		const Offset pos = _gameHelper->GetUnitPos(unit);
 
-		if (max(abs(pos.x - um.predictedPos.x), abs(pos.y - um.predictedPos.y)) > 15 * 65536)
+		if (max(abs(pos.x - um.predictedPos.x), abs(pos.y - um.predictedPos.y)) > 10 * 65536)
 		{
 			um.predictedPos = pos;
 			um.correctedPos = pos;
+			um.lastPos = pos;
+			um.velocity = { 0,0 };
 		}
 
 		const int32_t dx = pos.x - um.lastPos.x;
@@ -68,7 +70,8 @@ void UnitMotionPredictor::Update(
 
 		if (dx != 0 || dy != 0 || um.dtLastPosChange >= (65536 / 25))
 		{
-			um.correctedPos = pos;
+			um.correctedPos.x = (pos.x + um.lastPos.x) >> 1;
+			um.correctedPos.y = (pos.y + um.lastPos.y) >> 1;
 			//D2DX_DEBUG_LOG("Server %f %f", pos.x / 65536.0f, pos.y / 65536.0f);
 
 			um.velocity.x = 25 * dx;
@@ -86,7 +89,7 @@ void UnitMotionPredictor::Update(
 					(int32_t)(((int64_t)dt * um.velocity.x) >> 16),
 					(int32_t)(((int64_t)dt * um.velocity.y) >> 16) };
 
-				const int32_t correctionAmount = 3000;
+				const int32_t correctionAmount = 7000;
 				const int32_t oneMinusCorrectionAmount = 65536 - correctionAmount;
 
 				um.predictedPos.x = (int32_t)(((int64_t)um.predictedPos.x * oneMinusCorrectionAmount + (int64_t)um.correctedPos.x * correctionAmount) >> 16);
@@ -95,7 +98,19 @@ void UnitMotionPredictor::Update(
 
 				int32_t ex = um.correctedPos.x - um.predictedPos.x;
 				int32_t ey = um.correctedPos.y - um.predictedPos.y;
-				//D2DX_DEBUG_LOG("Error %f %f", ex / 65536.0f, ey / 65536.0f);
+
+				if (unit->dwType == D2::UnitType::Player && (ex != 0 || ey != 0))
+				{
+					D2DX_DEBUG_LOG("%f, %f, %f, %f, %f, %f, %f, %f", 
+						pos.x / 65536.0f, 
+						pos.y / 65536.0f, 
+						um.correctedPos.x / 65536.0f,
+						um.correctedPos.y / 65536.0f,
+						um.predictedPos.x / 65536.0f,
+						um.predictedPos.y / 65536.0f,
+						ex / 65536.0f,
+						ey / 65536.0f);
+				}
 
 				um.predictedPos.x += vStep.x;
 				um.predictedPos.y += vStep.y;
@@ -155,6 +170,7 @@ OffsetF UnitMotionPredictor::GetOffset(
 
 	if (unitIndex < 0)
 	{
+		D2DX_LOG("UMP: Did not find unit.");
 		return { 0.0f, 0.0f };
 	}
 
