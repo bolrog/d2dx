@@ -48,8 +48,8 @@ namespace d2dx
 
 		std::shared_ptr<IGameHelper> _gameHelper;
 		uint32_t _frame = 0;
-		const D2::UnitAny* _unitPtrs[1024];
-		UnitMotion _unitMotions[1024];
+		Buffer<const D2::UnitAny*> _unitPtrs;
+		Buffer<UnitMotion> _unitMotions;
 		int32_t _unitsCount = 0;
 	};
 }

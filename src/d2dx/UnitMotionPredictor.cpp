@@ -24,10 +24,10 @@ using namespace d2dx;
 _Use_decl_annotations_
 UnitMotionPredictor::UnitMotionPredictor(
 	const std::shared_ptr<IGameHelper>& gameHelper) :
-	_gameHelper{ gameHelper }
+	_gameHelper{ gameHelper },
+	_unitPtrs{ 1024, true },
+	_unitMotions{ 1024, true }
 {
-	memset(_unitPtrs, 0, sizeof(D2::UnitAny*) * ARRAYSIZE(_unitPtrs));
-	memset(_unitMotions, 0, sizeof(UnitMotion) * ARRAYSIZE(_unitMotions));
 }
 
 _Use_decl_annotations_
@@ -35,21 +35,24 @@ void UnitMotionPredictor::Update(
 	IRenderContext* renderContext)
 {
 	const int32_t dt = (int32_t)(renderContext->GetFrameTime() * 65536.0);
+	int32_t expiredUnitIndex = -1;
 
 	for (int32_t i = 0; i < _unitsCount; ++i)
 	{
-		const D2::UnitAny* unit = _unitPtrs[i];
+		const D2::UnitAny* unit = _unitPtrs.items[i];
 
-		if (!_unitPtrs[i])
+		if (!_unitPtrs.items[i])
 		{
+			expiredUnitIndex = i;
 			continue;
 		}
 
-		UnitMotion& um = _unitMotions[i];
+		UnitMotion& um = _unitMotions.items[i];
 
-		if ((_frame - um.lastUsedFrame) > 1 || unit->dwUnitId == 0xFFFFFFFF || unit->dwUnitId == 0)
+		if ((_frame - um.lastUsedFrame) > 5 || unit->dwUnitId == 0xFFFFFFFF || unit->dwUnitId == 0)
 		{
-			_unitPtrs[i] = nullptr;
+			_unitPtrs.items[i] = nullptr;
+			expiredUnitIndex = i;
 			continue;
 		}
 
@@ -70,8 +73,8 @@ void UnitMotionPredictor::Update(
 
 		if (dx != 0 || dy != 0 || um.dtLastPosChange >= (65536 / 25))
 		{
-			um.correctedPos.x = (pos.x + um.lastPos.x) >> 1;
-			um.correctedPos.y = (pos.y + um.lastPos.y) >> 1;
+			um.correctedPos.x = ((int64_t)pos.x + um.lastPos.x) >> 1;
+			um.correctedPos.y = ((int64_t)pos.y + um.lastPos.y) >> 1;
 			//D2DX_DEBUG_LOG("Server %f %f", pos.x / 65536.0f, pos.y / 65536.0f);
 
 			um.velocity.x = 25 * dx;
@@ -94,12 +97,12 @@ void UnitMotionPredictor::Update(
 
 				um.predictedPos.x = (int32_t)(((int64_t)um.predictedPos.x * oneMinusCorrectionAmount + (int64_t)um.correctedPos.x * correctionAmount) >> 16);
 				um.predictedPos.y = (int32_t)(((int64_t)um.predictedPos.y * oneMinusCorrectionAmount + (int64_t)um.correctedPos.y * correctionAmount) >> 16);
-				//D2DX_DEBUG_LOG("Predicted %f %f", _predictedPlayerPos.x / 65536.0f, _predictedPlayerPos.y / 65536.0f);
+				D2DX_LOG("Predicted %f %f", um.predictedPos.x / 65536.0f, um.predictedPos.y / 65536.0f);
 
 				int32_t ex = um.correctedPos.x - um.predictedPos.x;
 				int32_t ey = um.correctedPos.y - um.predictedPos.y;
 
-				if (unit->dwType == D2::UnitType::Player && (ex != 0 || ey != 0))
+			/*	if (unit->dwType == D2::UnitType::Player && (ex != 0 || ey != 0))
 				{
 					D2DX_DEBUG_LOG("%f, %f, %f, %f, %f, %f, %f, %f", 
 						pos.x / 65536.0f, 
@@ -110,7 +113,7 @@ void UnitMotionPredictor::Update(
 						um.predictedPos.y / 65536.0f,
 						ex / 65536.0f,
 						ey / 65536.0f);
-				}
+				}*/
 
 				um.predictedPos.x += vStep.x;
 				um.predictedPos.y += vStep.y;
@@ -118,6 +121,26 @@ void UnitMotionPredictor::Update(
 				um.correctedPos.x += vStep.x;
 				um.correctedPos.y += vStep.y;
 			}
+		}
+	}
+
+	// Gradually (one change per frame) compact the unit list.
+	if (_unitsCount > 1)
+	{
+		if (!_unitPtrs.items[_unitsCount - 1])
+		{
+			// The last entry is expired. Shrink the list.
+			_unitMotions.items[_unitsCount - 1] = { };
+			--_unitsCount;
+		}
+		else if (expiredUnitIndex >= 0 && expiredUnitIndex < (_unitsCount - 1))
+		{
+			// Some entry is expired. Move the last entry to that place, and shrink the list.
+			_unitPtrs.items[expiredUnitIndex] = _unitPtrs.items[_unitsCount - 1];
+			_unitMotions.items[expiredUnitIndex] = _unitMotions.items[_unitsCount - 1];
+			_unitPtrs.items[_unitsCount - 1] = nullptr;
+			_unitMotions.items[_unitsCount - 1] = { };
+			--_unitsCount;
 		}
 	}
 
@@ -129,18 +152,12 @@ OffsetF UnitMotionPredictor::GetOffset(
 	const D2::UnitAny* unit)
 {
 	int32_t unitIndex = -1;
-	int32_t freeUnitIndex = -1;
 
 	for (int32_t i = 0; i < _unitsCount; ++i)
 	{
-		if (!freeUnitIndex && !_unitPtrs[i])
+		if (_unitPtrs.items[i] == unit)
 		{
-			freeUnitIndex = i;
-		}
-
-		if (_unitPtrs[i] == unit)
-		{
-			_unitMotions[i].lastUsedFrame = _frame;
+			_unitMotions.items[i].lastUsedFrame = _frame;
 			unitIndex = i;
 			break;
 		}
@@ -148,19 +165,12 @@ OffsetF UnitMotionPredictor::GetOffset(
 
 	if (unitIndex < 0)
 	{
-		if (freeUnitIndex >= 0)
-		{
-			unitIndex = freeUnitIndex;
-			_unitPtrs[unitIndex] = unit;
-			_unitMotions[unitIndex] = { };
-			_unitMotions[unitIndex].lastUsedFrame = _frame;
-		}
-		else if (_unitsCount < ARRAYSIZE(_unitPtrs))
+		if (_unitsCount < (int32_t)_unitPtrs.capacity)
 		{
 			unitIndex = _unitsCount++;
-			_unitPtrs[unitIndex] = unit;
-			_unitMotions[unitIndex] = { };
-			_unitMotions[unitIndex].lastUsedFrame = _frame;
+			_unitPtrs.items[unitIndex] = unit;
+			_unitMotions.items[unitIndex] = { };
+			_unitMotions.items[unitIndex].lastUsedFrame = _frame;
 		}
 		else
 		{
@@ -170,10 +180,9 @@ OffsetF UnitMotionPredictor::GetOffset(
 
 	if (unitIndex < 0)
 	{
-		D2DX_LOG("UMP: Did not find unit.");
 		return { 0.0f, 0.0f };
 	}
 
-	UnitMotion& um = _unitMotions[unitIndex];
+	UnitMotion& um = _unitMotions.items[unitIndex];
 	return { (um.predictedPos.x - um.lastPos.x) / 65536.0f, (um.predictedPos.y - um.lastPos.y) / 65536.0f };
 }
