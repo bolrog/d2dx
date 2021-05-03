@@ -49,7 +49,8 @@ namespace d2dx
 
 		virtual bool TryApplyFpsFix() override;
 
-		virtual Offset GetPlayerPos()  override;
+		virtual Offset GetUnitPos(
+			_In_ const D2::UnitAny* unit)  override;
 
 		virtual Offset GetPlayerTargetPos() const override;
 
@@ -57,7 +58,9 @@ namespace d2dx
 			_In_ D2Function function) const override;
 
 		virtual DrawParameters GetDrawParameters(
-			const CellContext* cellContext) const override;
+			_In_ const D2::CellContext* cellContext) const override;
+
+		virtual D2::UnitAny* GetPlayerUnit() const override;
 
 	private:
 		uint16_t ReadU16(HANDLE module, uint32_t offset) const;
@@ -70,6 +73,7 @@ namespace d2dx
 		HANDLE _hProcess;
 		HANDLE _hGameExe;
 		HANDLE _hD2ClientDll;
+		HMODULE _hD2CommonDll;
 		HMODULE _hD2GfxDll;
 		HMODULE _hD2WinDll;
 		GameVersion _version;

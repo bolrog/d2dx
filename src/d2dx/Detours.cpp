@@ -194,13 +194,14 @@ int(
 		_In_ UINT format) = DrawTextA;
 
 
-typedef void(__stdcall* D2Gfx_DrawImageFunc)(CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE* pPalette);
-typedef void(__stdcall* D2Gfx_DrawShiftedImageFunc)(CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, int nGlobalPaletteShift);
-typedef void(__stdcall* D2Gfx_DrawVerticalCropImageFunc)(CellContext* pData, int nXpos, int nYpos, int nSkipLines, int nDrawLines, int nDrawMode);
-typedef void(__stdcall* D2Gfx_DrawClippedImageFunc)(CellContext* pData, int nXpos, int nYpos, void* pCropRect, int nDrawMode);
-typedef void(__stdcall* D2Gfx_DrawImageFastFunc)(CellContext* pData, int nXpos, int nYpos, BYTE nPaletteIndex);
-typedef void(__stdcall* D2Gfx_DrawShadowFunc)(CellContext* pData, int nXpos, int nYpos);
+typedef void(__stdcall* D2Gfx_DrawImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE* pPalette);
+typedef void(__stdcall* D2Gfx_DrawShiftedImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, int nGlobalPaletteShift);
+typedef void(__stdcall* D2Gfx_DrawVerticalCropImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, int nSkipLines, int nDrawLines, int nDrawMode);
+typedef void(__stdcall* D2Gfx_DrawClippedImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, void* pCropRect, int nDrawMode);
+typedef void(__stdcall* D2Gfx_DrawImageFastFunc)(D2::CellContext* pData, int nXpos, int nYpos, BYTE nPaletteIndex);
+typedef void(__stdcall* D2Gfx_DrawShadowFunc)(D2::CellContext* pData, int nXpos, int nYpos);
 typedef void(__fastcall* D2Win_DrawTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD dwUnk);
+typedef uint32_t(__stdcall* D2Client_DrawUnitFunc)(D2::UnitAny* unit, uint32_t b, uint32_t c, uint32_t d, uint32_t e);
 
 D2Gfx_DrawImageFunc D2Gfx_DrawImage_Real = nullptr;
 D2Gfx_DrawShiftedImageFunc D2Gfx_DrawShiftedImage_Real = nullptr;
@@ -209,9 +210,15 @@ D2Gfx_DrawClippedImageFunc D2Gfx_DrawClippedImage_Real = nullptr;
 D2Gfx_DrawImageFastFunc D2Gfx_DrawImageFast_Real = nullptr;
 D2Gfx_DrawShadowFunc D2Gfx_DrawShadow_Real = nullptr;
 D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
+D2Client_DrawUnitFunc D2Client_DrawUnit_Real = nullptr;
 
-
-void __stdcall D2Gfx_DrawImage_Hooked(CellContext* cellContext, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE * pPalette)
+void __stdcall D2Gfx_DrawImage_Hooked(
+	D2::CellContext* cellContext,
+	int nXpos,
+	int nYpos,
+	DWORD dwGamma,
+	int nDrawMode,
+	BYTE * pPalette)
 {
 	//D2DX_LOG("draw image %i, %i: '%p' nDrawMode %i, class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p", nXpos, nYpos, 
 	//	cellContext->szName, 
@@ -241,7 +248,12 @@ void __stdcall D2Gfx_DrawImage_Hooked(CellContext* cellContext, int nXpos, int n
 	}
 }
 
-void __stdcall D2Gfx_DrawClippedImage_Hooked(CellContext* cellContext, int nXpos, int nYpos, void* pCropRect, int nDrawMode)
+void __stdcall D2Gfx_DrawClippedImage_Hooked(
+	D2::CellContext* cellContext,
+	int nXpos,
+	int nYpos,
+	void* pCropRect,
+	int nDrawMode)
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
@@ -259,7 +271,7 @@ void __stdcall D2Gfx_DrawClippedImage_Hooked(CellContext* cellContext, int nXpos
 }
 
 void __stdcall D2Gfx_DrawShiftedImage_Hooked(
-	CellContext* cellContext, 
+	D2::CellContext* cellContext,
 	int nXpos, 
 	int nYpos, 
 	DWORD dwGamma, 
@@ -298,7 +310,7 @@ void __stdcall D2Gfx_DrawShiftedImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
-	CellContext* cellContext, 
+	D2::CellContext* cellContext,
 	int nXpos, 
 	int nYpos, 
 	int nSkipLines, 
@@ -330,7 +342,7 @@ void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawImageFast_Hooked(
-	CellContext* cellContext,
+	D2::CellContext* cellContext,
 	int nXpos,
 	int nYpos,
 	BYTE nPaletteIndex)
@@ -351,7 +363,7 @@ void __stdcall D2Gfx_DrawImageFast_Hooked(
 }
 
 void __stdcall D2Gfx_DrawShadow_Hooked(
-	CellContext* cellContext,
+	D2::CellContext* cellContext,
 	int nXpos,
 	int nYpos)
 {
@@ -401,6 +413,86 @@ void __fastcall D2Win_DrawText_Hooked(
 	}
 }
 
+D2::UnitAny* currentlyDrawingUnit = nullptr;
+
+__declspec(naked) void D2Client_DrawUnit_Hooked()
+{
+	static void* origReturnAddr = nullptr;
+
+	__asm
+	{
+		push eax
+		push edx
+		lea edx, origReturnAddr
+		mov eax, dword ptr [esp + 0x08]
+		mov dword ptr[edx], eax
+		lea eax, patchReturnAddr
+		mov dword ptr [esp + 0x08], eax
+		lea edx, currentlyDrawingUnit
+		mov eax, dword ptr [esp + 0x0c]
+		mov dword ptr[edx], eax
+		pop edx
+		pop eax
+	}
+
+	__asm jmp D2Client_DrawUnit_Real
+
+patchReturnAddr:
+	__asm
+	{
+		push eax
+		push eax
+		push edx
+		lea edx, currentlyDrawingUnit
+		xor eax, eax
+		mov dword ptr [edx], eax
+		lea edx, origReturnAddr
+		mov eax, dword ptr[edx]
+		mov dword ptr[esp + 0x08], eax
+		pop edx
+		pop eax
+		ret
+	}
+}
+
+__declspec(naked) void D2Client_DrawUnit114d_Hooked()
+{
+	static void* origReturnAddr = nullptr;
+
+	__asm
+	{
+		push eax
+		push edx
+		lea edx, origReturnAddr
+		mov eax, dword ptr[esp + 0x08]
+		mov dword ptr[edx], eax
+		lea eax, patchReturnAddr
+		mov dword ptr[esp + 0x08], eax
+		lea edx, currentlyDrawingUnit
+		mov dword ptr[edx], esi
+		pop edx
+		pop eax
+	}
+
+	__asm jmp D2Client_DrawUnit_Real
+
+	patchReturnAddr :
+	__asm
+	{
+		push eax
+		push eax
+		push edx
+		lea edx, currentlyDrawingUnit
+		xor eax, eax
+		mov dword ptr[edx], eax
+		lea edx, origReturnAddr
+		mov eax, dword ptr[edx]
+		mov dword ptr[esp + 0x08], eax
+		pop edx
+		pop eax
+		ret
+	}
+}
 void d2dx::AttachDetours()
 {
 	if (hasDetoured)
@@ -444,6 +536,7 @@ void d2dx::AttachLateDetours(
 	D2Gfx_DrawImageFast_Real = (D2Gfx_DrawImageFastFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawImageFast);
 	D2Gfx_DrawShadow_Real = (D2Gfx_DrawShadowFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawShadow);
 	D2Win_DrawText_Real = (D2Win_DrawTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawText);
+	D2Client_DrawUnit_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawUnit);
 
 	if (!D2Gfx_DrawImage_Real ||
 		!D2Gfx_DrawShiftedImage_Real ||
@@ -451,7 +544,8 @@ void d2dx::AttachLateDetours(
 		!D2Gfx_DrawClippedImage_Real ||
 		!D2Gfx_DrawImageFast_Real ||
 		!D2Gfx_DrawShadow_Real ||
-		!D2Win_DrawText_Real)
+		!D2Win_DrawText_Real ||
+		!D2Client_DrawUnit_Real)
 	{
 		return;
 	}
@@ -465,6 +559,8 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
+
+	DetourAttach(&(PVOID&)D2Client_DrawUnit_Real, gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawUnit114d_Hooked : D2Client_DrawUnit_Hooked);
 
 	LONG lError = DetourTransactionCommit();
 

@@ -32,6 +32,8 @@ using namespace d2dx;
 using namespace DirectX::PackedVector;
 using namespace std;
 
+extern D2::UnitAny* currentlyDrawingUnit;
+
 #define D2DX_GLIDE_ALPHA_BLEND(rgb_sf, rgb_df, alpha_sf, alpha_df) \
 		(uint16_t)(((rgb_sf & 0xF) << 12) | ((rgb_df & 0xF) << 8) | ((alpha_sf & 0xF) << 4) | (alpha_df & 0xF))
 
@@ -107,7 +109,7 @@ D2DXContext::D2DXContext(
 	_textureHashCacheMisses{ 0 },
 	_palettes{ D2DX_MAX_PALETTES * 256 },
 	_surfaceIdTracker{ gameHelper },
-	_playerMotionPredictor{ gameHelper }
+	_unitMotionPredictor{ gameHelper }
 {
 	if (!_options.noCompatModeFix)
 	{
@@ -211,7 +213,7 @@ void D2DXContext::OnSstWinOpen(
 	uint32_t hWnd,
 	int32_t width,
 	int32_t height)
-{	
+{
 	Size windowSize = _gameHelper->GetConfiguredGameSize();
 	if (!_options.noResMod)
 	{
@@ -337,7 +339,7 @@ void D2DXContext::OnTexSource(
 	_scratchBatch.SetTextureStartAddress(startAddress);
 	_scratchBatch.SetTextureHash(hash);
 	_scratchBatch.SetTextureSize(width, height);
-	
+
 	if (_scratchBatch.GetTextureCategory() == TextureCategory::Unknown)
 	{
 		_scratchBatch.SetTextureCategory(_gameHelper->GetTextureCategoryFromHash(hash));
@@ -448,19 +450,15 @@ void D2DXContext::DrawBatches(
 	}
 }
 
+
 void D2DXContext::OnBufferSwap()
 {
-	if (_options.testMoP && _majorGameState == MajorGameState::InGame)
-	{
-		_playerMotionPredictor.Update(_renderContext.get());
-	}
-
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
 
 	if (_options.testMoP && _majorGameState == MajorGameState::InGame)
 	{
-		auto offset = _playerMotionPredictor.GetOffset();
+		auto offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
 
 		int32_t screenOffsetX = (int32_t)(32.0f * (offset.x - offset.y) / sqrt(2.0f) + 0.5f);
 		int32_t screenOffsetY = (int32_t)(16.0f * (offset.x + offset.y) / sqrt(2.0f) + 0.5f);
@@ -813,6 +811,14 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	uint32_t stride,
 	uint32_t gameContext)
 {
+	OffsetF drawOffset = { 0,0 };
+	if (_majorGameState == MajorGameState::InGame && currentlyDrawingUnit)
+	{
+		if (currentlyDrawingUnit != _gameHelper->GetPlayerUnit())
+		{
+			drawOffset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
+		}
+	}
 	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
 
 	switch (mode)
@@ -868,6 +874,19 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	}
 
 	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
+
+	if (drawOffset.x != 0.0f && drawOffset.y != 0.0f)
+	{
+		int32_t screenOffsetX = (int32_t)(32.0f * (drawOffset.x - drawOffset.y) / sqrt(2.0f) + 0.5f);
+		int32_t screenOffsetY = (int32_t)(16.0f * (drawOffset.x + drawOffset.y) / sqrt(2.0f) + 0.5f);
+
+		const auto batchVertexCount = batch.GetVertexCount();
+		int32_t vertexIndex = batch.GetStartVertex();
+		for (uint32_t j = 0; j < batchVertexCount; ++j)
+		{
+			_vertices.items[vertexIndex++].AddOffset({ screenOffsetX, screenOffsetY });
+		}
+	}
 
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;
@@ -1161,6 +1180,10 @@ Options& D2DXContext::GetOptions()
 
 void D2DXContext::OnBufferClear()
 {
+	if (_options.testMoP && _majorGameState == MajorGameState::InGame)
+	{
+		_unitMotionPredictor.Update(_renderContext.get());
+	}
 }
 
 void D2DXContext::BeginDrawText()
@@ -1179,13 +1202,14 @@ void D2DXContext::EndDrawText()
 
 _Use_decl_annotations_
 void D2DXContext::BeginDrawImage(
-	const CellContext* cellContext, 
+	const D2::CellContext* cellContext,
 	Offset pos)
 {
 	if (_isDrawingText)
 	{
 		return;
 	}
+
 
 	DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
 
@@ -1221,7 +1245,7 @@ void D2DXContext::BeginDrawImage(
 }
 
 void D2DXContext::EndDrawImage()
-{ 
+{
 	if (_isDrawingText)
 	{
 		return;

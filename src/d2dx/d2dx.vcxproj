@@ -163,6 +163,7 @@
     <ClInclude Include="BuiltinResMod.h" />
     <ClInclude Include="CompatibilityModeDisabler.h" />
     <ClInclude Include="D2DXContextFactory.h" />
+    <ClInclude Include="D2Types.h" />
     <ClInclude Include="Detours.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="D2DXConfigurator.h" />
@@ -176,7 +177,6 @@
     <ClInclude Include="IRenderContext.h" />
     <ClInclude Include="ITextureCache.h" />
     <ClInclude Include="Metrics.h" />
-    <ClInclude Include="PlayerMotionPredictor.h" />
     <ClInclude Include="RenderContextResources.h" />
     <ClInclude Include="SurfaceIdTracker.h" />
     <ClInclude Include="TextureCache.h" />
@@ -188,6 +188,7 @@
     <ClInclude Include="SimdSse2.h" />
     <ClInclude Include="TextureCachePolicyBitPmru.h" />
     <ClInclude Include="Types.h" />
+    <ClInclude Include="UnitMotionPredictor.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DXContext.h" />
@@ -264,7 +265,6 @@
     <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="Metrics.cpp" />
-    <ClCompile Include="PlayerMotionPredictor.cpp" />
     <ClCompile Include="RenderContextResources.cpp" />
     <ClCompile Include="SurfaceIdTracker.cpp" />
     <ClCompile Include="TextureCache.cpp" />
@@ -284,6 +284,7 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyAndSourceCode</AssemblerOutput>
     </ClCompile>
     <ClCompile Include="TextureCachePolicyBitPmru.cpp" />
+    <ClCompile Include="UnitMotionPredictor.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>

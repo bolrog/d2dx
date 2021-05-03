@@ -29,6 +29,7 @@ GameHelper::GameHelper() :
 	_hProcess(GetCurrentProcess()),
 	_hGameExe(GetModuleHandleA("game.exe")),
 	_hD2ClientDll(LoadLibraryA("D2Client.dll")),
+	_hD2CommonDll(LoadLibraryA("D2Common.dll")),
 	_hD2GfxDll(LoadLibraryA("D2Gfx.dll")),
 	_hD2WinDll(LoadLibraryA("D2Win.dll"))
 {
@@ -548,58 +549,46 @@ bool GameHelper::TryApplyFpsFix()
 	return true;
 }
 
-typedef uint32_t* (__stdcall* GetClientPlayerFunc)();
+typedef D2::UnitAny* (__stdcall* GetClientPlayerFunc)();
 
-Offset GameHelper::GetPlayerPos()
+D2::UnitAny* GameHelper::GetPlayerUnit() const
 {
-	Offset pos = { 0,0 };
-	int32_t pathOffset = 0x2c;
-	uint32_t* unit = nullptr;
-	uint32_t* path = nullptr;
 	GetClientPlayerFunc getClientPlayerFunc;
 
 	switch (_version)
 	{
 	case GameVersion::Lod109d:
 		getClientPlayerFunc = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x8CFC0);
-		unit = getClientPlayerFunc();
-		pathOffset = 0x38;
-		break;
+		return getClientPlayerFunc();
 	case GameVersion::Lod110:
 		getClientPlayerFunc = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x883D0);
-		unit = getClientPlayerFunc();
-		break;
+		return getClientPlayerFunc();
 	case GameVersion::Lod112:
-		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11C3D0);
-		break;
+		return (D2::UnitAny*)ReadU32(_hD2ClientDll, 0x11C3D0);
 	case GameVersion::Lod113c:
-		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11BBFC);
-		break;
+		return (D2::UnitAny*)ReadU32(_hD2ClientDll, 0x11BBFC);
 	case GameVersion::Lod113d:
-		unit = (uint32_t*)ReadU32(_hD2ClientDll, 0x11D050);
-		break;
+		return (D2::UnitAny*)ReadU32(_hD2ClientDll, 0x11D050);
 	case GameVersion::Lod114d:
-		unit = (uint32_t*)ReadU32(_hGameExe, 0x3A6A70);
-		break;
+		return (D2::UnitAny*)ReadU32(_hGameExe, 0x3A6A70);
 	default:
-		break;
+		return nullptr;
 	}
-
-	if (!unit)
+}
+Offset GameHelper::GetUnitPos(const D2::UnitAny* unit)
+{
+	if (unit->dwType == D2::UnitType::Player ||
+		unit->dwType == D2::UnitType::Monster ||
+		unit->dwType == D2::UnitType::Missile)
 	{
-		return pos;
+		D2::Path* path = _version == GameVersion::Lod109d ? unit->path2 : unit->path;
+		return { (int32_t)path->x, (int32_t)path->y };
 	}
-
-	path = (uint32_t*)unit[pathOffset / 4];
-	//D2DX_LOG("unit id %u %p %p", unit[1], unit, path);
-
-	if (path)
+	else
 	{
-		pos.x = path[0];
-		pos.y = path[1];
+		D2::StaticPath* path = _version == GameVersion::Lod109d ? unit->staticPath2 : unit->staticPath;
+		return { (int32_t)unit->staticPath->xPos * 65536 + (int32_t)unit->staticPath->xOffset, (int32_t)unit->staticPath->yPos * 65536 + (int32_t)unit->staticPath->yOffset };
 	}
-
-	return pos;
 }
 
 Offset GameHelper::GetPlayerTargetPos() const
@@ -649,6 +638,8 @@ void* GameHelper::GetFunction(
 			hModule = _hD2WinDll;
 			ordinal = 10117;
 			break;
+		case D2Function::D2Client_DrawUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0xBBA70);
 		default:
 			break;
 		}
@@ -684,6 +675,8 @@ void* GameHelper::GetFunction(
 			hModule = _hD2WinDll;
 			ordinal = 10001;
 			break;
+		case D2Function::D2Client_DrawUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x94250);
 		default:
 			break;
 		}
@@ -719,6 +712,8 @@ void* GameHelper::GetFunction(
 			hModule = _hD2WinDll;
 			ordinal = 10096;
 			break;
+		case D2Function::D2Client_DrawUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x6C490);
 		default:
 			break;
 		}
@@ -754,6 +749,8 @@ void* GameHelper::GetFunction(
 			hModule = _hD2WinDll;
 			ordinal = 10076;
 			break;
+		case D2Function::D2Client_DrawUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x605b0);
 		default:
 			break;
 		}
@@ -775,6 +772,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hGameExe + 0xF6540);
 		case D2Function::D2Win_DrawText:
 			return (void*)((uintptr_t)_hGameExe + 0x102320);
+		case D2Function::D2Client_DrawUnit:
+			return (void*)((uintptr_t)_hGameExe + 0x70EC0);
 		default:
 			break;
 		}
@@ -793,7 +792,7 @@ void* GameHelper::GetFunction(
 
 _Use_decl_annotations_
 DrawParameters GameHelper::GetDrawParameters(
-	const CellContext* cellContext) const
+	const D2::CellContext* cellContext) const
 {
 	DrawParameters drawParameters;
 

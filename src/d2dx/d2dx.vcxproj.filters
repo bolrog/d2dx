@@ -93,7 +93,7 @@
     <ClCompile Include="RenderContextResources.cpp" />
     <ClCompile Include="CompatibilityModeDisabler.cpp" />
     <ClCompile Include="SurfaceIdTracker.cpp" />
-    <ClCompile Include="PlayerMotionPredictor.cpp" />
+    <ClCompile Include="UnitMotionPredictor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -240,8 +240,9 @@
       <Filter>thirdparty\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="SurfaceIdTracker.h" />
-    <ClInclude Include="PlayerMotionPredictor.h" />
     <ClInclude Include="ID2InterceptionHandler.h" />
+    <ClInclude Include="D2Types.h" />
+    <ClInclude Include="UnitMotionPredictor.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

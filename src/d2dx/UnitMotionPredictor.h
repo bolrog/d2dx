@@ -23,23 +23,34 @@
 
 namespace d2dx
 {
-	class PlayerMotionPredictor
+	class UnitMotionPredictor final
 	{
 	public:
-		PlayerMotionPredictor(
+		UnitMotionPredictor(
 			_In_ const std::shared_ptr<IGameHelper>& gameHelper);
 
 		void Update(
 			_In_ IRenderContext* renderContext);
 
-		OffsetF GetOffset() const;
+		OffsetF GetOffset(
+			_In_ const D2::UnitAny* unit);
 
 	private:
+		struct UnitMotion final
+		{
+			int64_t lastUsedFrame = 0;
+			Offset lastPos = { 0, 0 };
+			Offset velocity = { 0, 0 };
+			Offset predictedPos = { 0, 0 };
+			Offset predictedPos2 = { 0, 0 };
+			Offset correctedPos = { 0, 0 };
+			int64_t dtLastPosChange = 0;
+		};
+
 		std::shared_ptr<IGameHelper> _gameHelper;
-		Offset _lastPlayerPos = { 0, 0 };
-		Offset _velocity = { 0, 0 };
-		Offset _predictedPlayerPos = { 0, 0 };
-		Offset _correctedPlayerPos = { 0, 0 };
-		int64_t _dtLastPosChange = 0;
+		uint32_t _frame = 0;
+		const D2::UnitAny* _unitPtrs[1024];
+		UnitMotion _unitMotions[1024];
+		int32_t _unitsCount = 0;
 	};
 }

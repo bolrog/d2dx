@@ -19,11 +19,10 @@
 #pragma once
 
 #include "Types.h"
+#include "D2Types.h"
 
 namespace d2dx
 {
-	struct CellContext;
-
 	struct ID2InterceptionHandler abstract
 	{
 		virtual ~ID2InterceptionHandler() noexcept {}
@@ -33,7 +32,7 @@ namespace d2dx
 		virtual void EndDrawText() = 0;
 
 		virtual void BeginDrawImage(
-			_In_ const CellContext* cellContext,
+			_In_ const D2::CellContext* cellContext,
 			_In_ Offset pos) = 0;
 
 		virtual void EndDrawImage() = 0;

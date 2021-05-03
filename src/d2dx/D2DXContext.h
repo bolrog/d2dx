@@ -28,7 +28,7 @@
 #include "IWin32InterceptionHandler.h"
 #include "CompatibilityModeDisabler.h"
 #include "SurfaceIdTracker.h"
-#include "PlayerMotionPredictor.h"
+#include "UnitMotionPredictor.h"
 
 namespace d2dx
 {
@@ -182,7 +182,7 @@ namespace d2dx
 		virtual void EndDrawText() override;
 
 		virtual void BeginDrawImage(
-			_In_ const CellContext* cellContext,
+			_In_ const D2::CellContext* cellContext,
 			_In_ Offset pos) override;
 
 		virtual void EndDrawImage() override;
@@ -257,7 +257,7 @@ namespace d2dx
 
 		Size _gameSize;
 
-		PlayerMotionPredictor _playerMotionPredictor;
+		UnitMotionPredictor _unitMotionPredictor;
 
 		bool _isDrawingText = false;
 		Offset _playerScreenPos = { 0,0 };
