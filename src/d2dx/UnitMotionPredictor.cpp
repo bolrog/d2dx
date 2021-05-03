@@ -97,7 +97,7 @@ void UnitMotionPredictor::Update(
 
 				um.predictedPos.x = (int32_t)(((int64_t)um.predictedPos.x * oneMinusCorrectionAmount + (int64_t)um.correctedPos.x * correctionAmount) >> 16);
 				um.predictedPos.y = (int32_t)(((int64_t)um.predictedPos.y * oneMinusCorrectionAmount + (int64_t)um.correctedPos.y * correctionAmount) >> 16);
-				D2DX_LOG("Predicted %f %f", um.predictedPos.x / 65536.0f, um.predictedPos.y / 65536.0f);
+				//D2DX_DEBUG_LOG("Predicted %f %f", um.predictedPos.x / 65536.0f, um.predictedPos.y / 65536.0f);
 
 				int32_t ex = um.correctedPos.x - um.predictedPos.x;
 				int32_t ey = um.correctedPos.y - um.predictedPos.y;
