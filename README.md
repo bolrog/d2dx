@@ -2,7 +2,7 @@
 
 D2DX is a project for running classic Diablo II/LoD on modern PCs, with enhancements that honor the original look and feel. Play in a window or in fullscreen, glitch-free, with (or without) enhancements like widescreen and anti-aliasing.
 
-Version 0.99.430b
+Version 0.99.503
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
@@ -14,13 +14,14 @@ Version 0.99.430b
   - Proper gamma/contrast.
   - Improved fullscreen mode: instant ALT-TAB and low latency.
   - Improved windowed mode.
+  - High FPS mode using motion prediction. Play at 60 fps and higher!
   - Widescreen support (in vanilla D2/LoD).
   - Anti-aliasing of specific jagged edges in the game (sprites, walls, some floors).
   - Seamless windowed/fullscreen switching with (ALT-Enter).
   - Fixes various glitches in the supported game versions.
 
 ## Upcoming
-  - Smooth out the experience. (hint)
+  - Better config file support.
   - Suggestions welcome!
 
 ## Requirements
@@ -108,10 +109,9 @@ Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
   -dxscale3
   ```
 
-### Experimental motion prediction mode
+### Experimental high fps mode
 
   See the Wiki page on Motion Prediction.
-
 
 ### Experimental widescreen (windowed and fullscreen) modes 
   PLEASE NOTE: This only works with 1.12, 1.13c and 1.13d at this time.
@@ -151,6 +151,11 @@ D2DX uses the following third party libraries:
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
 ## Release history
+
+### 0.99.503
+  - Add -dxnotitlechange option to leave window title alone. [patch by Xenthalon]
+  - Fix -dxscale2/3 not being applied correctly. [patch by Xenthalon]
+  - Improve the WIP -dxtestmop mode. Now handles movement of all units, not just the player.
 
 ### 0.99.430b
   - Add experimental motion prediction ("smooth movement") feature. This gives actual in-game fps above 25. It is a work in progress, see
