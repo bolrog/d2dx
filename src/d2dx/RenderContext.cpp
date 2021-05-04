@@ -991,6 +991,12 @@ float RenderContext::GetFrameTime() const
 	return (float)(_frameTimeMs / 1000.0);
 }
 
+int32_t RenderContext::GetFrameTimeFp() const
+{
+	auto frameTimeMs = (int64_t)(_frameTimeMs * (65536.0 / 1000.0));
+	return (int32_t)max(INT_MIN, min(INT_MAX, frameTimeMs));
+}
+
 ScreenMode RenderContext::GetScreenMode() const
 {
 	return _screenMode;

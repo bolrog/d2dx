@@ -34,7 +34,7 @@ _Use_decl_annotations_
 void UnitMotionPredictor::Update(
 	IRenderContext* renderContext)
 {
-	const int32_t dt = (int32_t)(renderContext->GetFrameTime() * 65536.0);
+	const int32_t dt = renderContext->GetFrameTimeFp();
 	int32_t expiredUnitIndex = -1;
 
 	for (int32_t i = 0; i < _unitsCount; ++i)
@@ -49,7 +49,7 @@ void UnitMotionPredictor::Update(
 
 		UnitMotion& um = _unitMotions.items[i];
 
-		if ((_frame - um.lastUsedFrame) > 5 || unit->dwUnitId == 0xFFFFFFFF || unit->dwUnitId == 0)
+		if ((_frame - um.lastUsedFrame) > 1 || unit->dwUnitId == 0xFFFFFFFF || unit->dwUnitId == 0)
 		{
 			_unitPtrs.items[i] = nullptr;
 			expiredUnitIndex = i;
@@ -58,7 +58,11 @@ void UnitMotionPredictor::Update(
 
 		const Offset pos = _gameHelper->GetUnitPos(unit);
 
-		if (max(abs(pos.x - um.predictedPos.x), abs(pos.y - um.predictedPos.y)) > 10 * 65536)
+		const Offset posWhole{ pos.x >> 16, pos.y >> 16 };
+		const Offset predictedPosWhole{ um.predictedPos.x >> 16, um.predictedPos.y >> 16 };
+		const int32_t predictionError = max(abs(posWhole.x - predictedPosWhole.x), abs(posWhole.y - predictedPosWhole.y));
+
+		if (predictionError > 10)
 		{
 			um.predictedPos = pos;
 			um.correctedPos = pos;
@@ -99,10 +103,10 @@ void UnitMotionPredictor::Update(
 				um.predictedPos.y = (int32_t)(((int64_t)um.predictedPos.y * oneMinusCorrectionAmount + (int64_t)um.correctedPos.y * correctionAmount) >> 16);
 				//D2DX_DEBUG_LOG("Predicted %f %f", um.predictedPos.x / 65536.0f, um.predictedPos.y / 65536.0f);
 
-				int32_t ex = um.correctedPos.x - um.predictedPos.x;
+			/*	int32_t ex = um.correctedPos.x - um.predictedPos.x;
 				int32_t ey = um.correctedPos.y - um.predictedPos.y;
 
-			/*	if (unit->dwType == D2::UnitType::Player && (ex != 0 || ey != 0))
+				if (unit->dwType == D2::UnitType::Player && (ex != 0 || ey != 0))
 				{
 					D2DX_DEBUG_LOG("%f, %f, %f, %f, %f, %f, %f, %f", 
 						pos.x / 65536.0f, 

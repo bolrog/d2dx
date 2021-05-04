@@ -109,6 +109,7 @@ namespace d2dx
 		virtual void ToggleFullscreen() override;
 
 		virtual float GetFrameTime() const override;
+		virtual int32_t GetFrameTimeFp() const override;
 
 		virtual ScreenMode GetScreenMode() const override;
 
