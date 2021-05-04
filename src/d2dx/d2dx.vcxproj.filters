@@ -94,6 +94,10 @@
     <ClCompile Include="CompatibilityModeDisabler.cpp" />
     <ClCompile Include="SurfaceIdTracker.cpp" />
     <ClCompile Include="UnitMotionPredictor.cpp" />
+    <ClCompile Include="Options.cpp" />
+    <ClCompile Include="..\..\thirdparty\toml\toml.c">
+      <Filter>thirdparty\toml</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -243,6 +247,10 @@
     <ClInclude Include="ID2InterceptionHandler.h" />
     <ClInclude Include="D2Types.h" />
     <ClInclude Include="UnitMotionPredictor.h" />
+    <ClInclude Include="Options.h" />
+    <ClInclude Include="..\..\thirdparty\toml\toml.h">
+      <Filter>thirdparty\toml</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />
@@ -274,6 +282,9 @@
     </Filter>
     <Filter Include="thirdparty\stb_image">
       <UniqueIdentifier>{99af7b84-eaea-4a5a-aa0e-b4ec344078ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty\toml">
+      <UniqueIdentifier>{aca34c8e-6ba9-4e96-943a-d9172330fd27}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

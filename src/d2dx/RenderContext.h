@@ -56,6 +56,7 @@ namespace d2dx
 			_In_ HWND hWnd,
 			_In_ Size gameSize,
 			_In_ Size windowSize,
+			_In_ ScreenMode initialScreenMode,
 			_In_ ID2DXContext* d2dxContext,
 			_In_ const std::shared_ptr<ISimd>& simd);
 		
@@ -93,7 +94,8 @@ namespace d2dx
 
 		virtual const Options& GetOptions() const override;
 
-		virtual ITextureCache* GetTextureCache(const Batch& batch) const override;
+		virtual ITextureCache* GetTextureCache(
+			_In_ const Batch& batch) const override;
 
 		virtual void SetSizes(
 			_In_ Size gameSize,
@@ -107,6 +109,8 @@ namespace d2dx
 		virtual void ToggleFullscreen() override;
 
 		virtual float GetFrameTime() const override;
+
+		virtual ScreenMode GetScreenMode() const override;
 
 		void ClipCursor();
 		void UnclipCursor();
@@ -173,6 +177,7 @@ namespace d2dx
 			ID3D11RenderTargetView* rtv1 = nullptr;
 		};
 
+		ScreenMode _screenMode = ScreenMode::Windowed;
 		ComPtr<ID3D11Device> _device;
 		ComPtr<ID3D11Device3> _device3;
 		ComPtr<ID3D11DeviceContext> _deviceContext;

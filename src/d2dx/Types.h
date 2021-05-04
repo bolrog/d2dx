@@ -41,23 +41,6 @@ namespace d2dx
 		FullscreenDefault = 1,
 	};
 
-	struct Options
-	{
-		ScreenMode screenMode = ScreenMode::Windowed;
-		uint32_t defaultZoomLevel = 0;
-		bool noClipCursor = false;
-		bool noFpsFix = false;
-		bool noWide = false;
-		bool noLogo = false;
-		bool noVSync = false;
-		bool noResMod = false;
-		bool noAA = false;
-		bool noCompatModeFix = false;
-		bool noTitleChange = false;
-		bool debugDumpTextures = false;
-		bool testMoP = false;
-	};
-
 	enum class MajorGameState
 	{
 		Unknown = 0,

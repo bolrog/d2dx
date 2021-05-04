@@ -18,29 +18,55 @@
 */
 #pragma once
 
-#include "IGlide3x.h"
-#include "IWin32InterceptionHandler.h"
-#include "ID2InterceptionHandler.h"
-#include "Options.h"
+#include "Types.h"
 
 namespace d2dx
 {
-	struct ID2DXContext abstract : 
-		public IGlide3x,
-		public IWin32InterceptionHandler,
-		public ID2InterceptionHandler
+	enum class OptionsFlag
 	{
-		virtual ~ID2DXContext() noexcept {}
+		NoClipCursor,
+		NoFpsFix,
+		NoResMod,
+		NoWide,
+		NoLogo,
+		NoAntiAliasing,
+		NoCompatModeFix,
+		NoTitleChange,
+		NoVSync,
 
-		virtual void SetCustomResolution(
-			_In_ Size size) = 0;
+		DbgDumpTextures,
 
-		virtual Size GetSuggestedCustomResolution() = 0;
+		TestMotionPrediction,
 
-		virtual GameVersion GetGameVersion() const = 0;
+		Count
+	};
 
-		virtual void DisableBuiltinResMod() = 0;
+	class Options final
+	{
+	public:
+		Options();
+		~Options() noexcept;
 
-		virtual Options& GetOptions() = 0;
+		void ApplyCfg(
+			_In_z_ const char* cfg);
+
+		void ApplyCommandLine(
+			_In_z_ const char* cmdLine);
+
+		bool GetFlag(
+			_In_ OptionsFlag flag) const;
+
+		void SetFlag(
+			_In_ OptionsFlag flag,
+			_In_ bool value);
+
+		int32_t GetWindowScale() const;
+
+		void SetWindowScale(
+			_In_ int32_t zoomLevel);
+
+	private:
+		uint32_t _flags = 0;
+		int32_t _windowScale = 1;
 	};
 }

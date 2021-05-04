@@ -51,10 +51,13 @@ RenderContext::RenderContext(
 	HWND hWnd,
 	Size gameSize,
 	Size windowSize,
+	ScreenMode initialScreenMode,
 	ID2DXContext* d2dxContext,
 	const std::shared_ptr<ISimd>& simd)
 {
 	HRESULT hr = S_OK;
+
+	_screenMode = initialScreenMode;
 
 	_timeStart = TimeStart();
 
@@ -71,8 +74,8 @@ RenderContext::RenderContext(
 	_windowSize = windowSize;
 	_renderRect = Metrics::GetRenderRect(
 		gameSize,
-		_d2dxContext->GetOptions().screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize,
-		!_d2dxContext->GetOptions().noWide);
+		_screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize,
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
 
 #ifndef NDEBUG
 	ShowCursor_Real(TRUE);
@@ -99,7 +102,7 @@ RenderContext::RenderContext(
 
 	_swapChainCreateFlags = 0;
 
-	if (_d2dxContext->GetOptions().noVSync)
+	if (_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoVSync))
 	{
 		if (_dxgiAllowTearingFlagSupported)
 		{
@@ -259,7 +262,7 @@ RenderContext::RenderContext(
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 
-	Size renderTargetSize = Metrics::GetSuggestedGameSize(_desktopSize, !_d2dxContext->GetOptions().noWide);
+	Size renderTargetSize = Metrics::GetSuggestedGameSize(_desktopSize, !_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
 	renderTargetSize.width = max(1024, renderTargetSize.width);
 	renderTargetSize.height = max(768, renderTargetSize.height);
 
@@ -359,7 +362,7 @@ void RenderContext::Present()
 
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
-	if (!_d2dxContext->GetOptions().noAA)
+	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing))
 	{
 		SetShaderState(
 			nullptr,
@@ -401,7 +404,7 @@ void RenderContext::Present()
 	SetShaderState(
 		_resources->GetVertexShader(RenderContextVertexShader::Display),
 		_resources->GetPixelShader(isIntegerScale ? RenderContextPixelShader::DisplayIntegerScale : RenderContextPixelShader::DisplayNonintegerScale),
-		_d2dxContext->GetOptions().noAA ? _resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected) : _resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
+		_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing) ? _resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected) : _resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
 		nullptr);
 
 	startVertexLocation = _vbWriteIndex;
@@ -626,7 +629,7 @@ void RenderContext::UpdateViewport(
 	_constants.screenSize[1] = (float)rect.size.height;
 	_constants.invScreenSize[0] = 1.0f / _constants.screenSize[0];
 	_constants.invScreenSize[1] = 1.0f / _constants.screenSize[1];
-	_constants.flags[0] = _d2dxContext->GetOptions().noAA ? 0 : 1;
+	_constants.flags[0] = _d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing) ? 0 : 1;
 	_constants.flags[1] = 0;
 	if (memcmp(&_constants, &_shadowState.constants, sizeof(Constants)) != 0)
 	{
@@ -665,24 +668,24 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 	UINT_PTR uIdSubclass,
 	DWORD_PTR dwRefData)
 {
-	RenderContext* d3d11Context = (RenderContext*)dwRefData;
+	RenderContext* renderContext = (RenderContext*)dwRefData;
 
 	if (uMsg == WM_ACTIVATEAPP)
 	{
 		if (wParam)
 		{
-			d3d11Context->ClipCursor();
+			renderContext->ClipCursor();
 		}
 		else
 		{
-			d3d11Context->UnclipCursor();
+			renderContext->UnclipCursor();
 		}
 	}
 	else if (uMsg == WM_SYSKEYDOWN || uMsg == WM_KEYDOWN)
 	{
 		if (wParam == VK_RETURN && (HIWORD(lParam) & KF_ALTDOWN))
 		{
-			d3d11Context->ToggleFullscreen();
+			renderContext->ToggleFullscreen();
 			return 0;
 		}
 	}
@@ -706,8 +709,8 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 		Size gameSize;
 		Rect renderRect;
 		Size desktopSize;
-		d3d11Context->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
-		const bool isFullscreen = d3d11Context->GetOptions().screenMode == ScreenMode::FullscreenDefault;
+		renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
+		const bool isFullscreen = renderContext->GetScreenMode() == ScreenMode::FullscreenDefault;
 		const float scale = (float)renderRect.size.height / gameSize.height;
 		const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
 		const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
@@ -803,7 +806,7 @@ void RenderContext::AdjustWindowPlacement(
 	const int32_t desktopCenterX = _desktopSize.width / 2;
 	const int32_t desktopCenterY = _desktopSize.height / 2;
 
-	if (_d2dxContext->GetOptions().screenMode == ScreenMode::Windowed)
+	if (_screenMode == ScreenMode::Windowed)
 	{
 		RECT oldWindowRect;
 		GetWindowRect(hWnd, &oldWindowRect);
@@ -832,7 +835,7 @@ void RenderContext::AdjustWindowPlacement(
 		assert(newWindowHeight == (newWindowRect.bottom - newWindowRect.top));
 #endif
 	}
-	else if (_d2dxContext->GetOptions().screenMode == ScreenMode::FullscreenDefault)
+	else if (_screenMode == ScreenMode::FullscreenDefault)
 	{
 		SetWindowLongPtr(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
 		SetWindowPos_Real(hWnd, HWND_TOP, 0, 0, _desktopSize.width, _desktopSize.height, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
@@ -840,13 +843,13 @@ void RenderContext::AdjustWindowPlacement(
 
 	ClipCursor();
 
-	if (!_d2dxContext->GetOptions().noTitleChange) {
+	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoTitleChange)) {
 		char newWindowText[256];
 		sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
 			_gameSize.width,
 			_gameSize.height,
 			(int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
-		SetWindowTextA(hWnd, newWindowText);
+		::SetWindowTextA(hWnd, newWindowText);
 	}
 
 	D2DX_LOG("Sizes: desktop %ix%i, window %ix%i, game %ix%i, render %ix%i", 
@@ -896,12 +899,12 @@ void RenderContext::SetSizes(
 	_gameSize = gameSize;
 	_windowSize = windowSize;
 
-	auto displaySize = _d2dxContext->GetOptions().screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
+	auto displaySize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
 
 	_renderRect = Metrics::GetRenderRect(
 		_gameSize,
 		displaySize,
-		!_d2dxContext->GetOptions().noWide);
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
 
 	AdjustWindowPlacement(_hWnd, true);
 }
@@ -940,14 +943,14 @@ bool RenderContext::IsAllowTearingFlagSupported() const
 
 void RenderContext::ToggleFullscreen()
 {
-	if (_d2dxContext->GetOptions().screenMode == ScreenMode::FullscreenDefault)
+	if (_screenMode == ScreenMode::FullscreenDefault)
 	{
-		_d2dxContext->GetOptions().screenMode = ScreenMode::Windowed;
+		_screenMode = ScreenMode::Windowed;
 		SetSizes(_gameSize, _windowSize);
 	}
 	else
 	{
-		_d2dxContext->GetOptions().screenMode = ScreenMode::FullscreenDefault;
+		_screenMode = ScreenMode::FullscreenDefault;
 		SetSizes(_gameSize, _windowSize);
 	}
 }
@@ -966,7 +969,7 @@ void RenderContext::GetCurrentMetrics(
 
 void RenderContext::ClipCursor()
 {
-	if (_d2dxContext->GetOptions().noClipCursor)
+	if (_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoClipCursor))
 	{
 		return;
 	}
@@ -986,4 +989,9 @@ void RenderContext::UnclipCursor()
 float RenderContext::GetFrameTime() const
 {
 	return (float)(_frameTimeMs / 1000.0);
+}
+
+ScreenMode RenderContext::GetScreenMode() const
+{
+	return _screenMode;
 }

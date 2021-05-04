@@ -50,33 +50,9 @@ static bool CheckOption(const char* commandLine, const Buffer<char>& cfgFile, co
 static Options GetCommandLineOptions()
 {
 	Options options;
-
-	Buffer<char> cfgFile = ReadTextFile("d2dx.cfg");
-	const char* commandLine = GetCommandLineA();
-
-	options.noClipCursor = CheckOption(commandLine, cfgFile, "-dxnoclipcursor");
-	options.noFpsFix = CheckOption(commandLine, cfgFile, "-dxnofpsfix");
-	options.noResMod = CheckOption(commandLine, cfgFile, "-dxnoresmod");
-	options.noWide = CheckOption(commandLine, cfgFile, "-dxnowide");
-	options.noLogo = CheckOption(commandLine, cfgFile, "-dxnologo");
-	options.noVSync = CheckOption(commandLine, cfgFile, "-dxnovsync");
-	options.noAA = CheckOption(commandLine, cfgFile, "-dxnoaa");
-	options.noCompatModeFix = CheckOption(commandLine, cfgFile, "-dxnocompatmodefix");
-	options.noTitleChange = CheckOption(commandLine, cfgFile, "-dxnotitlechange");
-
-	bool dxscale2 = CheckOption(commandLine, cfgFile, "-dxscale2");
-	bool dxscale3 = CheckOption(commandLine, cfgFile, "-dxscale3");
-	options.defaultZoomLevel =
-		dxscale3 ? 3 :
-		dxscale2 ? 2 :
-		1;
-
-	options.debugDumpTextures = CheckOption(commandLine, cfgFile, "-dxdbg_dump");
-
-	options.screenMode = CheckOption(commandLine, cfgFile, "-w") ? ScreenMode::Windowed : ScreenMode::FullscreenDefault;
-
-	options.testMoP = CheckOption(commandLine, cfgFile, "-dxtestmop");
-
+	auto fileData = ReadTextFile("d2dx.cfg");
+	options.ApplyCfg(fileData.items);
+	options.ApplyCommandLine(GetCommandLineA());
 	return options;
 }
 
@@ -111,7 +87,7 @@ D2DXContext::D2DXContext(
 	_surfaceIdTracker{ gameHelper },
 	_unitMotionPredictor{ gameHelper }
 {
-	if (!_options.noCompatModeFix)
+	if (!_options.GetFlag(OptionsFlag::NoCompatModeFix))
 	{
 		_compatibilityModeDisabler->DisableCompatibilityMode();
 	}
@@ -121,28 +97,28 @@ D2DXContext::D2DXContext(
 	D2DX_LOG("Apparent Windows version: %u.%u (build %u).", apparentWindowsVersion.major, apparentWindowsVersion.minor, apparentWindowsVersion.build);
 	D2DX_LOG("Actual Windows version: %u.%u (build %u).", actualWindowsVersion.major, actualWindowsVersion.minor, actualWindowsVersion.build);
 
-	if (_options.testMoP)
+	if (_options.GetFlag(OptionsFlag::TestMotionPrediction))
 	{
 		D2DX_LOG("MoP testing enabled.");
 	}
 
-	if (!_options.noResMod)
+	if (!_options.GetFlag(OptionsFlag::NoResMod))
 	{
 		try
 		{
 			_builtinResMod = std::make_unique<BuiltinResMod>(GetModuleHandleA("glide3x.dll"), _gameHelper);
 			if (!_builtinResMod->IsActive())
 			{
-				_options.noResMod = true;
+				_options.SetFlag(OptionsFlag::NoResMod, true);
 			}
 		}
 		catch (...)
 		{
-			_options.noResMod = true;
+			_options.SetFlag(OptionsFlag::NoResMod, true);
 		}
 	}
 
-	if (!_options.noFpsFix)
+	if (!_options.GetFlag(OptionsFlag::NoFpsFix))
 	{
 		_gameHelper->TryApplyFpsFix();
 	}
@@ -215,7 +191,7 @@ void D2DXContext::OnSstWinOpen(
 	int32_t height)
 {
 	Size windowSize = _gameHelper->GetConfiguredGameSize();
-	if (!_options.noResMod)
+	if (!_options.GetFlag(OptionsFlag::NoResMod))
 	{
 		windowSize = { 800,600 };
 	}
@@ -234,10 +210,15 @@ void D2DXContext::OnSstWinOpen(
 
 	if (!_renderContext)
 	{
+		auto initialScreenMode = strstr(GetCommandLineA(), "-w") ?
+			ScreenMode::Windowed :
+			ScreenMode::FullscreenDefault;
+
 		_renderContext = std::make_shared<RenderContext>(
 			(HWND)hWnd,
 			gameSize,
-			windowSize * _options.defaultZoomLevel,
+			windowSize * _options.GetWindowScale(),
+			initialScreenMode,
 			this,
 			_simd);
 	}
@@ -248,7 +229,7 @@ void D2DXContext::OnSstWinOpen(
 			windowSize.width = width;
 			windowSize.height = height;
 		}
-		_renderContext->SetSizes(gameSize, windowSize * _options.defaultZoomLevel);
+		_renderContext->SetSizes(gameSize, windowSize * _options.GetWindowScale());
 	}
 
 	_batchCount = 0;
@@ -345,7 +326,7 @@ void D2DXContext::OnTexSource(
 		_scratchBatch.SetTextureCategory(_gameHelper->GetTextureCategoryFromHash(hash));
 	}
 
-	if (_options.debugDumpTextures)
+	if (_options.GetFlag(OptionsFlag::DbgDumpTextures))
 	{
 		DumpTexture(hash, width, height, pixels, pixelsSize, (uint32_t)_scratchBatch.GetTextureCategory(), _palettes.items + _scratchBatch.GetPaletteIndex() * 256);
 	}
@@ -456,7 +437,7 @@ void D2DXContext::OnBufferSwap()
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
 
-	if (_options.testMoP && _majorGameState == MajorGameState::InGame)
+	if (_options.GetFlag(OptionsFlag::TestMotionPrediction) && _majorGameState == MajorGameState::InGame)
 	{
 		auto offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
 
@@ -934,7 +915,7 @@ void D2DXContext::OnTexDownloadTable(
 				palette[j] |= 0xFF000000;
 			}
 
-			if (_options.debugDumpTextures)
+			if (_options.GetFlag(OptionsFlag::DbgDumpTextures))
 			{
 				memcpy(_palettes.items + 256 * i, palette, 1024);
 			}
@@ -1048,7 +1029,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 
 void D2DXContext::InsertLogoOnTitleScreen()
 {
-	if (_options.noLogo || _majorGameState != MajorGameState::TitleScreen || _batchCount <= 0)
+	if (_options.GetFlag(OptionsFlag::NoLogo) || _majorGameState != MajorGameState::TitleScreen || _batchCount <= 0)
 		return;
 
 	PrepareLogoTextureBatch();
@@ -1109,7 +1090,7 @@ Offset D2DXContext::OnSetCursorPos(
 		Size desktopSize;
 		_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
 
-		const bool isFullscreen = _options.screenMode == ScreenMode::FullscreenDefault;
+		const bool isFullscreen = _renderContext->GetScreenMode() == ScreenMode::FullscreenDefault;
 		const float scale = (float)renderRect.size.height / gameSize.height;
 		const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
 		const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
@@ -1138,7 +1119,7 @@ Offset D2DXContext::OnMouseMoveMessage(
 	Size desktopSize;
 	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
 
-	const bool isFullscreen = _options.screenMode == ScreenMode::FullscreenDefault;
+	const bool isFullscreen = _renderContext->GetScreenMode() == ScreenMode::FullscreenDefault;
 	const float scale = (float)renderRect.size.height / gameSize.height;
 	const uint32_t scaledWidth = (uint32_t)(scale * gameSize.width);
 	const float mouseOffsetX = isFullscreen ? (float)(desktopSize.width / 2 - scaledWidth / 2) : 0.0f;
@@ -1161,7 +1142,7 @@ Size D2DXContext::GetSuggestedCustomResolution()
 	if (_suggestedGameSize.width == 0)
 	{
 		Size desktopSize{ GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
-		_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, !_options.noWide);
+		_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, !_options.GetFlag(OptionsFlag::NoWide));
 		D2DX_LOG("Suggesting game size %ix%i.", _suggestedGameSize.width, _suggestedGameSize.height);
 	}
 
@@ -1170,7 +1151,7 @@ Size D2DXContext::GetSuggestedCustomResolution()
 
 void D2DXContext::DisableBuiltinResMod()
 {
-	_options.noResMod = true;
+	_options.SetFlag(OptionsFlag::NoResMod, true);
 }
 
 Options& D2DXContext::GetOptions()
@@ -1180,7 +1161,7 @@ Options& D2DXContext::GetOptions()
 
 void D2DXContext::OnBufferClear()
 {
-	if (_options.testMoP && _majorGameState == MajorGameState::InGame)
+	if (_options.GetFlag(OptionsFlag::TestMotionPrediction) && _majorGameState == MajorGameState::InGame)
 	{
 		_unitMotionPredictor.Update(_renderContext.get());
 	}

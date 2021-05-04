@@ -160,6 +160,7 @@
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\SDHD.h" />
     <ClInclude Include="..\..\thirdparty\SlashDiablo-HD\src\TemplateIncludes.h" />
     <ClInclude Include="..\..\thirdparty\stb_image\stb_image_write.h" />
+    <ClInclude Include="..\..\thirdparty\toml\toml.h" />
     <ClInclude Include="BuiltinResMod.h" />
     <ClInclude Include="CompatibilityModeDisabler.h" />
     <ClInclude Include="D2DXContextFactory.h" />
@@ -177,6 +178,7 @@
     <ClInclude Include="IRenderContext.h" />
     <ClInclude Include="ITextureCache.h" />
     <ClInclude Include="Metrics.h" />
+    <ClInclude Include="Options.h" />
     <ClInclude Include="RenderContextResources.h" />
     <ClInclude Include="SurfaceIdTracker.h" />
     <ClInclude Include="TextureCache.h" />
@@ -259,12 +261,17 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\thirdparty\toml\toml.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="BuiltinResMod.cpp" />
     <ClCompile Include="CompatibilityModeDisabler.cpp" />
     <ClCompile Include="D2DXContextFactory.cpp" />
     <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="Metrics.cpp" />
+    <ClCompile Include="Options.cpp" />
     <ClCompile Include="RenderContextResources.cpp" />
     <ClCompile Include="SurfaceIdTracker.cpp" />
     <ClCompile Include="TextureCache.cpp" />

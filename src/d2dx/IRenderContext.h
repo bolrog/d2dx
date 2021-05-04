@@ -20,6 +20,7 @@
 
 #include "ITextureCache.h"
 #include "Types.h"
+#include "Options.h"
 
 namespace d2dx
 {
@@ -77,5 +78,9 @@ namespace d2dx
 		virtual void ToggleFullscreen() = 0;
 
 		virtual float GetFrameTime() const = 0;
+
+		virtual int32_t GetFrameTimeFp() const = 0;
+
+		virtual ScreenMode GetScreenMode() const = 0;
 	};
 }
