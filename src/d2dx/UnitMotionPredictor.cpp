@@ -62,7 +62,7 @@ void UnitMotionPredictor::Update(
 		const Offset predictedPosWhole{ um.predictedPos.x >> 16, um.predictedPos.y >> 16 };
 		const int32_t predictionError = max(abs(posWhole.x - predictedPosWhole.x), abs(posWhole.y - predictedPosWhole.y));
 
-		if (predictionError > 10)
+		if (predictionError > 3)
 		{
 			um.predictedPos = pos;
 			um.correctedPos = pos;
