@@ -101,7 +101,7 @@ void Options::ApplyCfg(
 
 	if (experimental)
 	{
-		auto testMoP = toml_bool_in(debug, "testmop");
+		auto testMoP = toml_bool_in(experimental, "testmop");
 		if (testMoP.ok)
 		{
 			SetFlag(OptionsFlag::TestMotionPrediction, testMoP.u.b);
