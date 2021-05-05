@@ -847,7 +847,8 @@ void RenderContext::AdjustWindowPlacement(
 
 	ClipCursor();
 
-	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoTitleChange)) {
+	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoTitleChange))
+	{
 		char newWindowText[256];
 		sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
 			_gameSize.width,
