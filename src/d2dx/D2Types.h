@@ -103,68 +103,105 @@ namespace d2dx
         };
 
         static_assert(sizeof(StaticPath) == 0x20, "StaticPath size");
+        
 
-        struct UnitAny {
-            UnitType dwType;               // 0x00
-            DWORD dwTxtFileNo;          // 0x04
-            DWORD _1;                   // 0x08
-            DWORD dwUnitId;             // 0x0C
-            DWORD dwMode;               // 0x10
-            union {
-                void* pPlayerData;
-                void* pItemData;
-                void* pMonsterData;
-                void* pObjectData;
-                // TileData *pTileData doesn't appear to exist anymore
-            };                          // 0x14
-            DWORD dwAct;                // 0x18
-            void* pAct;                 // 0x1C
-            DWORD dwSeed[2];            // 0x20
-            DWORD _2;                   // 0x28
-            union {
-                Path* path;
-                StaticPath* staticPath;
-            };                          // 0x2C
-            DWORD _3[2];                // 0x30
-            union {
-                Path* path2;
-                StaticPath* staticPath2;
-            };                          // 0x38
-            DWORD unk[2];
-            DWORD dwGfxFrame;           // 0x44
-            DWORD dwFrameRemain;        // 0x48
-            WORD wFrameRate;            // 0x4C
-            WORD _4;                    // 0x4E
-            BYTE* pGfxUnk;              // 0x50
-            DWORD* pGfxInfo;            // 0x54
-            DWORD _5;                   // 0x58
-            void* pStats;               // 0x5C
-            void* pInventory;           // 0x60
-            void* ptLight;              // 0x64
-            DWORD dwStartLightRadius;   // 0x68
-            WORD nPl2ShiftIdx;          // 0x6C
-            WORD nUpdateType;           // 0x6E
-            UnitAny* pUpdateUnit;       // 0x70 - Used when updating unit.
-            DWORD* pQuestRecord;        // 0x74
-            DWORD bSparklyChest;        // 0x78 bool
-            DWORD* pTimerArgs;          // 0x7C
-            DWORD dwSoundSync;          // 0x80
-            DWORD _6[2];                // 0x84
-            WORD wX;                    // 0x8C
-            WORD wY;                    // 0x8E
-            DWORD _7;                   // 0x90
-            DWORD dwOwnerType;          // 0x94
-            DWORD dwOwnerId;            // 0x98
-            DWORD _8[2];                // 0x9C
-            void* pOMsg;                // 0xA4
-            void* pInfo;                // 0xA8
-            DWORD _9[6];                // 0xAC
-            DWORD dwFlags;              // 0xC4
-            DWORD dwFlags2;             // 0xC8
-            DWORD _10[5];               // 0xCC
-            UnitAny* pChangedNext;      // 0xE0
-            UnitAny* pListNext;         // 0xE4 -> 0xD8
-            UnitAny* pRoomNext;         // 0xE8
+        struct UnitAny 
+        {
+            union
+            {
+                struct
+                {
+                    D2::UnitType dwType;		// 0x00
+                    DWORD dwClassId;			// 0x04
+                    void* pMemPool;				// 0x08
+                    DWORD dwUnitId;				// 0x0C
+                    DWORD dwMode;				// 0x10
+                    union {
+                        void* pPlayerData;
+                        void* pItemData;
+                        void* pMonsterData;
+                        void* pObjectData;
+                        // TileData *pTileData doesn't appear to exist anymore
+                    };                          // 0x14
+                    DWORD dwAct;                // 0x18
+                    void* pAct;                 // 0x1C
+                    DWORD dwSeed[2];            // 0x20
+                    DWORD _2;                   // 0x28
+                    union {
+                        Path* path;
+                        StaticPath* staticPath;
+                    };                          // 0x2C
+                    DWORD _3[2];                // 0x30
+                    union {
+                        Path* path2;
+                        StaticPath* staticPath2;
+                    };                          // 0x38
+                } v109;
+
+                struct
+                {
+                    UnitType dwType;            // 0x00
+                    DWORD dwTxtFileNo;          // 0x04
+                    DWORD _1;                   // 0x08
+                    DWORD dwUnitId;             // 0x0C
+                    DWORD dwMode;               // 0x10
+                    union {
+                        void* pPlayerData;
+                        void* pItemData;
+                        void* pMonsterData;
+                        void* pObjectData;
+                        // TileData *pTileData doesn't appear to exist anymore
+                    };                          // 0x14
+                    DWORD dwAct;                // 0x18
+                    void* pAct;                 // 0x1C
+                    DWORD dwSeed[2];            // 0x20
+                    DWORD _2;                   // 0x28
+                    union {
+                        Path* path;
+                        StaticPath* staticPath;
+                    };                          // 0x2C
+                    DWORD _3[2];                // 0x30
+                    union {
+                        Path* path2;
+                        StaticPath* staticPath2;
+                    };                          // 0x38
+                    DWORD unk[2];
+                    DWORD dwGfxFrame;           // 0x44
+                    DWORD dwFrameRemain;        // 0x48
+                    WORD wFrameRate;            // 0x4C
+                    WORD _4;                    // 0x4E
+                    BYTE* pGfxUnk;              // 0x50
+                    DWORD* pGfxInfo;            // 0x54
+                    DWORD _5;                   // 0x58
+                    void* pStats;               // 0x5C
+                    void* pInventory;           // 0x60
+                    void* ptLight;              // 0x64
+                    DWORD dwStartLightRadius;   // 0x68
+                    WORD nPl2ShiftIdx;          // 0x6C
+                    WORD nUpdateType;           // 0x6E
+                    UnitAny* pUpdateUnit;       // 0x70 - Used when updating unit.
+                    DWORD* pQuestRecord;        // 0x74
+                    DWORD bSparklyChest;        // 0x78 bool
+                    DWORD* pTimerArgs;          // 0x7C
+                    DWORD dwSoundSync;          // 0x80
+                    DWORD _6[2];                // 0x84
+                    WORD wX;                    // 0x8C
+                    WORD wY;                    // 0x8E
+                    DWORD _7;                   // 0x90
+                    DWORD dwOwnerType;          // 0x94
+                    DWORD dwOwnerId;            // 0x98
+                    DWORD _8[2];                // 0x9C
+                    void* pOMsg;                // 0xA4
+                    void* pInfo;                // 0xA8
+                    DWORD _9[6];                // 0xAC
+                    DWORD dwFlags;              // 0xC4
+                    DWORD dwFlags2;             // 0xC8
+                    DWORD _10[5];               // 0xCC
+                    UnitAny* pChangedNext;      // 0xE0
+                    UnitAny* pListNext;         // 0xE4 -> 0xD8
+                    UnitAny* pRoomNext;         // 0xE8                
+                } v112;
+            } u;
         };
 
         static_assert(sizeof(UnitAny) == 0xEC, "UnitAny size");

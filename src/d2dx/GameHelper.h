@@ -49,9 +49,6 @@ namespace d2dx
 
 		virtual bool TryApplyFpsFix() override;
 
-		virtual Offset GetUnitPos(
-			_In_ const D2::UnitAny* unit)  override;
-
 		virtual Offset GetPlayerTargetPos() const override;
 
 		virtual void* GetFunction(
@@ -61,6 +58,15 @@ namespace d2dx
 			_In_ const D2::CellContext* cellContext) const override;
 
 		virtual D2::UnitAny* GetPlayerUnit() const override;
+
+		virtual Offset GetUnitPos(
+			_In_ const D2::UnitAny* unit) const override;
+
+		virtual D2::UnitType GetUnitType(
+			_In_ const D2::UnitAny* unit) const override;
+
+		virtual uint32_t GetUnitId(
+			_In_ const D2::UnitAny* unit) const override;
 
 	private:
 		uint16_t ReadU16(HANDLE module, uint32_t offset) const;

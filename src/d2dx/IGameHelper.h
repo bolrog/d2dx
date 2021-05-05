@@ -66,9 +66,6 @@ namespace d2dx
 
 		virtual bool TryApplyFpsFix() = 0;
 
-		virtual Offset GetUnitPos(
-			_In_ const D2::UnitAny* unit)  = 0;
-
 		virtual Offset GetPlayerTargetPos() const = 0;
 
 		virtual void* GetFunction(
@@ -78,5 +75,14 @@ namespace d2dx
 			_In_ const D2::CellContext* cellContext) const = 0;
 
 		virtual D2::UnitAny* GetPlayerUnit() const = 0;
+
+		virtual Offset GetUnitPos(
+			_In_ const D2::UnitAny* unit) const = 0;
+
+		virtual D2::UnitType GetUnitType(
+			_In_ const D2::UnitAny* unit) const = 0;
+
+		virtual uint32_t GetUnitId(
+			_In_ const D2::UnitAny* unit) const = 0;
 	};
 }

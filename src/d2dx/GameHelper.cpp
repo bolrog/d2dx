@@ -575,19 +575,52 @@ D2::UnitAny* GameHelper::GetPlayerUnit() const
 		return nullptr;
 	}
 }
-Offset GameHelper::GetUnitPos(const D2::UnitAny* unit)
+
+_Use_decl_annotations_
+D2::UnitType GameHelper::GetUnitType(
+	const D2::UnitAny* unit) const
 {
-	if (unit->dwType == D2::UnitType::Player ||
-		unit->dwType == D2::UnitType::Monster ||
-		unit->dwType == D2::UnitType::Missile)
+	if (_version == GameVersion::Lod109d)
 	{
-		D2::Path* path = _version == GameVersion::Lod109d ? unit->path2 : unit->path;
+		return unit->u.v109.dwType;
+	}
+	else
+	{
+		return unit->u.v112.dwType;
+	}
+}
+
+_Use_decl_annotations_
+uint32_t GameHelper::GetUnitId(
+	const D2::UnitAny* unit) const
+{
+	if (_version == GameVersion::Lod109d)
+	{
+		return unit->u.v109.dwUnitId;
+	}
+	else
+	{
+		return unit->u.v112.dwUnitId;
+	}
+}
+
+_Use_decl_annotations_
+Offset GameHelper::GetUnitPos(
+	const D2::UnitAny* unit) const
+{
+	auto unitType = GetUnitType(unit);
+
+	if (unitType == D2::UnitType::Player ||
+		unitType == D2::UnitType::Monster ||
+		unitType == D2::UnitType::Missile)
+	{
+		D2::Path* path = _version == GameVersion::Lod109d ? unit->u.v109.path2 : unit->u.v112.path;
 		return { (int32_t)path->x, (int32_t)path->y };
 	}
 	else
 	{
-		D2::StaticPath* path = _version == GameVersion::Lod109d ? unit->staticPath2 : unit->staticPath;
-		return { (int32_t)unit->staticPath->xPos * 65536 + (int32_t)unit->staticPath->xOffset, (int32_t)unit->staticPath->yPos * 65536 + (int32_t)unit->staticPath->yOffset };
+		D2::StaticPath* path = _version == GameVersion::Lod109d ? unit->u.v109.staticPath2 : unit->u.v112.staticPath;
+		return { (int32_t)path->xPos * 65536 + (int32_t)path->xOffset, (int32_t)path->yPos * 65536 + (int32_t)path->yOffset };
 	}
 }
 
@@ -630,16 +663,18 @@ void* GameHelper::GetFunction(
 			hModule = _hD2GfxDll;
 			ordinal = 10076;
 			break;
-		case D2Function::D2Gfx_DrawShadow:
+		case D2Function::D2Gfx_DrawShadow: 
 			hModule = _hD2GfxDll;
 			ordinal = 10075;
-			break;
+			break; 
 		case D2Function::D2Win_DrawText:
 			hModule = _hD2WinDll;
 			ordinal = 10117;
 			break;
 		case D2Function::D2Client_DrawUnit:
-			return (void*)((uintptr_t)_hD2ClientDll + 0xBBA70);
+			return _version == GameVersion::Lod110 ? 
+				(void*)((uintptr_t)_hD2ClientDll + 0xBA720) :
+				(void*)((uintptr_t)_hD2ClientDll + 0xB8350);
 		default:
 			break;
 		}

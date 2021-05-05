@@ -415,7 +415,7 @@ void __fastcall D2Win_DrawText_Hooked(
 
 D2::UnitAny* currentlyDrawingUnit = nullptr;
 
-__declspec(naked) void D2Client_DrawUnit_Hooked()
+__declspec(naked) void D2Client_DrawUnit_Stack_Hooked()
 {
 	static void* origReturnAddr = nullptr;
 
@@ -455,7 +455,7 @@ patchReturnAddr:
 	}
 }
 
-__declspec(naked) void D2Client_DrawUnit114d_Hooked()
+__declspec(naked) void D2Client_DrawUnit_ESI_Hooked()
 {
 	static void* origReturnAddr = nullptr;
 
@@ -560,7 +560,10 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 
-	DetourAttach(&(PVOID&)D2Client_DrawUnit_Real, gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawUnit114d_Hooked : D2Client_DrawUnit_Hooked);
+	DetourAttach(&(PVOID&)D2Client_DrawUnit_Real, 
+		(gameHelper->GetVersion() == GameVersion::Lod109d || 
+		gameHelper->GetVersion() == GameVersion::Lod110 ||
+		gameHelper->GetVersion() == GameVersion::Lod114d)? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
 
 	LONG lError = DetourTransactionCommit();
 

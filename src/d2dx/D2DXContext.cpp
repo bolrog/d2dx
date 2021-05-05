@@ -1179,8 +1179,6 @@ void D2DXContext::EndDrawText()
 	_isDrawingText = false;
 }
 
-#define MAKE_PLAYER_TYPE(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
-
 _Use_decl_annotations_
 void D2DXContext::BeginDrawImage(
 	const D2::CellContext* cellContext,
@@ -1191,37 +1189,35 @@ void D2DXContext::BeginDrawImage(
 		return;
 	}
 
-
-	DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
-
-	if (drawParameters.unitType == 0 && (
-		drawParameters.unitToken == MAKE_PLAYER_TYPE('A', 'M', ' ', ' ') ||
-		drawParameters.unitToken == MAKE_PLAYER_TYPE('S', 'O', ' ', ' ') ||
-		drawParameters.unitToken == MAKE_PLAYER_TYPE('N', 'E', ' ', ' ') ||
-		drawParameters.unitToken == MAKE_PLAYER_TYPE('P', 'A', ' ', ' ') ||
-		drawParameters.unitToken == MAKE_PLAYER_TYPE('B', 'A', ' ', ' ') ||
-		drawParameters.unitToken == MAKE_PLAYER_TYPE('A', 'M', ' ', ' ') ||
-		drawParameters.unitToken == MAKE_PLAYER_TYPE('D', 'Z', ' ', ' ') ||
-		drawParameters.unitToken == MAKE_PLAYER_TYPE('A', 'I', ' ', ' ')))
+	if (currentlyDrawingUnit)
 	{
-		// The player unit itself.
-		_scratchBatch.SetTextureCategory(TextureCategory::Player);
-		_playerScreenPos = pos;
+		if (currentlyDrawingUnit == _gameHelper->GetPlayerUnit())
+		{
+			// The player unit itself.
+			_scratchBatch.SetTextureCategory(TextureCategory::Player);
+			_playerScreenPos = pos;
+		}
 	}
-	else if (_playerScreenPos.x > 0 &&
-		pos.x == _playerScreenPos.x &&
-		pos.y == _playerScreenPos.y)
+	else 
 	{
-		// Overlays will be drawn at the player position, so mark them as part of the player.
-		_scratchBatch.SetTextureCategory(TextureCategory::Player);
-	}
-	else if (
-		drawParameters.unitId == 0 &&
-		drawParameters.unitType == 0 &&
-		cellContext->dwMode == 0)
-	{
-		// UI elements have zero unit ID and unit type.
-		_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
+		DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
+
+		//if (_playerScreenPos.x > 0 &&
+		//	pos.x == _playerScreenPos.x &&
+		//	pos.y == _playerScreenPos.y)
+		//{
+		//	// Overlays will be drawn at the player position, so mark them as part of the player.
+		//	_scratchBatch.SetTextureCategory(TextureCategory::Player);
+		//}
+		//else 
+		if (
+			drawParameters.unitId == 0 &&
+			drawParameters.unitType == 0 &&
+			cellContext->dwMode == 0)
+		{
+			// UI elements have zero unit ID and unit type.
+			_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
+		}
 	}
 }
 

@@ -48,8 +48,9 @@ void UnitMotionPredictor::Update(
 		}
 
 		UnitMotion& um = _unitMotions.items[i];
+		auto unitId = _gameHelper->GetUnitId(unit);
 
-		if ((_frame - um.lastUsedFrame) > 1 || unit->dwUnitId == 0xFFFFFFFF || unit->dwUnitId == 0)
+		if ((_frame - um.lastUsedFrame) > 1 || unitId == 0xFFFFFFFF || unitId == 0)
 		{
 			_unitPtrs.items[i] = nullptr;
 			expiredUnitIndex = i;
