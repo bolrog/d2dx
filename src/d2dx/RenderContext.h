@@ -134,7 +134,7 @@ namespace d2dx
 
 		void AdjustWindowPlacement(
 			_In_ HWND hWnd,
-			_In_ bool centerOnCurrentPosition);
+			_In_ bool resetPosition);
 
 		uint32_t UpdateVerticesWithFullScreenTriangle(
 			_In_ Size srcSize,

@@ -84,6 +84,18 @@ void Options::ApplyCfg(
 		{
 			SetWindowScale((int32_t)windowScale.u.i);
 		}
+
+		auto windowPosition = toml_array_in(window, "position");
+		if (windowPosition)
+		{
+			auto x = toml_int_at(windowPosition, 0);
+			auto y = toml_int_at(windowPosition, 1);
+			
+			if (x.ok && y.ok)
+			{
+				SetWindowPosition({ (int32_t)x.u.i, (int32_t)y.u.i });
+			}
+		}
 	}
 
 	auto debug = toml_table_in(root, "debug");
@@ -162,4 +174,15 @@ void Options::SetWindowScale(
 	_In_ int32_t windowScale)
 {
 	_windowScale = min(3, max(1, windowScale));
+}
+
+Offset Options::GetWindowPosition() const
+{
+	return _windowPosition;
+}
+
+void Options::SetWindowPosition(
+	_In_ Offset windowPosition)
+{
+	_windowPosition = { max(-1, windowPosition.x), max(-1, windowPosition.y) };
 }

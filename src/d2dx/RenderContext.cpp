@@ -793,7 +793,9 @@ void RenderContext::SetShaderState(
 	}
 }
 
-ITextureCache* RenderContext::GetTextureCache(const Batch& batch) const
+_Use_decl_annotations_
+ITextureCache* RenderContext::GetTextureCache(
+	const Batch& batch) const
 {
 	return _resources->GetTextureCache(batch.GetTextureWidth(), batch.GetTextureHeight());
 }
@@ -805,6 +807,8 @@ void RenderContext::AdjustWindowPlacement(
 {
 	const int32_t desktopCenterX = _desktopSize.width / 2;
 	const int32_t desktopCenterY = _desktopSize.height / 2;
+	const Offset preferredPosition = _d2dxContext->GetOptions().GetWindowPosition();
+	bool usePreferredPosition = preferredPosition.x >= 0 && preferredPosition.y >= 0;
 
 	if (_screenMode == ScreenMode::Windowed)
 	{
@@ -822,8 +826,8 @@ void RenderContext::AdjustWindowPlacement(
 		const int32_t newWindowHeight = windowRect.bottom - windowRect.top;
 		const int32_t newWindowCenterX = centerOnCurrentPosition ? oldWindowCenterX : desktopCenterX;
 		const int32_t newWindowCenterY = centerOnCurrentPosition ? oldWindowCenterY : desktopCenterY;
-		const int32_t newWindowX = newWindowCenterX - newWindowWidth / 2;
-		const int32_t newWindowY = newWindowCenterY - newWindowHeight / 2;
+		const int32_t newWindowX = usePreferredPosition ? preferredPosition.x : (newWindowCenterX - newWindowWidth / 2);
+		const int32_t newWindowY = usePreferredPosition ? preferredPosition.y : (newWindowCenterY - newWindowHeight / 2);
 
 		SetWindowLongPtr(hWnd, GWL_STYLE, windowStyle);
 		SetWindowPos_Real(hWnd, HWND_TOP, newWindowX, newWindowY, newWindowWidth, newWindowHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);

@@ -65,8 +65,14 @@ namespace d2dx
 		void SetWindowScale(
 			_In_ int32_t zoomLevel);
 
+		Offset GetWindowPosition() const;
+
+		void SetWindowPosition(
+			_In_ Offset windowPosition);
+
 	private:
 		uint32_t _flags = 0;
 		int32_t _windowScale = 1;
+		Offset _windowPosition{ -1, -1 };
 	};
 }
