@@ -177,7 +177,7 @@ Buffer<char> d2dx::ReadTextFile(
 
     fseek(cfgFile, 0, SEEK_SET);
 
-    Buffer<char> str(size + 1);
+    Buffer<char> str(size + 1, true);
 
     fread_s(str.items, str.capacity, size, 1, cfgFile);
     

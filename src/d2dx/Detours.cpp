@@ -476,7 +476,7 @@ __declspec(naked) void D2Client_DrawUnit114d_Hooked()
 
 	__asm jmp D2Client_DrawUnit_Real
 
-	patchReturnAddr :
+patchReturnAddr :
 	__asm
 	{
 		push eax

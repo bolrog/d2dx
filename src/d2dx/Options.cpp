@@ -37,7 +37,14 @@ _Use_decl_annotations_
 void Options::ApplyCfg(
 	const char* cfg)
 {
-	Buffer<char> cfgTemp{ 2048, true };
+	auto cfgLen = strlen(cfg);
+
+	if (cfgLen > 65536)
+	{
+		D2DX_FATAL_ERROR("Configuration file size limit exceeded.");
+	}
+
+	Buffer<char> cfgTemp{ cfgLen + 1, true };
 	Buffer<char> errorMsg{ 1024, true };
 
 	strcpy_s(cfgTemp.items, cfgTemp.capacity, cfg);
