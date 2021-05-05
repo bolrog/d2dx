@@ -20,6 +20,7 @@
 #include "UnitMotionPredictor.h"
 
 using namespace d2dx;
+using namespace DirectX;
 
 _Use_decl_annotations_
 UnitMotionPredictor::UnitMotionPredictor(
@@ -59,11 +60,17 @@ void UnitMotionPredictor::Update(
 
 		const Offset pos = _gameHelper->GetUnitPos(unit);
 
-		const Offset posWhole{ pos.x >> 16, pos.y >> 16 };
-		const Offset predictedPosWhole{ um.predictedPos.x >> 16, um.predictedPos.y >> 16 };
-		const int32_t predictionError = max(abs(posWhole.x - predictedPosWhole.x), abs(posWhole.y - predictedPosWhole.y));
+		Offset posWhole{ pos.x >> 16, pos.y >> 16 };
+		Offset lastPosWhole{ um.lastPos.x >> 16, um.lastPos.y >> 16 };
+		Offset predictedPosWhole{ um.predictedPos.x >> 16, um.predictedPos.y >> 16 };
 
-		if (predictionError > 3)
+		int32_t lastPosMd = max(abs(posWhole.x - lastPosWhole.x), abs(posWhole.y - lastPosWhole.y));
+		int32_t predictedPosMd = max(abs(posWhole.x - predictedPosWhole.x), abs(posWhole.y - predictedPosWhole.y));
+		/*
+		if (_gameHelper->GetUnitType(unit) == D2::UnitType::Player && ((lastPosMd>0) ||(predictedPosMd>0)))
+			D2DX_LOG("lastPosMd %i predictedPosMd %i", lastPosMd, predictedPosMd);
+		*/
+		if (lastPosMd > 2 || predictedPosMd > 2)
 		{
 			um.predictedPos = pos;
 			um.correctedPos = pos;
@@ -109,9 +116,9 @@ void UnitMotionPredictor::Update(
 
 				if (unit->dwType == D2::UnitType::Player && (ex != 0 || ey != 0))
 				{
-					D2DX_DEBUG_LOG("%f, %f, %f, %f, %f, %f, %f, %f", 
-						pos.x / 65536.0f, 
-						pos.y / 65536.0f, 
+					D2DX_DEBUG_LOG("%f, %f, %f, %f, %f, %f, %f, %f",
+						pos.x / 65536.0f,
+						pos.y / 65536.0f,
 						um.correctedPos.x / 65536.0f,
 						um.correctedPos.y / 65536.0f,
 						um.predictedPos.x / 65536.0f,
