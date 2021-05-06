@@ -698,6 +698,10 @@ void* GameHelper::GetFunction(
 			return _version == GameVersion::Lod110 ? 
 				(void*)((uintptr_t)_hD2ClientDll + 0xBA720) :
 				(void*)((uintptr_t)_hD2ClientDll + 0xB8350);
+		case D2Function::D2Client_FindClientSideUnit:
+			return _version == GameVersion::Lod110 ?
+				(void*)((uintptr_t)_hD2ClientDll + 0x86BE0) :
+				(void*)((uintptr_t)_hD2ClientDll + 0x8B740);
 		case D2Function::D2Client_FindServerSideUnit:
 			return _version == GameVersion::Lod110 ? 
 				(void*)((uintptr_t)_hD2ClientDll + 0x86C70) :
@@ -741,6 +745,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hD2ClientDll + 0x94250);
 		case D2Function::D2Client_DrawMissile:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x949C0);
+		case D2Function::D2Client_FindClientSideUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x1F1A0);
 		case D2Function::D2Client_FindServerSideUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x1F1C0);
 		default:
@@ -782,6 +788,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hD2ClientDll + 0x6C490);
 		case D2Function::D2Client_DrawMissile:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x6CC00);
+		case D2Function::D2Client_FindClientSideUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0xA5B20);
 		case D2Function::D2Client_FindServerSideUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0xA5B40);
 		default:
@@ -852,6 +860,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hGameExe + 0x70EC0);
 		case D2Function::D2Client_DrawMissile:
 			return (void*)((uintptr_t)_hGameExe + 0x71EC0);
+		case D2Function::D2Client_FindClientSideUnit:
+			return (void*)((uintptr_t)_hGameExe + 0x63990);
 		case D2Function::D2Client_FindServerSideUnit:
 			return (void*)((uintptr_t)_hGameExe + 0x639B0);
 		default:

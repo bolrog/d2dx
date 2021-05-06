@@ -533,6 +533,7 @@ __declspec(naked) void D2Client_DrawMissile_ESI_Hooked()
 		ret
 	}
 }
+
 void d2dx::AttachDetours()
 {
 	if (hasDetoured)
@@ -605,11 +606,12 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Client_DrawUnit_Real, 
 		(gameHelper->GetVersion() == GameVersion::Lod109d || 
 		gameHelper->GetVersion() == GameVersion::Lod110 ||
-		gameHelper->GetVersion() == GameVersion::Lod114d)? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
+		gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
 	
 	if (D2Client_DrawMissile_Real)
 	{
 		DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
+//			gameHelper->GetVersion() == GameVersion::Lod112 ? D2Client_DrawMissile_ECX_Hooked : D2Client_DrawMissile_ESI_Hooked);
 	}
 
 	LONG lError = DetourTransactionCommit();
