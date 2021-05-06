@@ -196,13 +196,13 @@ static const uint32_t gameAddresses_113d[] =
 static const uint32_t gameAddresses_114d[] =
 {
 	0xFFFFFFFF,
-	0x0050d39f, /* DrawWall1 */
-	0x0050d3ae, /* DrawWall2 */
+	0x50d39f, /* DrawWall1 */
+	0x50d3ae, /* DrawWall2 */
 	0x50db03, /* DrawFloor */
 	0x50a995, /* DrawShadow */
 	0x50abdc,  /* DrawDynamic */
-	0x0050c38d, /* DrawSomething1 */
-	0x0050c0de, /* DrawSomething2 */
+	0x50c38d, /* DrawSomething1 */
+	0x50c0de, /* DrawSomething2 */
 };
 
 _Use_decl_annotations_

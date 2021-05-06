@@ -58,14 +58,6 @@ void UnitMotionPredictor::Update(
 		}
 
 		UnitMotion& um = _unitMotions.items[i];
-
-		//if ((_frame - um.lastUsedFrame) > 1)
-		//{
-		//	uiat.unitId = 0;
-		//	expiredUnitIndex = i;
-		//	continue;
-		//}
-
 		const Offset pos = _gameHelper->GetUnitPos(unit);
 
 		Offset posWhole{ pos.x >> 16, pos.y >> 16 };
@@ -74,10 +66,7 @@ void UnitMotionPredictor::Update(
 
 		int32_t lastPosMd = max(abs(posWhole.x - lastPosWhole.x), abs(posWhole.y - lastPosWhole.y));
 		int32_t predictedPosMd = max(abs(posWhole.x - predictedPosWhole.x), abs(posWhole.y - predictedPosWhole.y));
-		/*
-		if (_gameHelper->GetUnitType(unit) == D2::UnitType::Player && ((lastPosMd>0) ||(predictedPosMd>0)))
-			D2DX_LOG("lastPosMd %i predictedPosMd %i", lastPosMd, predictedPosMd);
-		*/
+
 		if (lastPosMd > 2 || predictedPosMd > 2)
 		{
 			um.predictedPos = pos;
