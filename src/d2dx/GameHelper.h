@@ -68,7 +68,7 @@ namespace d2dx
 		virtual uint32_t GetUnitId(
 			_In_ const D2::UnitAny* unit) const override;
 
-		virtual D2::UnitAny* FindServerSideUnit(
+		virtual D2::UnitAny* FindUnit(
 			_In_ uint32_t unitId,
 			_In_ D2::UnitType unitType) const override;
 

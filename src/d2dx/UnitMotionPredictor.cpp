@@ -48,7 +48,7 @@ void UnitMotionPredictor::Update(
 			continue;
 		}
 
-		auto unit = _gameHelper->FindServerSideUnit(uiat.unitId, (D2::UnitType)uiat.unitType);
+		auto unit = _gameHelper->FindUnit(uiat.unitId, (D2::UnitType)uiat.unitType);
 
 		if (!unit)
 		{

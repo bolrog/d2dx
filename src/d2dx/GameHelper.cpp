@@ -627,31 +627,24 @@ Offset GameHelper::GetUnitPos(
 typedef D2::UnitAny* (__fastcall* FindUnitFunc)(DWORD dwId, DWORD dwType);
 
 _Use_decl_annotations_
-D2::UnitAny* GameHelper::FindServerSideUnit(
+D2::UnitAny* GameHelper::FindUnit(
 	uint32_t unitId,
 	D2::UnitType unitType) const
 {
 	FindUnitFunc findClientSideUnit = (FindUnitFunc)GetFunction(D2Function::D2Client_FindClientSideUnit);
 	FindUnitFunc findServerSideUnit = (FindUnitFunc)GetFunction(D2Function::D2Client_FindServerSideUnit);
 
-	if (!findClientSideUnit)
+	if (findClientSideUnit)
 	{
-		return nullptr;
+		auto unit = findClientSideUnit((DWORD)unitId, (DWORD)unitType);
+
+		if (unit)
+		{
+			return unit;
+		}
 	}
 
-	D2::UnitAny* unit = findClientSideUnit((DWORD)unitId, (DWORD)unitType);
-
-	if (unit)
-	{
-		return unit;
-	}
-
-	if (!findServerSideUnit)
-	{
-		return nullptr;
-	}
-
-	return findServerSideUnit((DWORD)unitId, (DWORD)unitType);
+	return findServerSideUnit ? findServerSideUnit((DWORD)unitId, (DWORD)unitType) : nullptr;
 }
 
 Offset GameHelper::GetPlayerTargetPos() const
