@@ -1,27 +1,22 @@
 # D2DX
 
-D2DX is a project for running classic Diablo II/LoD on modern PCs, with enhancements that honor the original look and feel. Play in a window or in fullscreen, glitch-free, with (or without) enhancements like widescreen, true high framerate and anti-aliasing.
+D2DX is a Glide-wrapper and mod that makes the classic Diablo II/LoD run well on modern PCs, while honoring the original look and feel of the game.
+Play in a window or in fullscreen, glitch-free, with or without enhancements like widescreen, true high framerate and anti-aliasing.
 
-Version 0.99.505b
+Version 0.99.506
 
-## Mission statement
-  - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
-  - High quality scaling to modern resolutions, including widescreen.
-  - Aim to preserve the classic Diablo 2/LoD experience as much as possible.
-  
-## Implemented
-  - High performance DirectX 11 renderer (Glide wrapper).
-  - Proper gamma/contrast.
-  - Improved fullscreen mode: instant ALT-TAB and low latency.
-  - Improved windowed mode.
-  - High FPS mode using motion prediction. Play at 60 fps and higher!
-  - Widescreen support (in vanilla D2/LoD).
+## Features
+  - Turns the game into a well behaved DirectX 11 title on Windows 10 (also 7, 8 and 8.1).
+  - High quality scaling to fit modern screen sizes, including widescreen aspect ratios.
+  - High FPS mod using motion prediction, bypassing the internal 25 fps limit. Play at 60 fps and higher!
   - Anti-aliasing of specific jagged edges in the game (sprites, walls, some floors).
   - Seamless windowed/fullscreen switching with (ALT-Enter).
-  - Fixes various glitches in the supported game versions.
+  - Improved fullscreen: instant ALT-TAB and low latency.
+  - Improved windowed mode.
+  - Proper gamma/contrast.
+  - Fixes a few window-related glitches in Diablo II itself.
 
 ## Upcoming
-  - Better config file support.
   - Suggestions welcome!
 
 ## Requirements
@@ -41,94 +36,22 @@ D2DX has been tested working with the following mods:
   - PlugY
   - D2ModMaker
 
+## Documentation
+  This readme contains basic information to get you started. See the [D2DX wiki](https://github.com/bolrog/d2dx/wiki/) for more documentation.
+
 ## Installation
   Copy the included "glide3x.dll" into your Diablo II folder.
   
   Note that in some cases you may have to also download and install the Visual C++ runtime library from Microsoft: https://aka.ms/vs/16/release/vc_redist.x86.exe
 
-  The wrapper should work with PlugY, just make sure you have (at a minimum) -3dfx in the ini file:
-  ```
-  [LAUNCHING]
-  Param=-3dfx
-  ```
-
 ## Usage
-### To start the game with D2DX enabled
+To start the game with D2DX enabled, just provide -3dfx, e.g.
   ```
   Game.exe -3dfx
   ```
-Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter.
+Windowed/fullscreen mode can be switched at any time by pressing ALT-Enter. The normal -w command-line option works too.
 
-### Command-line options
-
-  Note: more information about these can be found in the Wiki.
-
-  Disable mouse cursor clipping
-  ```
-  -dxnoclipcursor
-  ```
-
-  Hide the "D2DX" logo on the title screen
-  ```
-  -dxnologo
-  ``` 
-  
-  Disable custom D2DX window title
-  ```
-  -dxnotitlechange
-  ```
-  
-  Disable widescreen mode
-  ```
-  -dxnowide 
-  ```
-
-  Disable built-in resolution mod entirely
-  ```
-  -dxnoresmod
-  ```
-
-  Disable FPS fix
-  ```
-  -dxnofpsfix
-  ```
-  
-  Disable v-sync (may be useful on G-Sync/FreeSync displays)
-  ```
-  -dxnovsync
-  ```
-  
-  Disable anti-aliasing
-  ```
-  -dxnoaa
-  ```
-  
-  In windowed mode, scale the size by 2 or 3:
-  ```
-  -dxscale2
-  -dxscale3
-  ```
-
-### Experimental high fps mode
-
-  See the Wiki page on Motion Prediction.
-
-### Experimental widescreen (windowed and fullscreen) modes 
-  PLEASE NOTE: This only works with 1.12, 1.13c and 1.13d at this time.
-
-  D2DX contains a modified version of D2HD to provide widescreen in-game modes.
-
-  Widescreen mode is enabled by default, except if:
-  - The option -dxnowide is passed.
-  - Running a game version that isn't supported.
-  - Running the "Median XL" mod (D2DX will allow it to use 1024x768 instead).
-
-  D2DX will create a file named "d2dx_d2hd.mpq" in the Diablo II folder, and add a new in-game resolution, close to the normal ones but having the aspect ratio of your monitor.
-  The goal of this is to achieve proper fullscreen scaling without artifacts when displaying the game on modern PCs.
-
-  - For a 1920x1080 monitor, this is 960x540 (in fullscreen: 2x integer scaling).
-  - For a 2560×1440 monitor, this is 1280x720 (in fullscreen: 2x integer scaling).
-  - For a 3840x2160 monitor, this is 1280x720 (in fullscreen: 3x integer scaling).
+Many of the default settings of D2DX can be changed. For a full list of command-line options and how to use a configuration file, see the [wiki](https://github.com/bolrog/d2dx/wiki/).
 
 ## Troubleshooting
 
@@ -144,6 +67,8 @@ Patch contributions: Xenthalon
 
 The research of many people in the Diablo II community over twenty years made this project possible.
 
+Thanks also to everyone who contributes bug reports!
+
 D2DX uses the following third party libraries:
 - FNV1a hash reference implementation, which is in the public domain.
 - Detours by Microsoft.
@@ -151,6 +76,10 @@ D2DX uses the following third party libraries:
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
 ## Release history
+
+### 0.99.506
+  - Fix crash sometimes happening when using a town portal.
+  - Add motion prediction to missiles.
 
 ### 0.99.505b
   - Fix bug causing crash when using config file.
