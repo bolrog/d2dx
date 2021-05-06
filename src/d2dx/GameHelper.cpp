@@ -24,7 +24,6 @@
 using namespace d2dx;
 
 GameHelper::GameHelper() :
-	_isPd2(LoadLibraryA("PD2_EXT.dll")),
 	_version(GetGameVersion()),
 	_hProcess(GetCurrentProcess()),
 	_hGameExe(GetModuleHandleA("game.exe")),
@@ -400,11 +399,6 @@ TextureCategory GameHelper::RefineTextureCategoryFromGameAddress(
 GameVersion GameHelper::GetGameVersion()
 {
 	GameVersion version = GameVersion::Unsupported;
-
-	if (_isPd2)
-	{
-		return version;
-	}
 
 	auto versionSize = GetFileVersionInfoSizeA("game.exe", nullptr);
 	Buffer<uint8_t> verData(versionSize);

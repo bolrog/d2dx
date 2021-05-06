@@ -79,7 +79,6 @@ namespace d2dx
 		GameVersion GetGameVersion();
 		void InitializeTextureHashPrefixTable();
 
-		bool _isPd2;
 		HANDLE _hProcess;
 		HANDLE _hGameExe;
 		HANDLE _hD2ClientDll;
