@@ -68,6 +68,10 @@ namespace d2dx
 		virtual uint32_t GetUnitId(
 			_In_ const D2::UnitAny* unit) const override;
 
+		virtual D2::UnitAny* FindServerSideUnit(
+			_In_ uint32_t unitId,
+			_In_ D2::UnitType unitType) const override;
+
 	private:
 		uint16_t ReadU16(HANDLE module, uint32_t offset) const;
 		uint32_t ReadU32(HANDLE module, uint32_t offset) const;

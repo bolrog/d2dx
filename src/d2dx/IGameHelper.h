@@ -33,6 +33,9 @@ namespace d2dx
 		D2Gfx_DrawShadow = 5, /* call dword ptr [eax+90h] */
 		D2Win_DrawText = 6, /* mov ebx, [esp+4+arg_8] */
 		D2Client_DrawUnit = 7, /* push    52Bh */
+		D2Client_DrawMissile = 8, 
+		D2Client_FindClientSideUnit = 9,
+		D2Client_FindServerSideUnit = 10,
 	};
 
 	struct DrawParameters
@@ -84,5 +87,9 @@ namespace d2dx
 
 		virtual uint32_t GetUnitId(
 			_In_ const D2::UnitAny* unit) const = 0;
+
+		virtual D2::UnitAny* FindServerSideUnit(
+			_In_ uint32_t unitId,
+			_In_ D2::UnitType unitType) const = 0;
 	};
 }

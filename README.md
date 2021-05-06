@@ -2,7 +2,7 @@
 
 D2DX is a project for running classic Diablo II/LoD on modern PCs, with enhancements that honor the original look and feel. Play in a window or in fullscreen, glitch-free, with (or without) enhancements like widescreen, true high framerate and anti-aliasing.
 
-Version 0.99.505
+Version 0.99.505b
 
 ## Mission statement
   - Turn the game into a well behaved DirectX 11 title on Windows 10 (7, 8 and 8.1 are also supported).
@@ -152,9 +152,11 @@ D2DX uses the following third party libraries:
 
 ## Release history
 
-### 0.99.505
+### 0.99.505b
   - Fix bug causing crash when using config file.
   - Add option to set window position in config file. (default is to center)
+  - Update: Fix tracking of belt items and auras.
+  - Update: Fix teleportation causing "drift" in motion prediction.
 
 ### 0.99.504
   - Revamp configuration file support. NOTE that the old d2dx.cfg format has changed! See d2dx-defaults.cfg for instructions.

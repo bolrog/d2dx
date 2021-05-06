@@ -36,9 +36,15 @@ namespace d2dx
 			_In_ const D2::UnitAny* unit);
 
 	private:
+		struct UnitIdAndType final
+		{
+			uint16_t unitType = 0;
+			uint16_t unitId = 0;
+		};
+
 		struct UnitMotion final
 		{
-			int64_t lastUsedFrame = 0;
+			uint32_t lastUsedFrame = 0;
 			Offset lastPos = { 0, 0 };
 			Offset velocity = { 0, 0 };
 			Offset predictedPos = { 0, 0 };
@@ -48,7 +54,7 @@ namespace d2dx
 
 		std::shared_ptr<IGameHelper> _gameHelper;
 		uint32_t _frame = 0;
-		Buffer<const D2::UnitAny*> _unitPtrs;
+		Buffer<UnitIdAndType> _unitIdAndTypes;
 		Buffer<UnitMotion> _unitMotions;
 		int32_t _unitsCount = 0;
 	};

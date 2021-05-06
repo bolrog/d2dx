@@ -624,6 +624,36 @@ Offset GameHelper::GetUnitPos(
 	}
 }
 
+typedef D2::UnitAny* (__fastcall* FindUnitFunc)(DWORD dwId, DWORD dwType);
+
+_Use_decl_annotations_
+D2::UnitAny* GameHelper::FindServerSideUnit(
+	uint32_t unitId,
+	D2::UnitType unitType) const
+{
+	FindUnitFunc findClientSideUnit = (FindUnitFunc)GetFunction(D2Function::D2Client_FindClientSideUnit);
+	FindUnitFunc findServerSideUnit = (FindUnitFunc)GetFunction(D2Function::D2Client_FindServerSideUnit);
+
+	if (!findClientSideUnit)
+	{
+		return nullptr;
+	}
+
+	D2::UnitAny* unit = findClientSideUnit((DWORD)unitId, (DWORD)unitType);
+
+	if (unit)
+	{
+		return unit;
+	}
+
+	if (!findServerSideUnit)
+	{
+		return nullptr;
+	}
+
+	return findServerSideUnit((DWORD)unitId, (DWORD)unitType);
+}
+
 Offset GameHelper::GetPlayerTargetPos() const
 {
 	Offset pos = { 0,0 };
@@ -675,6 +705,10 @@ void* GameHelper::GetFunction(
 			return _version == GameVersion::Lod110 ? 
 				(void*)((uintptr_t)_hD2ClientDll + 0xBA720) :
 				(void*)((uintptr_t)_hD2ClientDll + 0xB8350);
+		case D2Function::D2Client_FindServerSideUnit:
+			return _version == GameVersion::Lod110 ? 
+				(void*)((uintptr_t)_hD2ClientDll + 0x86C70) :
+				(void*)((uintptr_t)_hD2ClientDll + 0x8B7B0);
 		default:
 			break;
 		}
@@ -712,6 +746,10 @@ void* GameHelper::GetFunction(
 			break;
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x94250);
+		case D2Function::D2Client_DrawMissile:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x949C0);
+		case D2Function::D2Client_FindServerSideUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x1F1C0);
 		default:
 			break;
 		}
@@ -749,6 +787,10 @@ void* GameHelper::GetFunction(
 			break;
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x6C490);
+		case D2Function::D2Client_DrawMissile:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x6CC00);
+		case D2Function::D2Client_FindServerSideUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0xA5B40);
 		default:
 			break;
 		}
@@ -786,6 +828,12 @@ void* GameHelper::GetFunction(
 			break;
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x605b0);
+		case D2Function::D2Client_DrawMissile:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x60C70);
+		case D2Function::D2Client_FindClientSideUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x620B0);
+		case D2Function::D2Client_FindServerSideUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x620D0);
 		default:
 			break;
 		}
@@ -809,6 +857,10 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hGameExe + 0x102320);
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hGameExe + 0x70EC0);
+		case D2Function::D2Client_DrawMissile:
+			return (void*)((uintptr_t)_hGameExe + 0x71EC0);
+		case D2Function::D2Client_FindServerSideUnit:
+			return (void*)((uintptr_t)_hGameExe + 0x639B0);
 		default:
 			break;
 		}

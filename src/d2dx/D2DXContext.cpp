@@ -1202,19 +1202,18 @@ void D2DXContext::BeginDrawImage(
 	{
 		DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
 
-		//if (_playerScreenPos.x > 0 &&
-		//	pos.x == _playerScreenPos.x &&
-		//	pos.y == _playerScreenPos.y)
-		//{
-		//	// Overlays will be drawn at the player position, so mark them as part of the player.
-		//	_scratchBatch.SetTextureCategory(TextureCategory::Player);
-		//}
-		//else 
-		if (
-			drawParameters.unitId == 0 &&
-			drawParameters.unitType == 0 &&
-			cellContext->dwMode == 0)
+		if (_playerScreenPos.x > 0 && max(abs(pos.x - _playerScreenPos.x), abs(pos.y - _playerScreenPos.y)) < 4)
 		{
+			// Player shadow
+			_scratchBatch.SetTextureCategory(TextureCategory::Player);
+		}
+		else 
+		if (
+			(drawParameters.unitType == 0 && cellContext->dwMode == 0) || 
+			(drawParameters.unitType == 4 && cellContext->dwMode == 4)) // Belt items
+		{
+			//D2DX_LOG("id %u token %08x pos %i %i", drawParameters.unitId, drawParameters.unitToken, pos.x, pos.y);
+			
 			// UI elements have zero unit ID and unit type.
 			_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 		}

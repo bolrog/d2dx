@@ -211,6 +211,7 @@ D2Gfx_DrawImageFastFunc D2Gfx_DrawImageFast_Real = nullptr;
 D2Gfx_DrawShadowFunc D2Gfx_DrawShadow_Real = nullptr;
 D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawUnit_Real = nullptr;
+D2Client_DrawUnitFunc D2Client_DrawMissile_Real = nullptr;
 
 void __stdcall D2Gfx_DrawImage_Hooked(
 	D2::CellContext* cellContext,
@@ -493,6 +494,45 @@ patchReturnAddr :
 		ret
 	}
 }
+
+__declspec(naked) void D2Client_DrawMissile_ESI_Hooked()
+{
+	static void* origReturnAddr = nullptr;
+
+	__asm
+	{
+		push eax
+		push edx
+		lea edx, origReturnAddr
+		mov eax, dword ptr[esp + 0x08]
+		mov dword ptr[edx], eax
+		lea eax, patchReturnAddr
+		mov dword ptr[esp + 0x08], eax
+		lea edx, currentlyDrawingUnit
+		mov dword ptr[edx], esi
+		pop edx
+		pop eax
+	}
+
+	__asm jmp D2Client_DrawMissile_Real
+
+	patchReturnAddr :
+	__asm
+	{
+		push eax
+		push eax
+		push edx
+		lea edx, currentlyDrawingUnit
+		xor eax, eax
+		mov dword ptr[edx], eax
+		lea edx, origReturnAddr
+		mov eax, dword ptr[edx]
+		mov dword ptr[esp + 0x08], eax
+		pop edx
+		pop eax
+		ret
+	}
+}
 void d2dx::AttachDetours()
 {
 	if (hasDetoured)
@@ -537,6 +577,8 @@ void d2dx::AttachLateDetours(
 	D2Gfx_DrawShadow_Real = (D2Gfx_DrawShadowFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawShadow);
 	D2Win_DrawText_Real = (D2Win_DrawTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawText);
 	D2Client_DrawUnit_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawUnit);
+	D2Client_DrawMissile_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawMissile);
+
 
 	if (!D2Gfx_DrawImage_Real ||
 		!D2Gfx_DrawShiftedImage_Real ||
@@ -564,6 +606,11 @@ void d2dx::AttachLateDetours(
 		(gameHelper->GetVersion() == GameVersion::Lod109d || 
 		gameHelper->GetVersion() == GameVersion::Lod110 ||
 		gameHelper->GetVersion() == GameVersion::Lod114d)? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
+	
+	if (D2Client_DrawMissile_Real)
+	{
+		DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
+	}
 
 	LONG lError = DetourTransactionCommit();
 

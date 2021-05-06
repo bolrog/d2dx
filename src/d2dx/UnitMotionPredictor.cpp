@@ -26,7 +26,7 @@ _Use_decl_annotations_
 UnitMotionPredictor::UnitMotionPredictor(
 	const std::shared_ptr<IGameHelper>& gameHelper) :
 	_gameHelper{ gameHelper },
-	_unitPtrs{ 1024, true },
+	_unitIdAndTypes{ 1024, true },
 	_unitMotions{ 1024, true }
 {
 }
@@ -40,23 +40,31 @@ void UnitMotionPredictor::Update(
 
 	for (int32_t i = 0; i < _unitsCount; ++i)
 	{
-		const D2::UnitAny* unit = _unitPtrs.items[i];
+		UnitIdAndType& uiat = _unitIdAndTypes.items[i];
 
-		if (!_unitPtrs.items[i])
+		if (!uiat.unitId)
 		{
+			expiredUnitIndex = i;
+			continue;
+		}
+
+		auto unit = _gameHelper->FindServerSideUnit(uiat.unitId, (D2::UnitType)uiat.unitType);
+
+		if (!unit)
+		{
+			uiat.unitId = 0;
 			expiredUnitIndex = i;
 			continue;
 		}
 
 		UnitMotion& um = _unitMotions.items[i];
-		auto unitId = _gameHelper->GetUnitId(unit);
 
-		if ((_frame - um.lastUsedFrame) > 1 || unitId == 0xFFFFFFFF || unitId == 0)
-		{
-			_unitPtrs.items[i] = nullptr;
-			expiredUnitIndex = i;
-			continue;
-		}
+		//if ((_frame - um.lastUsedFrame) > 1)
+		//{
+		//	uiat.unitId = 0;
+		//	expiredUnitIndex = i;
+		//	continue;
+		//}
 
 		const Offset pos = _gameHelper->GetUnitPos(unit);
 
@@ -139,7 +147,7 @@ void UnitMotionPredictor::Update(
 	// Gradually (one change per frame) compact the unit list.
 	if (_unitsCount > 1)
 	{
-		if (!_unitPtrs.items[_unitsCount - 1])
+		if (!_unitIdAndTypes.items[_unitsCount - 1].unitId)
 		{
 			// The last entry is expired. Shrink the list.
 			_unitMotions.items[_unitsCount - 1] = { };
@@ -148,9 +156,9 @@ void UnitMotionPredictor::Update(
 		else if (expiredUnitIndex >= 0 && expiredUnitIndex < (_unitsCount - 1))
 		{
 			// Some entry is expired. Move the last entry to that place, and shrink the list.
-			_unitPtrs.items[expiredUnitIndex] = _unitPtrs.items[_unitsCount - 1];
+			_unitIdAndTypes.items[expiredUnitIndex] = _unitIdAndTypes.items[_unitsCount - 1];
 			_unitMotions.items[expiredUnitIndex] = _unitMotions.items[_unitsCount - 1];
-			_unitPtrs.items[_unitsCount - 1] = nullptr;
+			_unitIdAndTypes.items[_unitsCount - 1] = { 0,0 };
 			_unitMotions.items[_unitsCount - 1] = { };
 			--_unitsCount;
 		}
@@ -165,9 +173,13 @@ OffsetF UnitMotionPredictor::GetOffset(
 {
 	int32_t unitIndex = -1;
 
+	auto unitId = _gameHelper->GetUnitId(unit);
+	auto unitType = _gameHelper->GetUnitType(unit);
+
 	for (int32_t i = 0; i < _unitsCount; ++i)
 	{
-		if (_unitPtrs.items[i] == unit)
+		if (_unitIdAndTypes.items[i].unitId == (uint16_t)unitId &&
+			_unitIdAndTypes.items[i].unitType == (uint16_t)unitType)
 		{
 			_unitMotions.items[i].lastUsedFrame = _frame;
 			unitIndex = i;
@@ -177,10 +189,11 @@ OffsetF UnitMotionPredictor::GetOffset(
 
 	if (unitIndex < 0)
 	{
-		if (_unitsCount < (int32_t)_unitPtrs.capacity)
+		if (_unitsCount < (int32_t)_unitIdAndTypes.capacity)
 		{
 			unitIndex = _unitsCount++;
-			_unitPtrs.items[unitIndex] = unit;
+			_unitIdAndTypes.items[unitIndex].unitId = (uint16_t)unitId;
+			_unitIdAndTypes.items[unitIndex].unitType = (uint16_t)unitType;
 			_unitMotions.items[unitIndex] = { };
 			_unitMotions.items[unitIndex].lastUsedFrame = _frame;
 		}
