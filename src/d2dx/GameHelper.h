@@ -73,9 +73,6 @@ namespace d2dx
 			_In_ D2::UnitType unitType) const override;
 
 	private:
-		uint16_t ReadU16(HANDLE module, uint32_t offset) const;
-		uint32_t ReadU32(HANDLE module, uint32_t offset) const;
-		void WriteU32(HANDLE module, uint32_t offset, uint32_t value);
 		GameVersion GetGameVersion();
 		void InitializeTextureHashPrefixTable();
 

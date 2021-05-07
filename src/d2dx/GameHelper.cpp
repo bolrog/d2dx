@@ -67,17 +67,17 @@ uint32_t GameHelper::ScreenOpenMode() const
 	switch (_version)
 	{
 	case GameVersion::Lod109d:
-		return ReadU32(_hD2ClientDll, 0x115C10);
+		return *(const uint32_t*)((uint32_t)_hD2ClientDll + 0x115C10);
 	case GameVersion::Lod110:
-		return ReadU32(_hD2ClientDll, 0x10B9C4);
+		return *(const uint32_t*)((uint32_t)_hD2ClientDll + 0x10B9C4);
 	case GameVersion::Lod112:
-		return ReadU32(_hD2ClientDll, 0x11C1D0);
+		return *(const uint32_t*)((uint32_t)_hD2ClientDll + 0x11C1D0);
 	case GameVersion::Lod113c:
-		return ReadU32(_hD2ClientDll, 0x11C414);
+		return *(const uint32_t*)((uint32_t)_hD2ClientDll + 0x11C414);
 	case GameVersion::Lod113d:
-		return ReadU32(_hD2ClientDll, 0x11D070);
+		return *(const uint32_t*)((uint32_t)_hD2ClientDll + 0x11D070);
 	case GameVersion::Lod114d:
-		return ReadU32(_hGameExe, 0x3A5210);
+		return *(const uint32_t*)((uint32_t)_hGameExe + 0x3A5210);
 	default:
 		return 0;
 	}
@@ -109,28 +109,6 @@ Size GameHelper::GetConfiguredGameSize() const
 	{
 		return { 800, 600 };
 	}
-}
-
-uint32_t GameHelper::ReadU32(HANDLE hModule, uint32_t offset) const
-{
-	uint32_t result;
-	DWORD bytesRead;
-	ReadProcessMemory(_hProcess, (LPCVOID)((uintptr_t)hModule + offset), &result, sizeof(DWORD), &bytesRead);
-	return result;
-}
-
-uint16_t GameHelper::ReadU16(HANDLE hModule, uint32_t offset) const
-{
-	uint16_t result;
-	DWORD bytesRead;
-	ReadProcessMemory(_hProcess, (LPCVOID)((uintptr_t)hModule + offset), &result, sizeof(WORD), &bytesRead);
-	return result;
-}
-
-void GameHelper::WriteU32(HANDLE hModule, uint32_t offset, uint32_t value)
-{
-	DWORD bytesWritten;
-	WriteProcessMemory(_hProcess, (LPVOID)((uintptr_t)hModule + offset), &value, 4, &bytesWritten);
 }
 
 static const uint32_t gameAddresses_109d[] =
@@ -524,7 +502,7 @@ bool GameHelper::TryApplyFpsFix()
 		return false;
 	}
 
-	const uint32_t probe = ReadU32(hModule, patchOffset1 != 0 ? patchOffset1 : patchOffset0);
+	const uint32_t probe = *(const uint32_t*)((uint32_t)hModule + (patchOffset1 != 0 ? patchOffset1 : patchOffset0));
 
 	if (probe != expectedProbe)
 	{
@@ -532,12 +510,19 @@ bool GameHelper::TryApplyFpsFix()
 		return false;
 	}
 
-	WriteU32(hModule, patchOffset0, 0x90909090);
+	uint32_t* patchLocation0 = (uint32_t*)((uint32_t)hModule + patchOffset0);
+
+	DWORD dwOldPage;
+	VirtualProtect(patchLocation0, 8, PAGE_EXECUTE_READWRITE, &dwOldPage);
+
+	*patchLocation0 = 0x90909090;
 
 	if (patchOffset1 != 0)
 	{
-		WriteU32(hModule, patchOffset1, 0x90909090);
+		*(uint32_t*)((uint32_t)hModule + patchOffset1) = 0x90909090;
 	}
+
+	VirtualProtect(patchLocation0, 8, dwOldPage, &dwOldPage);
 
 	D2DX_LOG("Fps fix applied.");
 	return true;
@@ -558,13 +543,13 @@ D2::UnitAny* GameHelper::GetPlayerUnit() const
 		getClientPlayerFunc = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x883D0);
 		return getClientPlayerFunc();
 	case GameVersion::Lod112:
-		return (D2::UnitAny*)ReadU32(_hD2ClientDll, 0x11C3D0);
+		return (D2::UnitAny*)*(const uint32_t*)((uint32_t)_hD2ClientDll + 0x11C3D0);
 	case GameVersion::Lod113c:
-		return (D2::UnitAny*)ReadU32(_hD2ClientDll, 0x11BBFC);
+		return (D2::UnitAny*)*(const uint32_t*)((uint32_t)_hD2ClientDll + 0x11BBFC);
 	case GameVersion::Lod113d:
-		return (D2::UnitAny*)ReadU32(_hD2ClientDll, 0x11D050);
+		return (D2::UnitAny*)*(const uint32_t*)((uint32_t)_hD2ClientDll + 0x11D050);
 	case GameVersion::Lod114d:
-		return (D2::UnitAny*)ReadU32(_hGameExe, 0x3A6A70);
+		return (D2::UnitAny*)*(const uint32_t*)((uint32_t)_hGameExe + 0x3A6A70);
 	default:
 		return nullptr;
 	}
