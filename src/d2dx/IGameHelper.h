@@ -34,8 +34,9 @@ namespace d2dx
 		D2Win_DrawText = 6, /* mov ebx, [esp+4+arg_8] */
 		D2Client_DrawUnit = 7, /* push    52Bh */
 		D2Client_DrawMissile = 8, 
-		D2Client_FindClientSideUnit = 9,
-		D2Client_FindServerSideUnit = 10,
+		D2Client_DrawWeatherParticles = 9,
+		D2Client_FindClientSideUnit = 10,
+		D2Client_FindServerSideUnit = 11,
 	};
 
 	struct DrawParameters
@@ -91,5 +92,9 @@ namespace d2dx
 		virtual D2::UnitAny* FindUnit(
 			_In_ uint32_t unitId,
 			_In_ D2::UnitType unitType) const = 0;
+
+		virtual int32_t GetCurrentAct() const = 0;
+
+		virtual bool IsGameMenuOpen() const = 0;
 	};
 }

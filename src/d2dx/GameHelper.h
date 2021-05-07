@@ -72,6 +72,10 @@ namespace d2dx
 			_In_ uint32_t unitId,
 			_In_ D2::UnitType unitType) const override;
 
+		virtual int32_t GetCurrentAct() const override;
+
+		virtual bool IsGameMenuOpen() const override;
+
 	private:
 		GameVersion GetGameVersion();
 		void InitializeTextureHashPrefixTable();

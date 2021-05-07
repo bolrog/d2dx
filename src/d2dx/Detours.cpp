@@ -202,6 +202,7 @@ typedef void(__stdcall* D2Gfx_DrawImageFastFunc)(D2::CellContext* pData, int nXp
 typedef void(__stdcall* D2Gfx_DrawShadowFunc)(D2::CellContext* pData, int nXpos, int nYpos);
 typedef void(__fastcall* D2Win_DrawTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD dwUnk);
 typedef uint32_t(__stdcall* D2Client_DrawUnitFunc)(D2::UnitAny* unit, uint32_t b, uint32_t c, uint32_t d, uint32_t e);
+typedef void* NakedFunc;
 
 D2Gfx_DrawImageFunc D2Gfx_DrawImage_Real = nullptr;
 D2Gfx_DrawShiftedImageFunc D2Gfx_DrawShiftedImage_Real = nullptr;
@@ -212,6 +213,7 @@ D2Gfx_DrawShadowFunc D2Gfx_DrawShadow_Real = nullptr;
 D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawUnit_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawMissile_Real = nullptr;
+NakedFunc D2Client_DrawWeatherParticles_Real = nullptr;
 
 void __stdcall D2Gfx_DrawImage_Hooked(
 	D2::CellContext* cellContext,
@@ -415,6 +417,8 @@ void __fastcall D2Win_DrawText_Hooked(
 }
 
 D2::UnitAny* currentlyDrawingUnit = nullptr;
+uint32_t currentlyDrawingWeatherParticles = 0;
+uint32_t* currentlyDrawingWeatherParticleIndexPtr = nullptr;
 
 __declspec(naked) void D2Client_DrawUnit_Stack_Hooked()
 {
@@ -516,7 +520,7 @@ __declspec(naked) void D2Client_DrawMissile_ESI_Hooked()
 
 	__asm jmp D2Client_DrawMissile_Real
 
-	patchReturnAddr :
+patchReturnAddr:
 	__asm
 	{
 		push eax
@@ -534,6 +538,93 @@ __declspec(naked) void D2Client_DrawMissile_ESI_Hooked()
 	}
 }
 
+__declspec(naked) void D2Client_DrawWeatherParticles_Hooked()
+{
+	static void* origReturnAddr = nullptr;
+
+	__asm
+	{
+		push eax
+		push edx
+		lea edx, origReturnAddr
+		mov eax, dword ptr[esp + 0x08]
+		mov dword ptr[edx], eax
+		lea eax, patchReturnAddr
+		mov dword ptr[esp + 0x08], eax
+		mov eax, 1
+		lea edx, currentlyDrawingWeatherParticles
+		mov dword ptr[edx], eax
+		lea edx, currentlyDrawingWeatherParticleIndexPtr
+		mov eax, esp
+		add eax, 4
+		mov dword ptr[edx], eax
+		pop edx
+		pop eax
+	}
+
+	__asm jmp D2Client_DrawWeatherParticles_Real
+
+patchReturnAddr:
+	__asm
+	{
+		push eax
+		push eax
+		push edx
+		lea edx, currentlyDrawingWeatherParticles
+		xor eax, eax
+		mov dword ptr[edx], eax
+		lea edx, origReturnAddr
+		mov eax, dword ptr[edx]
+		mov dword ptr[esp + 0x08], eax
+		pop edx
+		pop eax
+		ret
+	}
+}
+
+__declspec(naked) void D2Client_DrawWeatherParticles114d_Hooked()
+{
+	static void* origReturnAddr = nullptr;
+
+	__asm
+	{
+		push eax
+		push edx
+		lea edx, origReturnAddr
+		mov eax, dword ptr[esp + 0x08]
+		mov dword ptr[edx], eax
+		lea eax, patchReturnAddr
+		mov dword ptr[esp + 0x08], eax
+		mov eax, 1
+		lea edx, currentlyDrawingWeatherParticles
+		mov dword ptr[edx], eax
+		lea edx, currentlyDrawingWeatherParticleIndexPtr
+		mov eax, esp
+		sub eax, 10h
+		mov dword ptr[edx], eax
+		pop edx
+		pop eax
+	}
+
+	__asm jmp D2Client_DrawWeatherParticles_Real
+
+	patchReturnAddr :
+	__asm
+	{
+		push eax
+		push eax
+		push edx
+		lea edx, currentlyDrawingWeatherParticles
+		xor eax, eax
+		mov dword ptr[edx], eax
+		lea edx, origReturnAddr
+		mov eax, dword ptr[edx]
+		mov dword ptr[esp + 0x08], eax
+		pop edx
+		pop eax
+		ret
+	}
+}
 void d2dx::AttachDetours()
 {
 	if (hasDetoured)
@@ -579,6 +670,7 @@ void d2dx::AttachLateDetours(
 	D2Win_DrawText_Real = (D2Win_DrawTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawText);
 	D2Client_DrawUnit_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawUnit);
 	D2Client_DrawMissile_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawMissile);
+	D2Client_DrawWeatherParticles_Real = (NakedFunc)gameHelper->GetFunction(D2Function::D2Client_DrawWeatherParticles);
 
 
 	if (!D2Gfx_DrawImage_Real ||
@@ -611,7 +703,12 @@ void d2dx::AttachLateDetours(
 	if (D2Client_DrawMissile_Real)
 	{
 		DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
-//			gameHelper->GetVersion() == GameVersion::Lod112 ? D2Client_DrawMissile_ECX_Hooked : D2Client_DrawMissile_ESI_Hooked);
+	}
+	
+	if (D2Client_DrawWeatherParticles_Real)
+	{
+		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real, 
+			gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawWeatherParticles114d_Hooked : D2Client_DrawWeatherParticles_Hooked);
 	}
 
 	LONG lError = DetourTransactionCommit();

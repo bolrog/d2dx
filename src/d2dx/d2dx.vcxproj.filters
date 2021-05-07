@@ -98,6 +98,7 @@
     <ClCompile Include="..\..\thirdparty\toml\toml.c">
       <Filter>thirdparty\toml</Filter>
     </ClCompile>
+    <ClCompile Include="WeatherMotionPredictor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -251,6 +252,7 @@
     <ClInclude Include="..\..\thirdparty\toml\toml.h">
       <Filter>thirdparty\toml</Filter>
     </ClInclude>
+    <ClInclude Include="WeatherMotionPredictor.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

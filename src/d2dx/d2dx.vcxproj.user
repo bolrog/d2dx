@@ -3,14 +3,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommand>C:\games\Diablo II\Game.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-ns -3dfx -w -dxnoclipcursor</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-ns -3dfx -w -dxnoclipcursor -dxtestmop</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>C:\games\Diablo II\</LocalDebuggerWorkingDirectory>
     <LocalDebuggerDebuggerType>NativeOnly</LocalDebuggerDebuggerType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommand>C:\games\Diablo II\Game.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-3dfx -ns -w</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-3dfx -ns -w -dxtestmop</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>C:\games\Diablo II\</LocalDebuggerWorkingDirectory>
     <LocalDebuggerDebuggerType>NativeOnly</LocalDebuggerDebuggerType>
   </PropertyGroup>

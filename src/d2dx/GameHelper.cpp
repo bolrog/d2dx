@@ -642,6 +642,48 @@ void* GameHelper::GetFunction(
 	switch (_version)
 	{
 	case GameVersion::Lod109d:
+		switch (function)
+		{
+		case D2Function::D2Gfx_DrawImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10072;
+			break;
+		case D2Function::D2Gfx_DrawShiftedImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10073;
+			break;
+		case D2Function::D2Gfx_DrawVerticalCropImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10074;
+			break;
+		case D2Function::D2Gfx_DrawClippedImage:
+			hModule = _hD2GfxDll;
+			ordinal = 10077;
+			break;
+		case D2Function::D2Gfx_DrawImageFast:
+			hModule = _hD2GfxDll;
+			ordinal = 10076;
+			break;
+		case D2Function::D2Gfx_DrawShadow:
+			hModule = _hD2GfxDll;
+			ordinal = 10075;
+			break;
+		case D2Function::D2Win_DrawText:
+			hModule = _hD2WinDll;
+			ordinal = 10117;
+			break;
+		case D2Function::D2Client_DrawUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0xB8350);
+		case D2Function::D2Client_FindClientSideUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x8B740);
+		case D2Function::D2Client_DrawWeatherParticles:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x07FA0);
+		case D2Function::D2Client_FindServerSideUnit:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x8B7B0);
+		default:
+			break;
+		}
+		break;
 	case GameVersion::Lod110:
 		switch (function)
 		{
@@ -674,17 +716,13 @@ void* GameHelper::GetFunction(
 			ordinal = 10117;
 			break;
 		case D2Function::D2Client_DrawUnit:
-			return _version == GameVersion::Lod110 ? 
-				(void*)((uintptr_t)_hD2ClientDll + 0xBA720) :
-				(void*)((uintptr_t)_hD2ClientDll + 0xB8350);
+			return (void*)((uintptr_t)_hD2ClientDll + 0xBA720);
 		case D2Function::D2Client_FindClientSideUnit:
-			return _version == GameVersion::Lod110 ?
-				(void*)((uintptr_t)_hD2ClientDll + 0x86BE0) :
-				(void*)((uintptr_t)_hD2ClientDll + 0x8B740);
+			return (void*)((uintptr_t)_hD2ClientDll + 0x86BE0);
+		case D2Function::D2Client_DrawWeatherParticles:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x08690);
 		case D2Function::D2Client_FindServerSideUnit:
-			return _version == GameVersion::Lod110 ? 
-				(void*)((uintptr_t)_hD2ClientDll + 0x86C70) :
-				(void*)((uintptr_t)_hD2ClientDll + 0x8B7B0);
+			return (void*)((uintptr_t)_hD2ClientDll + 0x86C70);
 		default:
 			break;
 		}
@@ -724,6 +762,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hD2ClientDll + 0x94250);
 		case D2Function::D2Client_DrawMissile:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x949C0);
+		case D2Function::D2Client_DrawWeatherParticles:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x14210);
 		case D2Function::D2Client_FindClientSideUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x1F1A0);
 		case D2Function::D2Client_FindServerSideUnit:
@@ -767,6 +807,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hD2ClientDll + 0x6C490);
 		case D2Function::D2Client_DrawMissile:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x6CC00);
+		case D2Function::D2Client_DrawWeatherParticles:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x7FE80);
 		case D2Function::D2Client_FindClientSideUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0xA5B20);
 		case D2Function::D2Client_FindServerSideUnit:
@@ -810,6 +852,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hD2ClientDll + 0x605b0);
 		case D2Function::D2Client_DrawMissile:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x60C70);
+		case D2Function::D2Client_DrawWeatherParticles:
+			return (void*)((uintptr_t)_hD2ClientDll + 0x4AD90);
 		case D2Function::D2Client_FindClientSideUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x620B0);
 		case D2Function::D2Client_FindServerSideUnit:
@@ -839,6 +883,8 @@ void* GameHelper::GetFunction(
 			return (void*)((uintptr_t)_hGameExe + 0x70EC0);
 		case D2Function::D2Client_DrawMissile:
 			return (void*)((uintptr_t)_hGameExe + 0x71EC0);
+		case D2Function::D2Client_DrawWeatherParticles:
+			return (void*)((uintptr_t)_hGameExe + 0x73470);
 		case D2Function::D2Client_FindClientSideUnit:
 			return (void*)((uintptr_t)_hGameExe + 0x63990);
 		case D2Function::D2Client_FindServerSideUnit:
@@ -878,4 +924,37 @@ DrawParameters GameHelper::GetDrawParameters(
 		GetVersion() == GameVersion::Lod110 ? cellContext->_11 : cellContext->dwPlayerType;
 
 	return drawParameters;
+}
+
+int32_t GameHelper::GetCurrentAct() const
+{
+	auto unit = GetPlayerUnit();
+
+	if (!unit)
+	{
+		return -1;
+	}
+
+	return (int32_t)unit->u.v112.dwAct;
+}
+
+bool GameHelper::IsGameMenuOpen() const
+{
+	switch (_version)
+	{
+	case GameVersion::Lod109d:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x1248D8)) != 0;
+	case GameVersion::Lod110:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x11A6CC)) != 0;
+	case GameVersion::Lod112:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x102B7C)) != 0;
+	case GameVersion::Lod113c:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0xFADA4)) != 0;
+	case GameVersion::Lod113d:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x11C8B4)) != 0;
+	case GameVersion::Lod114d:
+		return *((uint32_t*)((uint32_t)_hGameExe + 0x3A27E4)) != 0;
+	default:
+		return false;
+	}
 }

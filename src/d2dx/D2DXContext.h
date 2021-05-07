@@ -29,6 +29,7 @@
 #include "CompatibilityModeDisabler.h"
 #include "SurfaceIdTracker.h"
 #include "UnitMotionPredictor.h"
+#include "WeatherMotionPredictor.h"
 
 namespace d2dx
 {
@@ -261,5 +262,11 @@ namespace d2dx
 
 		bool _isDrawingText = false;
 		Offset _playerScreenPos = { 0,0 };
+
+		uint32_t _lastWeatherParticleIndex = 0xFFFFFFFF;
+
+		WeatherMotionPredictor _weatherMotionPredictor;
+
+		OffsetF _avgDir = { 0.0f, 0.0f };
 	};
 }

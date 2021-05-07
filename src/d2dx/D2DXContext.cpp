@@ -33,6 +33,8 @@ using namespace DirectX::PackedVector;
 using namespace std;
 
 extern D2::UnitAny* currentlyDrawingUnit;
+extern uint32_t currentlyDrawingWeatherParticles;
+extern uint32_t* currentlyDrawingWeatherParticleIndexPtr;
 
 #define D2DX_GLIDE_ALPHA_BLEND(rgb_sf, rgb_df, alpha_sf, alpha_df) \
 		(uint16_t)(((rgb_sf & 0xF) << 12) | ((rgb_df & 0xF) << 8) | ((alpha_sf & 0xF) << 4) | (alpha_df & 0xF))
@@ -85,7 +87,8 @@ D2DXContext::D2DXContext(
 	_textureHashCacheMisses{ 0 },
 	_palettes{ D2DX_MAX_PALETTES * 256 },
 	_surfaceIdTracker{ gameHelper },
-	_unitMotionPredictor{ gameHelper }
+	_unitMotionPredictor{ gameHelper },
+	_weatherMotionPredictor{ gameHelper }
 {
 	if (!_options.GetFlag(OptionsFlag::NoCompatModeFix))
 	{
@@ -490,6 +493,8 @@ void D2DXContext::OnBufferSwap()
 	Size desktopSize;
 	_renderContext->GetCurrentMetrics(&_gameSize, &renderRect, &desktopSize);
 
+	_avgDir = { 0.0f, 0.0f };
+
 	//D2DX_LOG("Time %f, Player %f,  %f (interpolated %f, %f)", _time, _lastPlayerX, _lastPlayerY, _itpPlayerX, _itpPlayerY);
 }
 
@@ -627,46 +632,138 @@ void D2DXContext::OnDrawLine(
 	Batch batch = _scratchBatch;
 	batch.SetGameAddress(GameAddress::DrawLine);
 	batch.SetStartVertex(_vertexCount);
-	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), GameAddress::DrawLine));
+	batch.SetTextureCategory(TextureCategory::UserInterface);
 
-	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, 0);
-	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, 0);
+	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, D2DX_SURFACE_ID_USER_INTERFACE);
 
-	float dx = (float)(startVertex.GetY() - endVertex.GetY());
-	float dy = (float)(endVertex.GetX() - startVertex.GetX());
-	const float lensqr = dx * dx + dy * dy;
-	const float len = lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
-	const float halfinvlen = 1.0f / (2.0f * len);
-	dx *= halfinvlen;
-	dy *= halfinvlen;
+	if (_options.GetFlag(OptionsFlag::TestMotionPrediction) && currentlyDrawingWeatherParticles)
+	{
+		uint32_t currentWeatherParticleIndex = *currentlyDrawingWeatherParticleIndexPtr;
 
-	Vertex vertex0 = startVertex;
-	vertex0.SetX((int32_t)(vertex0.GetX() - dx));
-	vertex0.SetY((int32_t)(vertex0.GetY() - dy));
+		int32_t act = _gameHelper->GetCurrentAct();
 
-	Vertex vertex1 = startVertex;
-	vertex1.SetX((int32_t)(vertex1.GetX() + dx));
-	vertex1.SetY((int32_t)(vertex1.GetY() + dy));
+		OffsetF startVertexPos{ (float)startVertex.GetX(), (float)startVertex.GetY() };
+		OffsetF endVertexPos{ (float)endVertex.GetX(), (float)endVertex.GetY() };
 
-	Vertex vertex2 = endVertex;
-	vertex2.SetX((int32_t)(vertex2.GetX() - dx));
-	vertex2.SetY((int32_t)(vertex2.GetY() - dy));
+		// Snow is drawn with two independent lines per particle index (different places on screen).
+		// We solve this by tracking each line separately.
+		if (currentWeatherParticleIndex == _lastWeatherParticleIndex)
+		{
+			currentWeatherParticleIndex += 256;
+		}
 
-	Vertex vertex3 = endVertex;
-	vertex3.SetX((int32_t)(vertex3.GetX() + dx));
-	vertex3.SetY((int32_t)(vertex3.GetY() + dy));
+		auto offset = _weatherMotionPredictor.GetOffset(currentWeatherParticleIndex, startVertexPos);
 
-	assert((_vertexCount + 6) < _vertices.capacity);
-	_vertices.items[_vertexCount++] = vertex0;
-	_vertices.items[_vertexCount++] = vertex1;
-	_vertices.items[_vertexCount++] = vertex2;
-	_vertices.items[_vertexCount++] = vertex1;
-	_vertices.items[_vertexCount++] = vertex2;
-	_vertices.items[_vertexCount++] = vertex3;
+		startVertexPos += offset;
+		endVertexPos += offset;
 
-	batch.SetVertexCount(6);
+		auto dir = endVertexPos - startVertexPos;
+		float len = dir.Length();
+		dir.Normalize();
 
-	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
+		float blendFactor = 0.1f;
+		if (_avgDir.x == 0.0f && _avgDir.y == 0.0f)
+		{
+			_avgDir = dir;
+		}
+		else
+		{
+			_avgDir.x = (1.0f - blendFactor) * _avgDir.x + blendFactor * dir.x;
+			_avgDir.y = (1.0f - blendFactor) * _avgDir.y + blendFactor * dir.y;
+			_avgDir.Normalize();
+		}
+		dir = _avgDir;
+
+		OffsetF normalVec{ -dir.y * 1.25f, dir.x * 1.25f };
+		const float stretchBack = act == 4 ? 1.0f : 3.0f;
+		const float stretchAhead = act == 4 ? 1.0f : 1.0f;
+
+		auto midPos = startVertexPos;
+		startVertexPos -= dir * len * stretchBack;
+		endVertexPos = startVertexPos + dir * len * (stretchBack + stretchAhead);
+
+		OffsetF points[5];
+		points[0] = midPos;
+		points[1] = startVertexPos;
+		points[2] = midPos + normalVec;
+		points[3] = endVertexPos;
+		points[4] = midPos - normalVec;
+
+		Vertex v[5] = { endVertex, endVertex, endVertex, endVertex, endVertex };
+
+		for (int32_t i = 0; i < 5; ++i)
+		{
+			v[i].SetX((int32_t)(points[i].x));
+			v[i].SetY((int32_t)(points[i].y));
+		}
+
+		uint32_t c = startVertex.GetColor();
+		v[0].SetColor(c);
+		c &= 0x00FFFFFF;
+		v[1].SetColor(c);
+		v[2].SetColor(c);
+		v[3].SetColor(c);
+		v[4].SetColor(c);
+
+		assert((_vertexCount + 3 * 4) < _vertices.capacity);
+
+		_vertices.items[_vertexCount++] = v[0];
+		_vertices.items[_vertexCount++] = v[1];
+		_vertices.items[_vertexCount++] = v[2];
+
+		_vertices.items[_vertexCount++] = v[0];
+		_vertices.items[_vertexCount++] = v[2];
+		_vertices.items[_vertexCount++] = v[3];
+
+		_vertices.items[_vertexCount++] = v[0];
+		_vertices.items[_vertexCount++] = v[3];
+		_vertices.items[_vertexCount++] = v[4];
+
+		_vertices.items[_vertexCount++] = v[0];
+		_vertices.items[_vertexCount++] = v[4];
+		_vertices.items[_vertexCount++] = v[1];
+
+		batch.SetVertexCount(3 * 4);
+
+		_lastWeatherParticleIndex = currentWeatherParticleIndex;
+	}
+	else
+	{
+		float dx = (float)(startVertex.GetY() - endVertex.GetY());
+		float dy = (float)(endVertex.GetX() - startVertex.GetX());
+		const float lensqr = dx * dx + dy * dy;
+		const float len = lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
+		const float halfinvlen = 1.0f / (2.0f * len);
+		dx *= halfinvlen;
+		dy *= halfinvlen;
+
+		Vertex vertex0 = startVertex;
+		vertex0.SetX((int32_t)(vertex0.GetX() - dx));
+		vertex0.SetY((int32_t)(vertex0.GetY() - dy));
+
+		Vertex vertex1 = startVertex;
+		vertex1.SetX((int32_t)(vertex1.GetX() + dx));
+		vertex1.SetY((int32_t)(vertex1.GetY() + dy));
+
+		Vertex vertex2 = endVertex;
+		vertex2.SetX((int32_t)(vertex2.GetX() - dx));
+		vertex2.SetY((int32_t)(vertex2.GetY() - dy));
+
+		Vertex vertex3 = endVertex;
+		vertex3.SetX((int32_t)(vertex3.GetX() + dx));
+		vertex3.SetY((int32_t)(vertex3.GetY() + dy));
+
+		assert((_vertexCount + 6) < _vertices.capacity);
+		_vertices.items[_vertexCount++] = vertex0;
+		_vertices.items[_vertexCount++] = vertex1;
+		_vertices.items[_vertexCount++] = vertex2;
+		_vertices.items[_vertexCount++] = vertex1;
+		_vertices.items[_vertexCount++] = vertex2;
+		_vertices.items[_vertexCount++] = vertex3;
+
+		batch.SetVertexCount(6);
+	}
 
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;
@@ -1164,6 +1261,7 @@ void D2DXContext::OnBufferClear()
 	if (_options.GetFlag(OptionsFlag::TestMotionPrediction) && _majorGameState == MajorGameState::InGame)
 	{
 		_unitMotionPredictor.Update(_renderContext.get());
+		_weatherMotionPredictor.Update(_renderContext.get());
 	}
 }
 
@@ -1198,7 +1296,7 @@ void D2DXContext::BeginDrawImage(
 			_playerScreenPos = pos;
 		}
 	}
-	else 
+	else
 	{
 		DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
 
@@ -1207,16 +1305,16 @@ void D2DXContext::BeginDrawImage(
 			// Player shadow
 			_scratchBatch.SetTextureCategory(TextureCategory::Player);
 		}
-		else 
-		if (
-			(drawParameters.unitType == 0 && cellContext->dwMode == 0) || 
-			(drawParameters.unitType == 4 && cellContext->dwMode == 4)) // Belt items
-		{
-			//D2DX_LOG("id %u token %08x pos %i %i", drawParameters.unitId, drawParameters.unitToken, pos.x, pos.y);
-			
-			// UI elements have zero unit ID and unit type.
-			_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
-		}
+		else
+			if (
+				(drawParameters.unitType == 0 && cellContext->dwMode == 0) ||
+				(drawParameters.unitType == 4 && cellContext->dwMode == 4)) // Belt items
+			{
+				//D2DX_LOG("id %u token %08x pos %i %i", drawParameters.unitId, drawParameters.unitToken, pos.x, pos.y);
+
+				// UI elements have zero unit ID and unit type.
+				_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
+			}
 	}
 }
 

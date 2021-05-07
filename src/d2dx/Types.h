@@ -134,9 +134,53 @@ namespace d2dx
 		float x = 0;
 		float y = 0;
 
+		OffsetF& operator+=(const OffsetF& rhs) noexcept
+		{
+			x += rhs.x;
+			y += rhs.y;
+			return *this;
+		}
+
+		OffsetF& operator-=(const OffsetF& rhs) noexcept
+		{
+			x -= rhs.x;
+			y -= rhs.y;
+			return *this;
+		}
+
+		OffsetF operator+(const OffsetF& rhs) const noexcept
+		{
+			return { x + rhs.x, y + rhs.y };
+		}
+
+		OffsetF operator-(const OffsetF& rhs) const noexcept
+		{
+			return { x - rhs.x, y - rhs.y };
+		}
+
+		OffsetF operator*(float rhs) const noexcept
+		{
+			return { x * rhs, y * rhs };
+		}
+
 		bool operator==(const OffsetF& rhs) const noexcept
 		{
 			return x == rhs.x && y == rhs.y;
+		}
+
+		float Length() const noexcept
+		{
+			const float lensqr = x * x + y * y;
+			return lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
+		}
+
+		void Normalize() noexcept
+		{
+			const float lensqr = x * x + y * y;
+			const float len = lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
+			const float invlen = 1.0f / len;
+			x *= invlen;
+			y *= invlen;
 		}
 	};
 

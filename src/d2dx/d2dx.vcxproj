@@ -195,6 +195,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="D2DXContext.h" />
     <ClInclude Include="Utils.h" />
+    <ClInclude Include="WeatherMotionPredictor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
@@ -293,6 +294,7 @@
     <ClCompile Include="TextureCachePolicyBitPmru.cpp" />
     <ClCompile Include="UnitMotionPredictor.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="WeatherMotionPredictor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DisplayNonintegerScalePS.hlsl">
