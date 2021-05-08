@@ -74,12 +74,6 @@ bool BuiltinResMod::IsCompatible(
         return false;
     }
 
-    if (LoadLibraryA("D2Sigma.dll"))
-    {
-        D2DX_LOG("Detected Median XL, won't use built-in resolution mod.");
-        return false;
-    }
-
     return true;
 }
 
