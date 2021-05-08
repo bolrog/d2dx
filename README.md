@@ -75,7 +75,7 @@ D2DX uses the following third party libraries:
 - SlashDiablo-HD/D2HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
-## Release history
+## Recent release history
 
 ### 0.99.508
   - Fix motion prediction of water splashes e.g. in Kurast Docks.
