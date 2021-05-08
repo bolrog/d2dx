@@ -240,7 +240,7 @@ void __stdcall D2Gfx_DrawImage_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, nDrawMode, { nXpos, nYpos });
 	}
 
 	D2Gfx_DrawImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, pPalette);
@@ -262,7 +262,7 @@ void __stdcall D2Gfx_DrawClippedImage_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos });
 	}
 
 	D2Gfx_DrawClippedImage_Real(cellContext, nXpos, nYpos, pCropRect, nDrawMode);
@@ -301,7 +301,7 @@ void __stdcall D2Gfx_DrawShiftedImage_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos });
 	}
 
 	D2Gfx_DrawShiftedImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, nGlobalPaletteShift);
@@ -333,7 +333,7 @@ void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos });
 	}
 
 	D2Gfx_DrawVerticalCropImage_Real(cellContext, nXpos, nYpos, nSkipLines, nDrawLines, nDrawMode);
@@ -354,7 +354,7 @@ void __stdcall D2Gfx_DrawImageFast_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos });
 	}
 
 	D2Gfx_DrawImageFast_Real(cellContext, nXpos, nYpos, nPaletteIndex);
@@ -383,7 +383,7 @@ void __stdcall D2Gfx_DrawShadow_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos });
 	}
 
 	D2Gfx_DrawShadow_Real(cellContext, nXpos, nYpos);

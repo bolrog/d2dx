@@ -897,6 +897,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 			drawOffset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
 		}
 	}
+
 	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
 
 	switch (mode)
@@ -1280,6 +1281,7 @@ void D2DXContext::EndDrawText()
 _Use_decl_annotations_
 void D2DXContext::BeginDrawImage(
 	const D2::CellContext* cellContext,
+	uint32_t drawMode,
 	Offset pos)
 {
 	if (_isDrawingText)
@@ -1306,13 +1308,15 @@ void D2DXContext::BeginDrawImage(
 			_scratchBatch.SetTextureCategory(TextureCategory::Player);
 		}
 		else
-			if (
-				(drawParameters.unitType == 0 && cellContext->dwMode == 0) ||
-				(drawParameters.unitType == 4 && cellContext->dwMode == 4)) // Belt items
+			if (drawParameters.unitType == 0 && cellContext->dwMode == 0)
 			{
-				//D2DX_LOG("id %u token %08x pos %i %i", drawParameters.unitId, drawParameters.unitToken, pos.x, pos.y);
-
-				// UI elements have zero unit ID and unit type.
+				if (drawMode != 3)
+				{
+					_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
+				}
+			}
+			else if (drawParameters.unitType == 4 && cellContext->dwMode == 4) // Belt items
+			{
 				_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 			}
 	}

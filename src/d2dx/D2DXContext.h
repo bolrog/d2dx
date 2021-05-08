@@ -184,6 +184,7 @@ namespace d2dx
 
 		virtual void BeginDrawImage(
 			_In_ const D2::CellContext* cellContext,
+			_In_ uint32_t drawMode,
 			_In_ Offset pos) override;
 
 		virtual void EndDrawImage() override;
