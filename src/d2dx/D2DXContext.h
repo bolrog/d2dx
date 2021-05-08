@@ -28,6 +28,7 @@
 #include "IWin32InterceptionHandler.h"
 #include "CompatibilityModeDisabler.h"
 #include "SurfaceIdTracker.h"
+#include "TextureHasher.h"
 #include "UnitMotionPredictor.h"
 #include "WeatherMotionPredictor.h"
 
@@ -213,23 +214,34 @@ namespace d2dx
 			_In_ const Batch& batch,
 			_In_ int32_t batchIndex);
 
+		struct GlideState
+		{
+			Buffer<uint8_t> tmuMemory{ D2DX_TMU_MEMORY_SIZE };
+			Buffer<uint8_t> sideTmuMemory{ D2DX_SIDE_TMU_MEMORY_SIZE };
+			Buffer<uint32_t> palettes{ D2DX_MAX_PALETTES * 256 };
+			Buffer<uint32_t> gammaTable{ 256 };
+			uint32_t vertexLayout{ 0xFF };
+			uint32_t constantColor{ 0xFFFFFFFF };
+		};
+
+		GlideState _glideState;
+
 		Batch _scratchBatch;
 
 		int32_t _frame;
 		std::shared_ptr<IRenderContext> _renderContext;
+		std::shared_ptr<IGameHelper> _gameHelper;
+		std::shared_ptr<ISimd> _simd;
+		std::unique_ptr<IBuiltinResMod> _builtinResMod;
+		std::shared_ptr<CompatibilityModeDisabler> _compatibilityModeDisabler;
+		TextureHasher _textureHasher;
+		UnitMotionPredictor _unitMotionPredictor;
+		WeatherMotionPredictor _weatherMotionPredictor;
+		SurfaceIdTracker _surfaceIdTracker;
+
 		MajorGameState _majorGameState;
 
 		Buffer<uint32_t> _paletteKeys;
-
-		Buffer<uint32_t> _gammaTable;
-
-		uint32_t _constantColor;
-
-		uint32_t _vertexLayout;
-
-		Buffer<uint32_t> _textureHashCache;
-		uint32_t _textureHashCacheHits;
-		uint32_t _textureHashCacheMisses;
 
 		int32_t _batchCount;
 		Buffer<Batch> _batches;
@@ -237,36 +249,20 @@ namespace d2dx
 		int32_t _vertexCount;
 		Buffer<Vertex> _vertices;
 
-		std::shared_ptr<IGameHelper> _gameHelper;
-		std::shared_ptr<ISimd> _simd;
-		std::unique_ptr<IBuiltinResMod> _builtinResMod;
-		std::shared_ptr<CompatibilityModeDisabler> _compatibilityModeDisabler;
-
 		Options _options;
 		Batch _logoTextureBatch;
-
-		Buffer<uint8_t> _tmuMemory;
-		Buffer<uint8_t> _sideTmuMemory;
-
+		
 		Size _customGameSize;
 		Size _suggestedGameSize;
 
 		uint32_t _lastScreenOpenMode;
 
-		SurfaceIdTracker _surfaceIdTracker;
-
-		Buffer<uint32_t> _palettes;
-
 		Size _gameSize;
-
-		UnitMotionPredictor _unitMotionPredictor;
 
 		bool _isDrawingText = false;
 		Offset _playerScreenPos = { 0,0 };
 
 		uint32_t _lastWeatherParticleIndex = 0xFFFFFFFF;
-
-		WeatherMotionPredictor _weatherMotionPredictor;
 
 		OffsetF _avgDir = { 0.0f, 0.0f };
 	};

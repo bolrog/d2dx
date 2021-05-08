@@ -39,16 +39,6 @@ extern uint32_t* currentlyDrawingWeatherParticleIndexPtr;
 #define D2DX_GLIDE_ALPHA_BLEND(rgb_sf, rgb_df, alpha_sf, alpha_df) \
 		(uint16_t)(((rgb_sf & 0xF) << 12) | ((rgb_df & 0xF) << 8) | ((alpha_sf & 0xF) << 4) | (alpha_df & 0xF))
 
-static bool CheckOption(const char* commandLine, const Buffer<char>& cfgFile, const char* option)
-{
-	bool hasOption = strstr(commandLine, option) != nullptr || strstr(cfgFile.items, option) != nullptr;
-	if (hasOption)
-	{
-		D2DX_LOG("Option: %s", option);
-	}
-	return hasOption;
-}
-
 static Options GetCommandLineOptions()
 {
 	Options options;
@@ -68,12 +58,7 @@ D2DXContext::D2DXContext(
 	_compatibilityModeDisabler{ compatibilityModeDisabler },
 	_frame(0),
 	_majorGameState(MajorGameState::Unknown),
-	_vertexLayout(0xFF),
-	_tmuMemory(D2DX_TMU_MEMORY_SIZE),
-	_sideTmuMemory(D2DX_SIDE_TMU_MEMORY_SIZE),
-	_constantColor(0xFFFFFFFF),
 	_paletteKeys(D2DX_MAX_PALETTES, true),
-	_gammaTable(256),
 	_batchCount(0),
 	_batches(D2DX_MAX_BATCHES_PER_FRAME),
 	_vertexCount(0),
@@ -82,10 +67,6 @@ D2DXContext::D2DXContext(
 	_suggestedGameSize{ 0, 0 },
 	_options{ GetCommandLineOptions() },
 	_lastScreenOpenMode{ 0 },
-	_textureHashCache{ D2DX_TMU_MEMORY_SIZE / 256, true },
-	_textureHashCacheHits{ 0 },
-	_textureHashCacheMisses{ 0 },
-	_palettes{ D2DX_MAX_PALETTES * 256 },
 	_surfaceIdTracker{ gameHelper },
 	_unitMotionPredictor{ gameHelper },
 	_weatherMotionPredictor{ gameHelper }
@@ -247,14 +228,14 @@ void D2DXContext::OnVertexLayout(
 {
 	switch (param) {
 	case GR_PARAM_XY:
-		_vertexLayout = (_vertexLayout & 0xFFFF) | ((offset & 0xFF) << 16);
+		_glideState.vertexLayout = (_glideState.vertexLayout & 0xFFFF) | ((offset & 0xFF) << 16);
 		break;
 	case GR_PARAM_ST0:
 	case GR_PARAM_ST1:
-		_vertexLayout = (_vertexLayout & 0xFF00FF) | ((offset & 0xFF) << 8);
+		_glideState.vertexLayout = (_glideState.vertexLayout & 0xFF00FF) | ((offset & 0xFF) << 8);
 		break;
 	case GR_PARAM_PARGB:
-		_vertexLayout = (_vertexLayout & 0xFFFF00) | (offset & 0xFF);
+		_glideState.vertexLayout = (_glideState.vertexLayout & 0xFFFF00) | (offset & 0xFF);
 		break;
 	}
 }
@@ -273,14 +254,14 @@ void D2DXContext::OnTexDownload(
 		return;
 	}
 
-	_textureHashCache.items[startAddress >> 8] = 0;
+	_textureHasher.Invalidate(startAddress);
 
 	uint32_t memRequired = (uint32_t)(width * height);
 
-	auto pStart = _tmuMemory.items + startAddress;
-	auto pEnd = _tmuMemory.items + startAddress + memRequired;
-	assert(pEnd <= (_tmuMemory.items + _tmuMemory.capacity));
-	memcpy_s(pStart, _tmuMemory.capacity - startAddress, sourceAddress, memRequired);
+	auto pStart = _glideState.tmuMemory.items + startAddress;
+	auto pEnd = _glideState.tmuMemory.items + startAddress + memRequired;
+	assert(pEnd <= (_glideState.tmuMemory.items + _glideState.tmuMemory.capacity));
+	memcpy_s(pStart, _glideState.tmuMemory.capacity - startAddress, sourceAddress, memRequired);
 }
 
 _Use_decl_annotations_
@@ -296,21 +277,10 @@ void D2DXContext::OnTexSource(
 		return;
 	}
 
-	uint8_t* pixels = _tmuMemory.items + startAddress;
+	uint8_t* pixels = _glideState.tmuMemory.items + startAddress;
 	const uint32_t pixelsSize = width * height;
 
-	uint32_t hash = _textureHashCache.items[startAddress >> 8];
-
-	if (hash)
-	{
-		++_textureHashCacheHits;
-	}
-	else
-	{
-		++_textureHashCacheMisses;
-		hash = fnv_32a_buf(pixels, pixelsSize, FNV1_32A_INIT);
-		_textureHashCache.items[startAddress >> 8] = hash;
-	}
+	uint32_t hash = _textureHasher.GetHash(startAddress, pixels, pixelsSize);
 
 	/* Patch the '5' to not look like '6'. */
 	if (hash == 0x8a12f6bb)
@@ -331,7 +301,7 @@ void D2DXContext::OnTexSource(
 
 	if (_options.GetFlag(OptionsFlag::DbgDumpTextures))
 	{
-		DumpTexture(hash, width, height, pixels, pixelsSize, (uint32_t)_scratchBatch.GetTextureCategory(), _palettes.items + _scratchBatch.GetPaletteIndex() * 256);
+		DumpTexture(hash, width, height, pixels, pixelsSize, (uint32_t)_scratchBatch.GetTextureCategory(), _glideState.palettes.items + _scratchBatch.GetPaletteIndex() * 256);
 	}
 }
 
@@ -558,7 +528,7 @@ _Use_decl_annotations_
 void D2DXContext::OnConstantColorValue(
 	uint32_t color)
 {
-	_constantColor = (color >> 8) | (color << 24);
+	_glideState.constantColor = (color >> 8) | (color << 24);
 }
 
 _Use_decl_annotations_
@@ -601,7 +571,7 @@ void D2DXContext::OnDrawPoint(
 	batch.SetStartVertex(_vertexCount);
 	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 
-	Vertex centerVertex = ReadVertex((const uint8_t*)pt, _vertexLayout, batch, 0);
+	Vertex centerVertex = ReadVertex((const uint8_t*)pt, _glideState.vertexLayout, batch, 0);
 
 	Vertex vertex0 = centerVertex;
 	Vertex vertex1 = centerVertex;
@@ -634,8 +604,8 @@ void D2DXContext::OnDrawLine(
 	batch.SetStartVertex(_vertexCount);
 	batch.SetTextureCategory(TextureCategory::UserInterface);
 
-	Vertex startVertex = ReadVertex((const uint8_t*)v1, _vertexLayout, batch, D2DX_SURFACE_ID_USER_INTERFACE);
-	Vertex endVertex = ReadVertex((const uint8_t*)v2, _vertexLayout, batch, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex startVertex = ReadVertex((const uint8_t*)v1, _glideState.vertexLayout, batch, D2DX_SURFACE_ID_USER_INTERFACE);
+	Vertex endVertex = ReadVertex((const uint8_t*)v2, _glideState.vertexLayout, batch, D2DX_SURFACE_ID_USER_INTERFACE);
 
 	if (_options.GetFlag(OptionsFlag::TestMotionPrediction) && currentlyDrawingWeatherParticles)
 	{
@@ -799,7 +769,7 @@ Vertex D2DXContext::ReadVertex(
 	}
 
 	int32_t paletteIndex = batch.GetRgbCombine() == RgbCombine::ColorMultipliedByTexture ? batch.GetPaletteIndex() : D2DX_WHITE_PALETTE_INDEX;
-	return Vertex((int32_t)xy[0], (int32_t)xy[1], s, t, batch.SelectColorAndAlpha(pargb, _constantColor), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), paletteIndex, surfaceId);
+	return Vertex((int32_t)xy[0], (int32_t)xy[1], s, t, batch.SelectColorAndAlpha(pargb, _glideState.constantColor), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), paletteIndex, surfaceId);
 }
 
 _Use_decl_annotations_
@@ -811,7 +781,7 @@ const Batch D2DXContext::PrepareBatchForSubmit(
 {
 	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
 
-	auto tcl = _renderContext->UpdateTexture(batch, _tmuMemory.items, _tmuMemory.capacity);
+	auto tcl = _renderContext->UpdateTexture(batch, _glideState.tmuMemory.items, _glideState.tmuMemory.capacity);
 	batch.SetTextureAtlas(tcl._textureAtlas);
 	batch.SetTextureIndex(tcl._textureIndex);
 
@@ -835,12 +805,12 @@ void D2DXContext::OnDrawVertexArray(
 	{
 	case GR_TRIANGLE_FAN:
 	{
-		Vertex firstVertex = ReadVertex((const uint8_t*)pointers[0], _vertexLayout, batch, 0);
-		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], _vertexLayout, batch, 0);
+		Vertex firstVertex = ReadVertex((const uint8_t*)pointers[0], _glideState.vertexLayout, batch, 0);
+		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], _glideState.vertexLayout, batch, 0);
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], _vertexLayout, batch, 0);
+			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], _glideState.vertexLayout, batch, 0);
 
 			assert((_vertexCount + 3) < _vertices.capacity);
 			_vertices.items[_vertexCount++] = firstVertex;
@@ -853,12 +823,12 @@ void D2DXContext::OnDrawVertexArray(
 	}
 	case GR_TRIANGLE_STRIP:
 	{
-		Vertex prevPrevVertex = ReadVertex((const uint8_t*)pointers[0], _vertexLayout, batch, 0);
-		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], _vertexLayout, batch, 0);
+		Vertex prevPrevVertex = ReadVertex((const uint8_t*)pointers[0], _glideState.vertexLayout, batch, 0);
+		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], _glideState.vertexLayout, batch, 0);
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], _vertexLayout, batch, 0);
+			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], _glideState.vertexLayout, batch, 0);
 
 			assert((_vertexCount + 3) < _vertices.capacity);
 			_vertices.items[_vertexCount++] = prevPrevVertex;
@@ -904,15 +874,15 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	{
 	case GR_TRIANGLE_FAN:
 	{
-		Vertex firstVertex = ReadVertex(vertex, _vertexLayout, batch, 0);
+		Vertex firstVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
 		vertex += stride;
 
-		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch, 0);
+		Vertex prevVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
 		vertex += stride;
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch, 0);
+			Vertex currentVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
 			vertex += stride;
 
 			assert((_vertexCount + 3) < _vertices.capacity);
@@ -926,15 +896,15 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	}
 	case GR_TRIANGLE_STRIP:
 	{
-		Vertex prevPrevVertex = ReadVertex(vertex, _vertexLayout, batch, 0);
+		Vertex prevPrevVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
 		vertex += stride;
 
-		Vertex prevVertex = ReadVertex(vertex, _vertexLayout, batch, 0);
+		Vertex prevVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
 		vertex += stride;
 
 		for (uint32_t i = 2; i < count; ++i)
 		{
-			Vertex currentVertex = ReadVertex(vertex, _vertexLayout, batch, 0);
+			Vertex currentVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
 			vertex += stride;
 
 			assert((_vertexCount + 3) < _vertices.capacity);
@@ -1015,7 +985,7 @@ void D2DXContext::OnTexDownloadTable(
 
 			if (_options.GetFlag(OptionsFlag::DbgDumpTextures))
 			{
-				memcpy(_palettes.items + 256 * i, palette, 1024);
+				memcpy(_glideState.palettes.items + 256 * i, palette, 1024);
 			}
 
 			_renderContext->SetPalette(i, palette);
@@ -1043,10 +1013,10 @@ void D2DXContext::OnLoadGammaTable(
 {
 	for (int32_t i = 0; i < (int32_t)min(nentries, 256); ++i)
 	{
-		_gammaTable.items[i] = ((blue[i] & 0xFF) << 16) | ((green[i] & 0xFF) << 8) | (red[i] & 0xFF);
+		_glideState.gammaTable.items[i] = ((blue[i] & 0xFF) << 16) | ((green[i] & 0xFF) << 8) | (red[i] & 0xFF);
 	}
 
-	_renderContext->LoadGammaTable(_gammaTable.items, _gammaTable.capacity);
+	_renderContext->LoadGammaTable(_glideState.gammaTable.items, _glideState.gammaTable.capacity);
 }
 
 _Use_decl_annotations_
@@ -1101,7 +1071,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 
 	uint32_t hash = fnv_32a_buf((void*)srcPixels, sizeof(uint8_t) * 81 * 40, FNV1_32A_INIT);
 
-	uint8_t* data = _sideTmuMemory.items;
+	uint8_t* data = _glideState.sideTmuMemory.items;
 
 	_logoTextureBatch.SetTextureStartAddress(0);
 	_logoTextureBatch.SetTextureHash(hash);
@@ -1132,7 +1102,7 @@ void D2DXContext::InsertLogoOnTitleScreen()
 
 	PrepareLogoTextureBatch();
 
-	auto tcl = _renderContext->UpdateTexture(_logoTextureBatch, _sideTmuMemory.items, _sideTmuMemory.capacity);
+	auto tcl = _renderContext->UpdateTexture(_logoTextureBatch, _glideState.sideTmuMemory.items, _glideState.sideTmuMemory.capacity);
 
 	_logoTextureBatch.SetTextureAtlas(tcl._textureAtlas);
 	_logoTextureBatch.SetTextureIndex(tcl._textureIndex);

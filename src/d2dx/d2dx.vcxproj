@@ -189,6 +189,7 @@
     <ClInclude Include="ISimd.h" />
     <ClInclude Include="SimdSse2.h" />
     <ClInclude Include="TextureCachePolicyBitPmru.h" />
+    <ClInclude Include="TextureHasher.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="UnitMotionPredictor.h" />
     <ClInclude Include="Vertex.h" />
@@ -292,6 +293,7 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyAndSourceCode</AssemblerOutput>
     </ClCompile>
     <ClCompile Include="TextureCachePolicyBitPmru.cpp" />
+    <ClCompile Include="TextureHasher.cpp" />
     <ClCompile Include="UnitMotionPredictor.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="WeatherMotionPredictor.cpp" />

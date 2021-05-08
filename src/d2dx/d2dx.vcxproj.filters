@@ -99,6 +99,7 @@
       <Filter>thirdparty\toml</Filter>
     </ClCompile>
     <ClCompile Include="WeatherMotionPredictor.cpp" />
+    <ClCompile Include="TextureHasher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -253,6 +254,7 @@
       <Filter>thirdparty\toml</Filter>
     </ClInclude>
     <ClInclude Include="WeatherMotionPredictor.h" />
+    <ClInclude Include="TextureHasher.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />
