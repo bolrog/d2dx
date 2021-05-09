@@ -445,11 +445,7 @@ void D2DXContext::OnBufferSwap()
 
 	if (!(_frame & 255))
 	{
-		D2DX_DEBUG_LOG("Texture hash cache hits: %u (%i%%) misses %u",
-			_textureHashCacheHits,
-			(int32_t)(100.0f * (float)_textureHashCacheHits / (_textureHashCacheHits + _textureHashCacheMisses)),
-			_textureHashCacheMisses
-		);
+		_textureHasher.PrintStats();
 	}
 
 	_batchCount = 0;

@@ -60,3 +60,12 @@ uint32_t TextureHasher::GetHash(
 
 	return hash;
 }
+
+void TextureHasher::PrintStats()
+{
+	D2DX_DEBUG_LOG("Texture hash cache hits: %u (%i%%) misses %u",
+		_cacheHits,
+		(int32_t)(100.0f * (float)_cacheHits / (_cacheHits + _cacheMisses)),
+		_cacheMisses
+	);
+}

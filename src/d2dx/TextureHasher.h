@@ -36,6 +36,8 @@ namespace d2dx
 			_In_reads_(pixelsSize) const uint8_t* pixels,
 			_In_ uint32_t pixelsSize);
 
+		void PrintStats();
+
 	private:
 		Buffer<uint32_t> _cache;
 		uint32_t _cacheHits;
