@@ -29,6 +29,7 @@
 #include "CompatibilityModeDisabler.h"
 #include "SurfaceIdTracker.h"
 #include "TextureHasher.h"
+#include "TextMotionPredictor.h"
 #include "UnitMotionPredictor.h"
 #include "WeatherMotionPredictor.h"
 #include "Vertex.h"
@@ -178,9 +179,13 @@ namespace d2dx
 
 #pragma endregion IWin32InterceptionHandler
 
-#pragma region ID2GfxInterceptionHandler
+#pragma region ID2InterceptionHandler
 
 		virtual void BeginDrawText() override;
+
+		virtual OffsetF GetTextOffset(
+			_In_ uint64_t textId,
+			_In_ OffsetF posFromGame) override;
 
 		virtual void EndDrawText() override;
 
@@ -191,7 +196,7 @@ namespace d2dx
 
 		virtual void EndDrawImage() override;
 
-#pragma endregion IWin32InterceptionHandler
+#pragma endregion ID2InterceptionHandler
 
 	private:
 		struct D2Vertex
@@ -258,6 +263,7 @@ namespace d2dx
 		std::shared_ptr<CompatibilityModeDisabler> _compatibilityModeDisabler;
 		TextureHasher _textureHasher;
 		UnitMotionPredictor _unitMotionPredictor;
+		TextMotionPredictor _textMotionPredictor;
 		WeatherMotionPredictor _weatherMotionPredictor;
 		SurfaceIdTracker _surfaceIdTracker;
 

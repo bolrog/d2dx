@@ -30,6 +30,11 @@ using namespace d2dx;
 bool hasDetoured = false;
 bool hasLateDetoured = false;
 
+D2::UnitAny* currentlyDrawingUnit = nullptr;
+uint32_t currentlyDrawingWeatherParticles = 0;
+uint32_t* currentlyDrawingWeatherParticleIndexPtr = nullptr;
+
+
 static IWin32InterceptionHandler* GetWin32InterceptionHandler()
 {
 	ID2DXContext* d2dxContext = D2DXContextFactory::GetInstance();
@@ -200,9 +205,13 @@ typedef void(__stdcall* D2Gfx_DrawVerticalCropImageFunc)(D2::CellContext* pData,
 typedef void(__stdcall* D2Gfx_DrawClippedImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, void* pCropRect, int nDrawMode);
 typedef void(__stdcall* D2Gfx_DrawImageFastFunc)(D2::CellContext* pData, int nXpos, int nYpos, BYTE nPaletteIndex);
 typedef void(__stdcall* D2Gfx_DrawShadowFunc)(D2::CellContext* pData, int nXpos, int nYpos);
-typedef void(__fastcall* D2Win_DrawTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD dwUnk);
+typedef void(__fastcall* D2Win_DrawTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered);
+typedef void(__fastcall* D2Win_DrawTextExFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered, DWORD transparencyLevel);
+typedef void(__fastcall* D2Win_DrawFramedTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered);
+typedef void(__fastcall* D2Win_DrawRectangledTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD rectColor, DWORD rectTransparency, DWORD color);
 typedef uint32_t(__stdcall* D2Client_DrawUnitFunc)(D2::UnitAny* unit, uint32_t b, uint32_t c, uint32_t d, uint32_t e);
 typedef void* NakedFunc;
+typedef void(__cdecl* D2Gfx_DrawStringFunc)(int nXpos, int nYpos, const char* szFormat, ...);
 
 D2Gfx_DrawImageFunc D2Gfx_DrawImage_Real = nullptr;
 D2Gfx_DrawShiftedImageFunc D2Gfx_DrawShiftedImage_Real = nullptr;
@@ -211,12 +220,16 @@ D2Gfx_DrawClippedImageFunc D2Gfx_DrawClippedImage_Real = nullptr;
 D2Gfx_DrawImageFastFunc D2Gfx_DrawImageFast_Real = nullptr;
 D2Gfx_DrawShadowFunc D2Gfx_DrawShadow_Real = nullptr;
 D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
+D2Win_DrawTextExFunc D2Win_DrawTextEx_Real = nullptr;
+D2Win_DrawFramedTextFunc D2Win_DrawFramedText_Real = nullptr;
+D2Win_DrawRectangledTextFunc D2Win_DrawRectangledText_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawUnit_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawMissile_Real = nullptr;
 NakedFunc D2Client_DrawWeatherParticles_Real = nullptr;
+D2Gfx_DrawStringFunc D2Gfx_DrawString_Real = nullptr;
 
 void __stdcall D2Gfx_DrawImage_Hooked(
-	D2::CellContext* cellContext,
+	D2::CellContext * cellContext,
 	int nXpos,
 	int nYpos,
 	DWORD dwGamma,
@@ -252,7 +265,7 @@ void __stdcall D2Gfx_DrawImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawClippedImage_Hooked(
-	D2::CellContext* cellContext,
+	D2::CellContext * cellContext,
 	int nXpos,
 	int nYpos,
 	void* pCropRect,
@@ -274,20 +287,20 @@ void __stdcall D2Gfx_DrawClippedImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawShiftedImage_Hooked(
-	D2::CellContext* cellContext,
-	int nXpos, 
-	int nYpos, 
-	DWORD dwGamma, 
-	int nDrawMode, 
+	D2::CellContext * cellContext,
+	int nXpos,
+	int nYpos,
+	DWORD dwGamma,
+	int nDrawMode,
 	int nGlobalPaletteShift)
 {
 	/*
 	  D2DX_LOG("draw shifted image %i, %i: '%p' nDrawMode %i, class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p",
 		  nXpos,
-		  nYpos, 
-		  cellContext->szName, 
-		  nDrawMode, 
-		  cellContext->dwClass, 
+		  nYpos,
+		  cellContext->szName,
+		  nDrawMode,
+		  cellContext->dwClass,
 		  cellContext->dwUnit,
 		  cellContext->dwMode,
 		  cellContext->_11,
@@ -313,11 +326,11 @@ void __stdcall D2Gfx_DrawShiftedImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
-	D2::CellContext* cellContext,
-	int nXpos, 
-	int nYpos, 
-	int nSkipLines, 
-	int nDrawLines, 
+	D2::CellContext * cellContext,
+	int nXpos,
+	int nYpos,
+	int nSkipLines,
+	int nDrawLines,
 	int nDrawMode)
 {
 	//D2DX_LOG("draw cropped image %i, %i: '%p' nDrawMode %i, class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p", nXpos, nYpos, pData->szName, nDrawMode, pData->dwClass, pData->dwUnit,
@@ -345,7 +358,7 @@ void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawImageFast_Hooked(
-	D2::CellContext* cellContext,
+	D2::CellContext * cellContext,
 	int nXpos,
 	int nYpos,
 	BYTE nPaletteIndex)
@@ -366,7 +379,7 @@ void __stdcall D2Gfx_DrawImageFast_Hooked(
 }
 
 void __stdcall D2Gfx_DrawShadow_Hooked(
-	D2::CellContext* cellContext,
+	D2::CellContext * cellContext,
 	int nXpos,
 	int nYpos)
 {
@@ -399,7 +412,7 @@ void __fastcall D2Win_DrawText_Hooked(
 	int xPos,
 	int yPos,
 	DWORD dwColor,
-	DWORD dwUnk)
+	DWORD centered)
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
@@ -408,7 +421,7 @@ void __fastcall D2Win_DrawText_Hooked(
 		d2InterceptionHandler->BeginDrawText();
 	}
 
-	D2Win_DrawText_Real(wStr, xPos, yPos, dwColor, dwUnk);
+	D2Win_DrawText_Real(wStr, xPos, yPos, dwColor, centered);
 
 	if (d2InterceptionHandler)
 	{
@@ -416,9 +429,92 @@ void __fastcall D2Win_DrawText_Hooked(
 	}
 }
 
-D2::UnitAny* currentlyDrawingUnit = nullptr;
-uint32_t currentlyDrawingWeatherParticles = 0;
-uint32_t* currentlyDrawingWeatherParticleIndexPtr = nullptr;
+void __fastcall D2Win_DrawTextEx_Hooked(
+	const wchar_t* wStr,
+	int xPos,
+	int yPos,
+	DWORD dwColor,
+	DWORD centered,
+	DWORD transparency)
+{
+	auto d2InterceptionHandler = GetD2InterceptionHandler();
+
+	if (d2InterceptionHandler)
+	{
+		d2InterceptionHandler->BeginDrawText();
+	}
+
+	D2Win_DrawTextEx_Real(wStr, xPos, yPos, dwColor, centered, transparency);
+
+	if (d2InterceptionHandler)
+	{
+		d2InterceptionHandler->EndDrawText();
+	}
+}
+
+void __fastcall D2Win_DrawFramedText_Hooked(
+	const wchar_t* wStr,
+	int xPos,
+	int yPos,
+	DWORD dwColor,
+	DWORD centered)
+{
+	auto d2InterceptionHandler = GetD2InterceptionHandler();
+
+	if (d2InterceptionHandler)
+	{
+		d2InterceptionHandler->BeginDrawText();
+	}
+
+	OffsetF offset{ 0.0f, 0.0f };
+
+	if (wStr)
+		offset = d2InterceptionHandler->GetTextOffset(
+			((uint64_t)_ReturnAddress() << 32ULL) | (uint64_t)wStr,
+			{ (float)xPos, (float)yPos });
+
+	D2Win_DrawFramedText_Real(wStr, xPos + (int32_t)offset.x, yPos + (int32_t)offset.y, dwColor, centered);
+
+	if (d2InterceptionHandler)
+	{
+		d2InterceptionHandler->EndDrawText();
+	}
+}
+
+void __fastcall D2Win_DrawRectangledText_Hooked(
+	const wchar_t* wStr,
+	int xPos,
+	int yPos,
+	DWORD rectColor,
+	DWORD rectTransparency,
+	DWORD color)
+{
+	auto d2InterceptionHandler = GetD2InterceptionHandler();
+
+	if (d2InterceptionHandler)
+	{
+		d2InterceptionHandler->BeginDrawText();
+	}
+
+	OffsetF offset{ 0.0f, 0.0f };
+
+	if (wStr)
+		offset = d2InterceptionHandler->GetTextOffset(
+			((uint64_t)_ReturnAddress() << 32ULL) | (uint64_t)wStr,
+			{ (float)xPos, (float)yPos });
+
+	D2Win_DrawRectangledText_Real(wStr, xPos + (int32_t)offset.x, yPos + (int32_t)offset.y, rectColor, rectTransparency, color);
+
+	if (d2InterceptionHandler)
+	{
+		d2InterceptionHandler->EndDrawText();
+	}
+}
+
+void __cdecl D2Gfx_DrawString_Hooked(int nXpos, int nYpos, const char* szFormat, ...)
+{
+	D2Gfx_DrawString_Real(nXpos, nYpos, szFormat);
+}
 
 __declspec(naked) void D2Client_DrawUnit_Stack_Hooked()
 {
@@ -429,12 +525,12 @@ __declspec(naked) void D2Client_DrawUnit_Stack_Hooked()
 		push eax
 		push edx
 		lea edx, origReturnAddr
-		mov eax, dword ptr [esp + 0x08]
+		mov eax, dword ptr[esp + 0x08]
 		mov dword ptr[edx], eax
 		lea eax, patchReturnAddr
-		mov dword ptr [esp + 0x08], eax
+		mov dword ptr[esp + 0x08], eax
 		lea edx, currentlyDrawingUnit
-		mov eax, dword ptr [esp + 0x0c]
+		mov eax, dword ptr[esp + 0x0c]
 		mov dword ptr[edx], eax
 		pop edx
 		pop eax
@@ -442,7 +538,7 @@ __declspec(naked) void D2Client_DrawUnit_Stack_Hooked()
 
 	__asm jmp D2Client_DrawUnit_Real
 
-patchReturnAddr:
+	patchReturnAddr :
 	__asm
 	{
 		push eax
@@ -450,7 +546,7 @@ patchReturnAddr:
 		push edx
 		lea edx, currentlyDrawingUnit
 		xor eax, eax
-		mov dword ptr [edx], eax
+		mov dword ptr[edx], eax
 		lea edx, origReturnAddr
 		mov eax, dword ptr[edx]
 		mov dword ptr[esp + 0x08], eax
@@ -481,7 +577,7 @@ __declspec(naked) void D2Client_DrawUnit_ESI_Hooked()
 
 	__asm jmp D2Client_DrawUnit_Real
 
-patchReturnAddr :
+	patchReturnAddr :
 	__asm
 	{
 		push eax
@@ -520,7 +616,7 @@ __declspec(naked) void D2Client_DrawMissile_ESI_Hooked()
 
 	__asm jmp D2Client_DrawMissile_Real
 
-patchReturnAddr:
+	patchReturnAddr :
 	__asm
 	{
 		push eax
@@ -564,7 +660,7 @@ __declspec(naked) void D2Client_DrawWeatherParticles_Hooked()
 
 	__asm jmp D2Client_DrawWeatherParticles_Real
 
-patchReturnAddr:
+	patchReturnAddr :
 	__asm
 	{
 		push eax
@@ -625,6 +721,7 @@ __declspec(naked) void D2Client_DrawWeatherParticles114d_Hooked()
 		ret
 	}
 }
+
 void d2dx::AttachDetours()
 {
 	if (hasDetoured)
@@ -668,10 +765,12 @@ void d2dx::AttachLateDetours(
 	D2Gfx_DrawImageFast_Real = (D2Gfx_DrawImageFastFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawImageFast);
 	D2Gfx_DrawShadow_Real = (D2Gfx_DrawShadowFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawShadow);
 	D2Win_DrawText_Real = (D2Win_DrawTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawText);
+	D2Win_DrawTextEx_Real = (D2Win_DrawTextExFunc)gameHelper->GetFunction(D2Function::D2Win_DrawTextEx);
+	D2Win_DrawFramedText_Real = (D2Win_DrawFramedTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawFramedText);
+	D2Win_DrawRectangledText_Real = (D2Win_DrawRectangledTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawRectangledText);
 	D2Client_DrawUnit_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawUnit);
 	D2Client_DrawMissile_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawMissile);
 	D2Client_DrawWeatherParticles_Real = (NakedFunc)gameHelper->GetFunction(D2Function::D2Client_DrawWeatherParticles);
-
 
 	if (!D2Gfx_DrawImage_Real ||
 		!D2Gfx_DrawShiftedImage_Real ||
@@ -694,20 +793,23 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
+	DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
+	DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
+	DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 
-	DetourAttach(&(PVOID&)D2Client_DrawUnit_Real, 
-		(gameHelper->GetVersion() == GameVersion::Lod109d || 
-		gameHelper->GetVersion() == GameVersion::Lod110 ||
-		gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
-	
+	DetourAttach(&(PVOID&)D2Client_DrawUnit_Real,
+		(gameHelper->GetVersion() == GameVersion::Lod109d ||
+			gameHelper->GetVersion() == GameVersion::Lod110 ||
+			gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
+
 	if (D2Client_DrawMissile_Real)
 	{
 		DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 	}
-	
+
 	if (D2Client_DrawWeatherParticles_Real)
 	{
-		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real, 
+		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real,
 			gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawWeatherParticles114d_Hooked : D2Client_DrawWeatherParticles_Hooked);
 	}
 

@@ -68,6 +68,7 @@ D2DXContext::D2DXContext(
 	_options{ GetCommandLineOptions() },
 	_lastScreenOpenMode{ 0 },
 	_surfaceIdTracker{ gameHelper },
+	_textMotionPredictor{ gameHelper },
 	_unitMotionPredictor{ gameHelper },
 	_weatherMotionPredictor{ gameHelper }
 {
@@ -461,9 +462,7 @@ void D2DXContext::OnBufferSwap()
 
 	_surfaceIdTracker.OnNewFrame();
 
-	Rect renderRect;
-	Size desktopSize;
-	_renderContext->GetCurrentMetrics(&_gameSize, &renderRect, &desktopSize);
+	_renderContext->GetCurrentMetrics(&_gameSize, nullptr, nullptr);
 
 	_avgDir = { 0.0f, 0.0f };
 
@@ -1138,9 +1137,7 @@ void D2DXContext::InsertLogoOnTitleScreen()
 	_logoTextureBatch.SetStartVertex(_vertexCount);
 
 	Size gameSize;
-	Rect renderRect;
-	Size desktopSize;
-	_renderContext->GetCurrentMetrics(&gameSize, &renderRect, &desktopSize);
+	_renderContext->GetCurrentMetrics(&gameSize, nullptr, nullptr);
 
 	const int32_t x = gameSize.width - 90 - 16;
 	const int32_t y = gameSize.height - 50 - 16;
@@ -1270,6 +1267,7 @@ void D2DXContext::OnBufferClear()
 	if (_options.GetFlag(OptionsFlag::TestMotionPrediction) && _majorGameState == MajorGameState::InGame)
 	{
 		_unitMotionPredictor.Update(_renderContext.get());
+		_textMotionPredictor.Update(_renderContext.get());
 		_weatherMotionPredictor.Update(_renderContext.get());
 	}
 }
@@ -1278,6 +1276,14 @@ void D2DXContext::BeginDrawText()
 {
 	_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 	_isDrawingText = true;
+}
+
+_Use_decl_annotations_
+OffsetF D2DXContext::GetTextOffset(
+	uint64_t textId,
+	OffsetF posFromGame)
+{
+	return _textMotionPredictor.GetOffset(textId, posFromGame);
 }
 
 void D2DXContext::EndDrawText()

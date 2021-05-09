@@ -32,11 +32,14 @@ namespace d2dx
 		D2Gfx_DrawImageFast = 4, /* call dword ptr [eax+94h] */
 		D2Gfx_DrawShadow = 5, /* call dword ptr [eax+90h] */
 		D2Win_DrawText = 6, /* mov ebx, [esp+4+arg_8] */
-		D2Client_DrawUnit = 7, /* push    52Bh */
-		D2Client_DrawMissile = 8, 
-		D2Client_DrawWeatherParticles = 9,
-		D2Client_FindClientSideUnit = 10,
-		D2Client_FindServerSideUnit = 11,
+		D2Win_DrawTextEx = 7,
+		D2Win_DrawFramedText = 8,
+		D2Win_DrawRectangledText = 9,
+		D2Client_DrawUnit = 10, /* push    52Bh */
+		D2Client_DrawMissile = 11, 
+		D2Client_DrawWeatherParticles = 12,
+		D2Client_FindClientSideUnit = 13,
+		D2Client_FindServerSideUnit = 14,
 	};
 
 	struct DrawParameters

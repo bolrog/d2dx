@@ -102,9 +102,9 @@ namespace d2dx
 			_In_ Size windowSize) override;
 
 		virtual void GetCurrentMetrics(
-			_Out_ Size* gameSize,
-			_Out_ Rect* renderRect,
-			_Out_ Size* desktopSize) const override;
+			_Out_opt_ Size* gameSize,
+			_Out_opt_ Rect* renderRect,
+			_Out_opt_ Size* desktopSize) const override;
 
 		virtual void ToggleFullscreen() override;
 

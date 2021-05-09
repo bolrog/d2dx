@@ -146,6 +146,7 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dx256_bmp.h" />
+    <ClInclude Include="TextMotionPredictor.h" />
     <ClInclude Include="IBuiltinResMod.h" />
     <ClInclude Include="ID2DXContext.h" />
     <ClInclude Include="ID2InterceptionHandler.h" />
@@ -189,6 +190,7 @@
     <ClCompile Include="D2DXContextFactory.cpp" />
     <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />
+    <ClCompile Include="TextMotionPredictor.cpp" />
     <ClCompile Include="Metrics.cpp" />
     <ClCompile Include="Options.cpp" />
     <ClCompile Include="RenderContextResources.cpp" />

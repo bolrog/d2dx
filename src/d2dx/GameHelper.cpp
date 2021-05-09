@@ -842,6 +842,18 @@ void* GameHelper::GetFunction(
 			hModule = _hD2WinDll;
 			ordinal = 10076;
 			break;
+		case D2Function::D2Win_DrawTextEx:
+			hModule = _hD2WinDll;
+			ordinal = 10084;
+			break;
+		case D2Function::D2Win_DrawFramedText:
+			hModule = _hD2WinDll;
+			ordinal = 10137;
+			break;
+		case D2Function::D2Win_DrawRectangledText:
+			hModule = _hD2WinDll;
+			ordinal = 10078;
+			break;
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x605b0);
 		case D2Function::D2Client_DrawMissile:

@@ -18,28 +18,39 @@
 */
 #pragma once
 
-#include "Types.h"
-#include "D2Types.h"
+#include "IGameHelper.h"
+#include "IRenderContext.h"
 
 namespace d2dx
 {
-	struct ID2InterceptionHandler abstract
+#pragma once
+	class TextMotionPredictor
 	{
-		virtual ~ID2InterceptionHandler() noexcept {}
+	public:
+		TextMotionPredictor(
+			_In_ const std::shared_ptr<IGameHelper>& gameHelper);
 
-		virtual void BeginDrawText() = 0;
+		void Update(
+			_In_ IRenderContext* renderContext);
 
-		virtual OffsetF GetTextOffset(
+		OffsetF GetOffset(
 			_In_ uint64_t textId,
-			_In_ OffsetF posFromGame) = 0;
+			_In_ OffsetF posFromGame);
 
-		virtual void EndDrawText() = 0;
+	private:
+		struct TextMotion final
+		{
+			uint64_t id = 0;
+			uint32_t lastUsedFrame = 0;
+			OffsetF targetPos = { 0, 0 };
+			OffsetF currentPos = { 0, 0 };
+			int64_t dtLastPosChange = 0;
+		};
 
-		virtual void BeginDrawImage(
-			_In_ const D2::CellContext* cellContext,
-			_In_ uint32_t drawMode,
-			_In_ Offset pos) = 0;
-
-		virtual void EndDrawImage() = 0;
+		std::shared_ptr<IGameHelper> _gameHelper;
+		uint32_t _frame = 0;
+		Buffer<TextMotion> _textMotions;
+		uint32_t _textsCount;
+		Size _gameSize;
 	};
 }

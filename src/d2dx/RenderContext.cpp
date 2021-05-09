@@ -976,10 +976,20 @@ void RenderContext::GetCurrentMetrics(
 	Rect* renderRect,
 	Size* desktopSize) const
 {
-	assert(gameSize && renderRect && desktopSize);
-	*gameSize = _gameSize;
-	*renderRect = _renderRect;
-	*desktopSize = _desktopSize;
+	if (gameSize)
+	{
+		*gameSize = _gameSize;
+	}
+
+	if (renderRect)
+	{
+		*renderRect = _renderRect;
+	}
+
+	if (desktopSize)
+	{
+		*desktopSize = _desktopSize;
+	}
 }
 
 void RenderContext::ClipCursor()

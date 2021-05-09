@@ -55,6 +55,7 @@
     </ClCompile>
     <ClCompile Include="WeatherMotionPredictor.cpp" />
     <ClCompile Include="TextureHasher.cpp" />
+    <ClCompile Include="TextMotionPredictor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -138,6 +139,7 @@
     </ClInclude>
     <ClInclude Include="WeatherMotionPredictor.h" />
     <ClInclude Include="TextureHasher.h" />
+    <ClInclude Include="TextMotionPredictor.h" />
     <ClInclude Include="..\..\thirdparty\pocketlzma\pocketlzma.hpp">
       <Filter>thirdparty\pocketlzma</Filter>
     </ClInclude>
