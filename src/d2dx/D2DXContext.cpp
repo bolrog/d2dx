@@ -417,7 +417,7 @@ void D2DXContext::OnBufferSwap()
 		int32_t screenOffsetX = (int32_t)(32.0f * (offset.x - offset.y) / sqrt(2.0f) + 0.5f);
 		int32_t screenOffsetY = (int32_t)(16.0f * (offset.x + offset.y) / sqrt(2.0f) + 0.5f);
 
-		for (int32_t i = 0; i < _batchCount; ++i)
+		for (uint32_t i = 0; i < _batchCount; ++i)
 		{
 			const Batch& batch = _batches.items[i];
 			auto surfaceId = _vertices.items[batch.GetStartVertex()].GetSurfaceId();
@@ -429,7 +429,7 @@ void D2DXContext::OnBufferSwap()
 				int32_t vertexIndex = batch.GetStartVertex();
 				for (uint32_t j = 0; j < batchVertexCount; ++j)
 				{
-					_vertices.items[vertexIndex++].AddOffset({ -screenOffsetX, -screenOffsetY });
+					_vertices.items[vertexIndex++].AddOffset(-screenOffsetX, -screenOffsetY);
 				}
 			}
 		}
@@ -571,10 +571,9 @@ void D2DXContext::OnDrawPoint(
 
 	Vertex vertex0 = centerVertex;
 	Vertex vertex1 = centerVertex;
-	vertex1.SetX((int32_t)(vertex1.GetX() + 1));
+	vertex1.AddOffset(1, 0);
 	Vertex vertex2 = centerVertex;
-	vertex2.SetX((int32_t)(vertex2.GetX() + 1));
-	vertex2.SetY((int32_t)(vertex2.GetY() + 1));
+	vertex2.AddOffset(1, 1);
 
 	assert((_vertexCount + 3) < _vertices.capacity);
 	_vertices.items[_vertexCount++] = vertex0;
@@ -660,8 +659,7 @@ void D2DXContext::OnDrawLine(
 
 		for (int32_t i = 0; i < 5; ++i)
 		{
-			v[i].SetX((int32_t)(points[i].x));
-			v[i].SetY((int32_t)(points[i].y));
+			v[i].SetPosition((int32_t)points[i].x, (int32_t)points[i].y);
 		}
 
 		uint32_t c = startVertex.GetColor();
@@ -705,20 +703,24 @@ void D2DXContext::OnDrawLine(
 		dy *= halfinvlen;
 
 		Vertex vertex0 = startVertex;
-		vertex0.SetX((int32_t)(vertex0.GetX() - dx));
-		vertex0.SetY((int32_t)(vertex0.GetY() - dy));
+		vertex0.SetPosition(
+			(int32_t)(vertex0.GetX() - dx),
+			(int32_t)(vertex0.GetY() - dy));
 
 		Vertex vertex1 = startVertex;
-		vertex1.SetX((int32_t)(vertex1.GetX() + dx));
-		vertex1.SetY((int32_t)(vertex1.GetY() + dy));
+		vertex1.SetPosition(
+			(int32_t)(vertex1.GetX() + dx),
+			(int32_t)(vertex1.GetY() + dy));
 
 		Vertex vertex2 = endVertex;
-		vertex2.SetX((int32_t)(vertex2.GetX() - dx));
-		vertex2.SetY((int32_t)(vertex2.GetY() - dy));
+		vertex2.SetPosition(
+			(int32_t)(vertex2.GetX() - dx),
+			(int32_t)(vertex2.GetY() - dy));
 
 		Vertex vertex3 = endVertex;
-		vertex3.SetX((int32_t)(vertex3.GetX() + dx));
-		vertex3.SetY((int32_t)(vertex3.GetY() + dy));
+		vertex3.SetPosition(
+			(int32_t)(vertex3.GetX() + dx),
+			(int32_t)(vertex3.GetY() + dy));
 
 		assert((_vertexCount + 6) < _vertices.capacity);
 		_vertices.items[_vertexCount++] = vertex0;
@@ -856,9 +858,9 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	uint32_t gameContext)
 {
 	OffsetF drawOffset = { 0,0 };
-	if (_majorGameState == MajorGameState::InGame && currentlyDrawingUnit)
+	if (_majorGameState == MajorGameState::InGame)
 	{
-		if (currentlyDrawingUnit != _gameHelper->GetPlayerUnit())
+		if (currentlyDrawingUnit && currentlyDrawingUnit != _gameHelper->GetPlayerUnit())
 		{
 			drawOffset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
 		}
@@ -929,7 +931,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 		int32_t vertexIndex = batch.GetStartVertex();
 		for (uint32_t j = 0; j < batchVertexCount; ++j)
 		{
-			_vertices.items[vertexIndex++].AddOffset({ screenOffsetX, screenOffsetY });
+			_vertices.items[vertexIndex++].AddOffset(screenOffsetX, screenOffsetY);
 		}
 	}
 
@@ -1266,25 +1268,22 @@ void D2DXContext::BeginDrawImage(
 	}
 	else
 	{
-		DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
-
-		if (_playerScreenPos.x > 0 && max(abs(pos.x - _playerScreenPos.x), abs(pos.y - _playerScreenPos.y)) < 4)
+		const bool isPlayerShadow = _playerScreenPos.x > 0 && max(abs(pos.x - _playerScreenPos.x), abs(pos.y - _playerScreenPos.y)) < 4;
+		if (isPlayerShadow)
 		{
-			// Player shadow
 			_scratchBatch.SetTextureCategory(TextureCategory::Player);
 		}
 		else
-			if (drawParameters.unitType == 0 && cellContext->dwMode == 0)
-			{
-				if (drawMode != 3)
-				{
-					_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
-				}
-			}
-			else if (drawParameters.unitType == 4 && cellContext->dwMode == 4) // Belt items
+		{
+			DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
+			const bool isMiscUi = drawParameters.unitType == 0 && cellContext->dwMode == 0 && drawMode != 3;
+			const bool isBeltItem = drawParameters.unitType == 4 && cellContext->dwMode == 4;
+
+			if (isMiscUi || isBeltItem)
 			{
 				_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 			}
+		}
 	}
 }
 

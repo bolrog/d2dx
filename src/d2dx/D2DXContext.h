@@ -243,10 +243,10 @@ namespace d2dx
 
 		Buffer<uint32_t> _paletteKeys;
 
-		int32_t _batchCount;
+		uint32_t _batchCount;
 		Buffer<Batch> _batches;
 
-		int32_t _vertexCount;
+		uint32_t _vertexCount;
 		Buffer<Vertex> _vertices;
 
 		Options _options;

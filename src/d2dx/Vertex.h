@@ -51,10 +51,11 @@ namespace d2dx
 		}
 
 		inline void AddOffset(
-			_In_ Offset offset) noexcept
+			_In_ int32_t x,
+			_In_ int32_t y) noexcept
 		{
-			_x += offset.x;
-			_y += offset.y;
+			_x += x;
+			_y += y;
 		}
 
 		inline int32_t GetX() const noexcept
@@ -67,13 +68,9 @@ namespace d2dx
 			return _y;
 		}
 
-		inline void SetX(int32_t x) noexcept
+		inline void SetPosition(int32_t x, int32_t y) noexcept
 		{
 			_x = x;
-		}
-
-		inline void SetY(int32_t y) noexcept
-		{
 			_y = y;
 		}
 
