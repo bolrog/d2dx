@@ -82,6 +82,23 @@ void Options::ApplyCfg(
 #undef READ_OPTOUTS_FLAG
 	}
 
+	auto game = toml_table_in(root, "game");
+
+	if (game)
+	{
+		auto gameSize = toml_array_in(game, "size");
+		if (gameSize)
+		{
+			auto w = toml_int_at(gameSize, 0);
+			auto h = toml_int_at(gameSize, 1);
+
+			if (w.ok && h.ok)
+			{
+				SetUserSpecifiedGameSize({ (int32_t)w.u.i, (int32_t)h.u.i });
+			}
+		}
+	}
+
 	auto window = toml_table_in(root, "window");
 
 	if (window)
@@ -192,4 +209,15 @@ void Options::SetWindowPosition(
 	_In_ Offset windowPosition)
 {
 	_windowPosition = { max(-1, windowPosition.x), max(-1, windowPosition.y) };
+}
+
+Size Options::GetUserSpecifiedGameSize() const
+{
+	return _userSpecifiedGameSize;
+}
+
+void Options::SetUserSpecifiedGameSize(
+	_In_ Size size)
+{
+	_userSpecifiedGameSize = { max(-1, size.width), max(-1, size.height) };
 }

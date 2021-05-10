@@ -70,9 +70,15 @@ namespace d2dx
 		void SetWindowPosition(
 			_In_ Offset windowPosition);
 
+		Size GetUserSpecifiedGameSize() const;
+
+		void SetUserSpecifiedGameSize(
+			_In_ Size size);
+
 	private:
 		uint32_t _flags = 0;
 		int32_t _windowScale = 1;
 		Offset _windowPosition{ -1, -1 };
+		Size _userSpecifiedGameSize{ -1, -1 };
 	};
 }

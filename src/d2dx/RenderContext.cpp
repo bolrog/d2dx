@@ -262,7 +262,7 @@ RenderContext::RenderContext(
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 
-	Size renderTargetSize = Metrics::GetSuggestedGameSize(_desktopSize, !_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+	Size renderTargetSize = _d2dxContext->GetSuggestedCustomResolution();
 	renderTargetSize.width = max(1024, renderTargetSize.width);
 	renderTargetSize.height = max(768, renderTargetSize.height);
 
