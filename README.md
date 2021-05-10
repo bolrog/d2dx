@@ -3,7 +3,7 @@
 D2DX is a Glide-wrapper and mod that makes the classic Diablo II/LoD run well on modern PCs, while honoring the original look and feel of the game.
 Play in a window or in fullscreen, glitch-free, with or without enhancements like widescreen, true high framerate and anti-aliasing.
 
-Version 0.99.508
+Version 0.99.510
 
 ## Features
   - Turns the game into a well behaved DirectX 11 title on Windows 10 (also 7, 8 and 8.1).
@@ -76,6 +76,10 @@ D2DX uses the following third party libraries:
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
 ## Recent release history
+
+### 0.99.510
+  - Add the possibility to set a custom in-game resolution in d2dx.cfg. See the wiki for details.
+  - Remove special case for MedianXL Sigma (don't limit to 1024x768).
 
 ### 0.99.508
   - Fix motion prediction of water splashes e.g. in Kurast Docks.
