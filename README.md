@@ -83,6 +83,7 @@ D2DX uses the following third party libraries:
   - Change resolution mod from D2HD to the newer SGD2FreeRes (both by Mir Drualga).
     Custom resolutions now work in 1.09 and 1.14d, but (at this time) there is no support for 1.12. Let me know if this is a problem!
   - Some performance optimizations.
+  - Remove sizing handles on the window (this was never intended).
 
 ### 0.99.510
   - Add the possibility to set a custom in-game resolution in d2dx.cfg. See the wiki for details.
