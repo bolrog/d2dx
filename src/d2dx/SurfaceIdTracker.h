@@ -41,6 +41,8 @@ namespace d2dx
 			_Inout_updates_all_(batchVerticesCount) Vertex* batchVertices,
 			_In_ int32_t batchVerticesCount);
 
+		int32_t GetCurrentSurfaceId() const;
+
 	private:
 		std::shared_ptr<IGameHelper> _gameHelper;
 		int32_t _nextSurfaceId = 0;

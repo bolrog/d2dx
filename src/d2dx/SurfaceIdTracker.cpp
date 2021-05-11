@@ -152,3 +152,8 @@ void SurfaceIdTracker::UpdateBatchSurfaceId(
 	_previousDrawCallRect.size.width = maxx - minx;
 	_previousDrawCallRect.size.height = maxy - miny;
 }
+
+int32_t SurfaceIdTracker::GetCurrentSurfaceId() const
+{
+	return _nextSurfaceId;
+}

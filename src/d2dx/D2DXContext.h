@@ -31,6 +31,7 @@
 #include "TextureHasher.h"
 #include "UnitMotionPredictor.h"
 #include "WeatherMotionPredictor.h"
+#include "Vertex.h"
 
 namespace d2dx
 {
@@ -193,6 +194,15 @@ namespace d2dx
 #pragma endregion IWin32InterceptionHandler
 
 	private:
+		struct D2Vertex
+		{
+			float x, y;
+			uint32_t color;
+			uint32_t padding;
+			float s, t;
+			uint32_t padding2;
+		};
+		
 		void CheckMajorGameState();
 
 		void PrepareLogoTextureBatch();
@@ -208,9 +218,11 @@ namespace d2dx
 			_In_ uint32_t vertexCount,
 			_In_ uint32_t gameContext) const;
 		
+		void EnsureReadVertexStateUpdated(
+			_In_ const Batch& batch);
+
 		Vertex ReadVertex(
-			_In_ const uint8_t* vertex,
-			_In_ uint32_t vertexLayout,
+			_In_ const D2Vertex* vertex,
 			_In_ const Batch& batch,
 			_In_ int32_t batchIndex);
 
@@ -220,11 +232,21 @@ namespace d2dx
 			Buffer<uint8_t> sideTmuMemory{ D2DX_SIDE_TMU_MEMORY_SIZE };
 			Buffer<uint32_t> palettes{ D2DX_MAX_PALETTES * 256 };
 			Buffer<uint32_t> gammaTable{ 256 };
-			uint32_t vertexLayout{ 0xFF };
 			uint32_t constantColor{ 0xFFFFFFFF };
+			int32_t stShift;
+		};
+
+		struct ReadVertexState
+		{
+			Vertex templateVertex;
+			uint32_t constantColorMask;
+			uint32_t iteratedColorMask;
+			uint32_t maskedConstantColor;
+			bool isDirty;
 		};
 
 		GlideState _glideState;
+		ReadVertexState _readVertexState;
 
 		Batch _scratchBatch;
 

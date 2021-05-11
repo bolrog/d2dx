@@ -23,6 +23,17 @@ namespace d2dx
 	class Vertex final
 	{
 	public:
+		Vertex() noexcept :
+			_x{ 0 },
+			_y{ 0 },
+			_s{ 0 },
+			_t{ 0 },
+			_color{ 0 },
+			_isChromaKeyEnabled_surfaceId{ 0 },
+			_paletteIndex_atlasIndex{ 0 }
+		{
+		}
+
 		Vertex(
 			int32_t x,
 			int32_t y,
@@ -91,20 +102,16 @@ namespace d2dx
 			return _s;
 		}
 
-		inline void SetS(int32_t s) noexcept
-		{
-			assert(s >= 0 && s <= 511);
-			_s = s;
-		}
-
 		inline int32_t GetT() const noexcept
 		{
 			return _t;
 		}
 
-		inline void SetT(int32_t t) noexcept
+		inline void SetTexcoord(int32_t s, int32_t t) noexcept
 		{
+			assert(s >= 0 && s <= 511);
 			assert(t >= 0 && t <= 511);
+			_s = s;
 			_t = t;
 		}
 

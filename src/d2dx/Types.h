@@ -148,6 +148,13 @@ namespace d2dx
 			return *this;
 		}
 
+		OffsetF& operator*=(float rhs) noexcept
+		{
+			x *= rhs;
+			y *= rhs;
+			return *this;
+		}
+
 		OffsetF operator+(const OffsetF& rhs) const noexcept
 		{
 			return { x + rhs.x, y + rhs.y };

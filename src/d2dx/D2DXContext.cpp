@@ -228,14 +228,13 @@ void D2DXContext::OnVertexLayout(
 {
 	switch (param) {
 	case GR_PARAM_XY:
-		_glideState.vertexLayout = (_glideState.vertexLayout & 0xFFFF) | ((offset & 0xFF) << 16);
-		break;
-	case GR_PARAM_ST0:
-	case GR_PARAM_ST1:
-		_glideState.vertexLayout = (_glideState.vertexLayout & 0xFF00FF) | ((offset & 0xFF) << 8);
+		assert(offset == 0);
 		break;
 	case GR_PARAM_PARGB:
-		_glideState.vertexLayout = (_glideState.vertexLayout & 0xFFFF00) | (offset & 0xFF);
+		assert(offset == 8);
+		break;
+	case GR_PARAM_ST0:
+		assert(offset == 16);
 		break;
 	}
 }
@@ -277,8 +276,14 @@ void D2DXContext::OnTexSource(
 		return;
 	}
 
+	_readVertexState.isDirty = true;
+
 	uint8_t* pixels = _glideState.tmuMemory.items + startAddress;
 	const uint32_t pixelsSize = width * height;
+
+	int32_t stShift = 0;
+	_BitScanReverse((DWORD*)&stShift, max(width, height));
+	_glideState.stShift = 8 - stShift;
 
 	uint32_t hash = _textureHasher.GetHash(startAddress, pixels, pixelsSize);
 
@@ -461,6 +466,8 @@ void D2DXContext::OnBufferSwap()
 
 	_avgDir = { 0.0f, 0.0f };
 
+	_readVertexState.isDirty = true;
+
 	//D2DX_LOG("Time %f, Player %f,  %f (interpolated %f, %f)", _time, _lastPlayerX, _lastPlayerY, _itpPlayerX, _itpPlayerY);
 }
 
@@ -490,6 +497,8 @@ void D2DXContext::OnColorCombine(
 	}
 
 	_scratchBatch.SetRgbCombine(rgbCombine);
+
+	_readVertexState.isDirty = true;
 }
 
 _Use_decl_annotations_
@@ -525,6 +534,7 @@ void D2DXContext::OnConstantColorValue(
 	uint32_t color)
 {
 	_glideState.constantColor = (color >> 8) | (color << 24);
+	_readVertexState.isDirty = true;
 }
 
 _Use_decl_annotations_
@@ -553,6 +563,8 @@ void D2DXContext::OnAlphaBlendFunction(
 	}
 
 	_scratchBatch.SetAlphaBlend(alphaBlend);
+
+	_readVertexState.isDirty = true;
 }
 
 _Use_decl_annotations_
@@ -560,19 +572,29 @@ void D2DXContext::OnDrawPoint(
 	const void* pt,
 	uint32_t gameContext)
 {
-	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
-
 	Batch batch = _scratchBatch;
-	batch.SetGameAddress(gameAddress);
+	batch.SetGameAddress(GameAddress::Unknown);
 	batch.SetStartVertex(_vertexCount);
-	batch.SetTextureCategory(_gameHelper->RefineTextureCategoryFromGameAddress(batch.GetTextureCategory(), gameAddress));
 
-	Vertex centerVertex = ReadVertex((const uint8_t*)pt, _glideState.vertexLayout, batch, 0);
+	EnsureReadVertexStateUpdated(batch);
 
-	Vertex vertex0 = centerVertex;
-	Vertex vertex1 = centerVertex;
+	auto vertex0 = _readVertexState.templateVertex;
+
+	const uint32_t iteratedColorMask = _readVertexState.iteratedColorMask;
+	const uint32_t maskedConstantColor = _readVertexState.maskedConstantColor;
+	const int32_t stShift = _glideState.stShift;
+
+	const D2Vertex* d2Vertex = (const D2Vertex*)pt;
+
+	vertex0.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+	vertex0.SetTexcoord((int32_t)d2Vertex->s >> stShift, (int32_t)d2Vertex->t >> stShift);
+	vertex0.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
+	vertex0.SetSurfaceId(_surfaceIdTracker.GetCurrentSurfaceId());
+
+	Vertex vertex1 = vertex0;
+	Vertex vertex2 = vertex0;
+
 	vertex1.AddOffset(1, 0);
-	Vertex vertex2 = centerVertex;
 	vertex2.AddOffset(1, 1);
 
 	assert((_vertexCount + 3) < _vertices.capacity);
@@ -597,10 +619,22 @@ void D2DXContext::OnDrawLine(
 	Batch batch = _scratchBatch;
 	batch.SetGameAddress(GameAddress::DrawLine);
 	batch.SetStartVertex(_vertexCount);
+	batch.SetPaletteIndex(D2DX_WHITE_PALETTE_INDEX);
 	batch.SetTextureCategory(TextureCategory::UserInterface);
 
-	Vertex startVertex = ReadVertex((const uint8_t*)v1, _glideState.vertexLayout, batch, D2DX_SURFACE_ID_USER_INTERFACE);
-	Vertex endVertex = ReadVertex((const uint8_t*)v2, _glideState.vertexLayout, batch, D2DX_SURFACE_ID_USER_INTERFACE);
+	EnsureReadVertexStateUpdated(batch);
+
+	auto vertex0 = _readVertexState.templateVertex;
+	vertex0.SetSurfaceId(D2DX_SURFACE_ID_USER_INTERFACE);
+
+	const uint32_t iteratedColorMask = _readVertexState.iteratedColorMask;
+	const uint32_t maskedConstantColor = _readVertexState.maskedConstantColor;
+
+	const D2Vertex* d2Vertex0 = (const D2Vertex*)v1;
+	const D2Vertex* d2Vertex1 = (const D2Vertex*)v2;
+
+	vertex0.SetTexcoord((int32_t)d2Vertex1->s >> _glideState.stShift, (int32_t)d2Vertex1->t >> _glideState.stShift);
+	vertex0.SetColor(maskedConstantColor | (d2Vertex1->color & iteratedColorMask));
 
 	if (_options.GetFlag(OptionsFlag::TestMotionPrediction) && currentlyDrawingWeatherParticles)
 	{
@@ -608,8 +642,8 @@ void D2DXContext::OnDrawLine(
 
 		int32_t act = _gameHelper->GetCurrentAct();
 
-		OffsetF startVertexPos{ (float)startVertex.GetX(), (float)startVertex.GetY() };
-		OffsetF endVertexPos{ (float)endVertex.GetX(), (float)endVertex.GetY() };
+		OffsetF startPos{ d2Vertex0->x, d2Vertex0->y };
+		OffsetF endPos{ d2Vertex1->x, d2Vertex1->y };
 
 		// Snow is drawn with two independent lines per particle index (different places on screen).
 		// We solve this by tracking each line separately.
@@ -618,12 +652,11 @@ void D2DXContext::OnDrawLine(
 			currentWeatherParticleIndex += 256;
 		}
 
-		auto offset = _weatherMotionPredictor.GetOffset(currentWeatherParticleIndex, startVertexPos);
+		const OffsetF offset = _weatherMotionPredictor.GetOffset(currentWeatherParticleIndex, startPos);
+		startPos += offset;
+		endPos += offset;
 
-		startVertexPos += offset;
-		endVertexPos += offset;
-
-		auto dir = endVertexPos - startVertexPos;
+		auto dir = endPos - startPos;
 		float len = dir.Length();
 		dir.Normalize();
 
@@ -644,49 +677,45 @@ void D2DXContext::OnDrawLine(
 		const float stretchBack = act == 4 ? 1.0f : 3.0f;
 		const float stretchAhead = act == 4 ? 1.0f : 1.0f;
 
-		auto midPos = startVertexPos;
-		startVertexPos -= dir * len * stretchBack;
-		endVertexPos = startVertexPos + dir * len * (stretchBack + stretchAhead);
+		auto midPos = startPos;
+		startPos -= dir * len * stretchBack;
+		endPos = startPos + dir * len * (stretchBack + stretchAhead);
 
-		OffsetF points[5];
-		points[0] = midPos;
-		points[1] = startVertexPos;
-		points[2] = midPos + normalVec;
-		points[3] = endVertexPos;
-		points[4] = midPos - normalVec;
+		Vertex vertex1 = vertex0;
+		Vertex vertex2 = vertex0;
+		Vertex vertex3 = vertex0;
+		Vertex vertex4 = vertex0;
 
-		Vertex v[5] = { endVertex, endVertex, endVertex, endVertex, endVertex };
+		vertex0.SetPosition((int32_t)midPos.x, (int32_t)midPos.y);
+		vertex1.SetPosition((int32_t)startPos.x, (int32_t)startPos.y);
+		vertex2.SetPosition((int32_t)(midPos.x + normalVec.x), (int32_t)(midPos.y + normalVec.y));
+		vertex3.SetPosition((int32_t)endPos.x, (int32_t)endPos.y);
+		vertex4.SetPosition((int32_t)(midPos.x - normalVec.x), (int32_t)(midPos.y - normalVec.y));
 
-		for (int32_t i = 0; i < 5; ++i)
-		{
-			v[i].SetPosition((int32_t)points[i].x, (int32_t)points[i].y);
-		}
-
-		uint32_t c = startVertex.GetColor();
-		v[0].SetColor(c);
+		uint32_t c = vertex0.GetColor();
 		c &= 0x00FFFFFF;
-		v[1].SetColor(c);
-		v[2].SetColor(c);
-		v[3].SetColor(c);
-		v[4].SetColor(c);
+		vertex1.SetColor(c);
+		vertex2.SetColor(c);
+		vertex3.SetColor(c);
+		vertex4.SetColor(c);
 
 		assert((_vertexCount + 3 * 4) < _vertices.capacity);
 
-		_vertices.items[_vertexCount++] = v[0];
-		_vertices.items[_vertexCount++] = v[1];
-		_vertices.items[_vertexCount++] = v[2];
+		_vertices.items[_vertexCount++] = vertex0;
+		_vertices.items[_vertexCount++] = vertex1;
+		_vertices.items[_vertexCount++] = vertex2;
 
-		_vertices.items[_vertexCount++] = v[0];
-		_vertices.items[_vertexCount++] = v[2];
-		_vertices.items[_vertexCount++] = v[3];
+		_vertices.items[_vertexCount++] = vertex0;
+		_vertices.items[_vertexCount++] = vertex2;
+		_vertices.items[_vertexCount++] = vertex3;
 
-		_vertices.items[_vertexCount++] = v[0];
-		_vertices.items[_vertexCount++] = v[3];
-		_vertices.items[_vertexCount++] = v[4];
+		_vertices.items[_vertexCount++] = vertex0;
+		_vertices.items[_vertexCount++] = vertex3;
+		_vertices.items[_vertexCount++] = vertex4;
 
-		_vertices.items[_vertexCount++] = v[0];
-		_vertices.items[_vertexCount++] = v[4];
-		_vertices.items[_vertexCount++] = v[1];
+		_vertices.items[_vertexCount++] = vertex0;
+		_vertices.items[_vertexCount++] = vertex4;
+		_vertices.items[_vertexCount++] = vertex1;
 
 		batch.SetVertexCount(3 * 4);
 
@@ -694,33 +723,30 @@ void D2DXContext::OnDrawLine(
 	}
 	else
 	{
-		float dx = (float)(startVertex.GetY() - endVertex.GetY());
-		float dy = (float)(endVertex.GetX() - startVertex.GetX());
-		const float lensqr = dx * dx + dy * dy;
-		const float len = lensqr > 0.01f ? sqrtf(lensqr) : 1.0f;
+		OffsetF normalVec = { d2Vertex0->y - d2Vertex1->y, d2Vertex1->x - d2Vertex0->x };
+		const float len = normalVec.Length();
 		const float halfinvlen = 1.0f / (2.0f * len);
-		dx *= halfinvlen;
-		dy *= halfinvlen;
+		normalVec *= halfinvlen;
 
-		Vertex vertex0 = startVertex;
+		Vertex vertex1 = vertex0;
+		Vertex vertex2 = vertex0;
+		Vertex vertex3 = vertex0;
+
 		vertex0.SetPosition(
-			(int32_t)(vertex0.GetX() - dx),
-			(int32_t)(vertex0.GetY() - dy));
+			(int32_t)(d2Vertex0->x - normalVec.x),
+			(int32_t)(d2Vertex0->y - normalVec.y));
 
-		Vertex vertex1 = startVertex;
 		vertex1.SetPosition(
-			(int32_t)(vertex1.GetX() + dx),
-			(int32_t)(vertex1.GetY() + dy));
+			(int32_t)(d2Vertex0->x + normalVec.x),
+			(int32_t)(d2Vertex0->y + normalVec.y));
 
-		Vertex vertex2 = endVertex;
 		vertex2.SetPosition(
-			(int32_t)(vertex2.GetX() - dx),
-			(int32_t)(vertex2.GetY() - dy));
+			(int32_t)(d2Vertex1->x - normalVec.x),
+			(int32_t)(d2Vertex0->y - normalVec.y));
 
-		Vertex vertex3 = endVertex;
 		vertex3.SetPosition(
-			(int32_t)(vertex3.GetX() + dx),
-			(int32_t)(vertex3.GetY() + dy));
+			(int32_t)(d2Vertex1->x + normalVec.x),
+			(int32_t)(d2Vertex1->y + normalVec.y));
 
 		assert((_vertexCount + 6) < _vertices.capacity);
 		_vertices.items[_vertexCount++] = vertex0;
@@ -739,35 +765,23 @@ void D2DXContext::OnDrawLine(
 
 _Use_decl_annotations_
 Vertex D2DXContext::ReadVertex(
-	const uint8_t* vertex,
-	uint32_t vertexLayout,
+	const D2Vertex* vertex,
 	const Batch& batch,
 	int32_t surfaceId)
 {
-	uint32_t stShift = 0;
-	_BitScanReverse((DWORD*)&stShift, max(batch.GetTextureWidth(), batch.GetTextureHeight()));
-	stShift = 8 - stShift;
-
-	const int32_t xyOffset = (vertexLayout >> 16) & 0xFF;
-	const int32_t stOffset = (vertexLayout >> 8) & 0xFF;
-	const int32_t pargbOffset = vertexLayout & 0xFF;
-
-	auto xy = (const float*)(vertex + xyOffset);
-	auto st = (const float*)(vertex + stOffset);
-	assert((st[0] - floor(st[0])) < 1e6);
-	assert((st[1] - floor(st[1])) < 1e6);
-	int16_t s = (int16_t)st[0] >> stShift;
-	int16_t t = (int16_t)st[1] >> stShift;
-
-	auto pargb = pargbOffset != 0xFF ? *(const uint32_t*)(vertex + pargbOffset) : 0xFFFFFFFF;
+	int32_t x = (int32_t)vertex->x;
+	int32_t y = (int32_t)vertex->y;
+	int32_t s = (int32_t)vertex->s >> _glideState.stShift;
+	int32_t t = (int32_t)vertex->t >> _glideState.stShift;
+	uint32_t color = vertex->color;
 
 	if (batch.GetAlphaCombine() == AlphaCombine::One)
 	{
-		pargb |= 0xFF000000;
+		color |= 0xFF000000;
 	}
 
 	int32_t paletteIndex = batch.GetRgbCombine() == RgbCombine::ColorMultipliedByTexture ? batch.GetPaletteIndex() : D2DX_WHITE_PALETTE_INDEX;
-	return Vertex((int32_t)xy[0], (int32_t)xy[1], s, t, batch.SelectColorAndAlpha(pargb, _glideState.constantColor), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), paletteIndex, surfaceId);
+	return Vertex(x, y, s, t, batch.SelectColorAndAlpha(color, _glideState.constantColor), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), paletteIndex, surfaceId);
 }
 
 _Use_decl_annotations_
@@ -791,57 +805,77 @@ const Batch D2DXContext::PrepareBatchForSubmit(
 }
 
 _Use_decl_annotations_
+void D2DXContext::EnsureReadVertexStateUpdated(
+	const Batch& batch)
+{
+	if (!_readVertexState.isDirty)
+	{
+		return;
+	}
+
+	_readVertexState.templateVertex = Vertex(
+		0, 0,
+		0, 0,
+		0,
+		batch.IsChromaKeyEnabled(),
+		batch.GetTextureIndex(),
+		batch.GetRgbCombine() == RgbCombine::ColorMultipliedByTexture ? batch.GetPaletteIndex() : D2DX_WHITE_PALETTE_INDEX,
+		0);
+
+	const bool isIteratedColor = batch.GetRgbCombine() == RgbCombine::ColorMultipliedByTexture;
+	const uint32_t constantColorMask = isIteratedColor ? 0xFF000000 : 0xFFFFFFFF;
+	_readVertexState.constantColorMask = constantColorMask;
+	_readVertexState.iteratedColorMask = isIteratedColor ? 0x00FFFFFF : 0x00000000;
+	_readVertexState.maskedConstantColor = constantColorMask & (_glideState.constantColor | (batch.GetAlphaBlend() != AlphaBlend::SrcAlphaInvSrcAlpha ? 0xFF000000 : 0));
+	_readVertexState.isDirty = false;
+}
+
+_Use_decl_annotations_
 void D2DXContext::OnDrawVertexArray(
 	uint32_t mode,
 	uint32_t count,
 	uint8_t** pointers,
 	uint32_t gameContext)
 {
-	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
+	assert(count == 12);
+	assert(mode == GR_TRIANGLE_STRIP);
 
-	switch (mode)
+	if (mode != GR_TRIANGLE_STRIP || count != 12)
 	{
-	case GR_TRIANGLE_FAN:
-	{
-		Vertex firstVertex = ReadVertex((const uint8_t*)pointers[0], _glideState.vertexLayout, batch, 0);
-		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], _glideState.vertexLayout, batch, 0);
-
-		for (uint32_t i = 2; i < count; ++i)
-		{
-			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], _glideState.vertexLayout, batch, 0);
-
-			assert((_vertexCount + 3) < _vertices.capacity);
-			_vertices.items[_vertexCount++] = firstVertex;
-			_vertices.items[_vertexCount++] = prevVertex;
-			_vertices.items[_vertexCount++] = currentVertex;
-
-			prevVertex = currentVertex;
-		}
-		break;
-	}
-	case GR_TRIANGLE_STRIP:
-	{
-		Vertex prevPrevVertex = ReadVertex((const uint8_t*)pointers[0], _glideState.vertexLayout, batch, 0);
-		Vertex prevVertex = ReadVertex((const uint8_t*)pointers[1], _glideState.vertexLayout, batch, 0);
-
-		for (uint32_t i = 2; i < count; ++i)
-		{
-			Vertex currentVertex = ReadVertex((const uint8_t*)pointers[i], _glideState.vertexLayout, batch, 0);
-
-			assert((_vertexCount + 3) < _vertices.capacity);
-			_vertices.items[_vertexCount++] = prevPrevVertex;
-			_vertices.items[_vertexCount++] = prevVertex;
-			_vertices.items[_vertexCount++] = currentVertex;
-
-			prevPrevVertex = prevVertex;
-			prevVertex = currentVertex;
-		}
-		break;
-	}
-	default:
-		assert(false && "Unhandled primitive type.");
 		return;
 	}
+
+	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, 30, gameContext);
+	EnsureReadVertexStateUpdated(batch);
+
+	Vertex v = _readVertexState.templateVertex;
+
+	const uint32_t iteratedColorMask = _readVertexState.iteratedColorMask;
+	const uint32_t maskedConstantColor = _readVertexState.maskedConstantColor;
+
+	Vertex* pVertices = &_vertices.items[_vertexCount];
+
+	for (int32_t i = 0; i < 3; ++i)
+	{
+		const D2Vertex* d2Vertex = (const D2Vertex*)pointers[i];
+		v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+		v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
+		v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
+		*pVertices++ = v;
+	}
+
+	for (int32_t i = 0; i < 9; ++i)
+	{
+		*pVertices++ = pVertices[-2];
+		*pVertices++ = pVertices[-2];
+		const D2Vertex* d2Vertex = (const D2Vertex*)pointers[i + 3];
+		v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+		v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
+		v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
+		*pVertices++ = v;
+	}
+
+	_vertexCount += 30;
 
 	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
 
@@ -857,83 +891,52 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	uint32_t stride,
 	uint32_t gameContext)
 {
-	OffsetF drawOffset = { 0,0 };
+	assert(count == 4);
+	assert(mode == GR_TRIANGLE_FAN);
+	assert(stride == sizeof(D2Vertex));
+
+	if (mode != GR_TRIANGLE_FAN || count != 4 || stride != sizeof(D2Vertex))
+	{
+		return;
+	}
+
+	Offset screenOffset = { 0,0 };
 	if (_majorGameState == MajorGameState::InGame)
 	{
 		if (currentlyDrawingUnit && currentlyDrawingUnit != _gameHelper->GetPlayerUnit())
 		{
-			drawOffset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
+			auto drawOffset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
+			screenOffset.x = (int32_t)(32.0f * (drawOffset.x - drawOffset.y) / sqrt(2.0f) + 0.5f);
+			screenOffset.y = (int32_t)(16.0f * (drawOffset.x + drawOffset.y) / sqrt(2.0f) + 0.5f);
 		}
 	}
 
-	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, (count - 2) * 3, gameContext);
+	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, 6, gameContext);
+	EnsureReadVertexStateUpdated(batch);
 
-	switch (mode)
+	const uint32_t iteratedColorMask = _readVertexState.iteratedColorMask;
+	const uint32_t maskedConstantColor = _readVertexState.maskedConstantColor;
+
+	const D2Vertex* d2Vertices = (const D2Vertex*)vertex;
+
+	Vertex v = _readVertexState.templateVertex;
+
+	Vertex* pVertices = &_vertices.items[_vertexCount];
+
+	for (int32_t i = 0; i < 4; ++i)
 	{
-	case GR_TRIANGLE_FAN:
-	{
-		Vertex firstVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
-		vertex += stride;
-
-		Vertex prevVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
-		vertex += stride;
-
-		for (uint32_t i = 2; i < count; ++i)
-		{
-			Vertex currentVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
-			vertex += stride;
-
-			assert((_vertexCount + 3) < _vertices.capacity);
-			_vertices.items[_vertexCount++] = firstVertex;
-			_vertices.items[_vertexCount++] = prevVertex;
-			_vertices.items[_vertexCount++] = currentVertex;
-
-			prevVertex = currentVertex;
-		}
-		break;
+		v.SetPosition((int32_t)d2Vertices[i].x + screenOffset.x, (int32_t)d2Vertices[i].y + screenOffset.y);
+		v.SetTexcoord((int32_t)d2Vertices[i].s >> _glideState.stShift, (int32_t)d2Vertices[i].t >> _glideState.stShift);
+		v.SetColor(maskedConstantColor | (d2Vertices[i].color & iteratedColorMask));
+		pVertices[i] = v;
 	}
-	case GR_TRIANGLE_STRIP:
-	{
-		Vertex prevPrevVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
-		vertex += stride;
 
-		Vertex prevVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
-		vertex += stride;
+	pVertices[4] = pVertices[0];
+	pVertices[5] = pVertices[2];
 
-		for (uint32_t i = 2; i < count; ++i)
-		{
-			Vertex currentVertex = ReadVertex(vertex, _glideState.vertexLayout, batch, 0);
-			vertex += stride;
-
-			assert((_vertexCount + 3) < _vertices.capacity);
-			_vertices.items[_vertexCount++] = prevPrevVertex;
-			_vertices.items[_vertexCount++] = prevVertex;
-			_vertices.items[_vertexCount++] = currentVertex;
-
-			prevPrevVertex = prevVertex;
-			prevVertex = currentVertex;
-		}
-		break;
-	}
-	default:
-		assert(false && "Unhandled primitive type.");
-		return;
-	}
+	_vertexCount += 6;
 
 	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
-
-	if (drawOffset.x != 0.0f && drawOffset.y != 0.0f)
-	{
-		int32_t screenOffsetX = (int32_t)(32.0f * (drawOffset.x - drawOffset.y) / sqrt(2.0f) + 0.5f);
-		int32_t screenOffsetY = (int32_t)(16.0f * (drawOffset.x + drawOffset.y) / sqrt(2.0f) + 0.5f);
-
-		const auto batchVertexCount = batch.GetVertexCount();
-		int32_t vertexIndex = batch.GetStartVertex();
-		for (uint32_t j = 0; j < batchVertexCount; ++j)
-		{
-			_vertices.items[vertexIndex++].AddOffset(screenOffsetX, screenOffsetY);
-		}
-	}
 
 	assert(_batchCount < _batches.capacity);
 	_batches.items[_batchCount++] = batch;
@@ -949,6 +952,8 @@ void D2DXContext::OnTexDownloadTable(
 		assert(false && "Unhandled table type.");
 		return;
 	}
+
+	_readVertexState.isDirty = true;
 
 	uint32_t hash = fnv_32a_buf(data, 1024, FNV1_32A_INIT);
 	assert(hash != 0);
@@ -1000,6 +1005,8 @@ void D2DXContext::OnChromakeyMode(
 	GrChromakeyMode_t mode)
 {
 	_scratchBatch.SetIsChromaKeyEnabled(mode == GR_CHROMAKEY_ENABLE);
+
+	_readVertexState.isDirty = true;
 }
 
 _Use_decl_annotations_
@@ -1208,7 +1215,7 @@ Size D2DXContext::GetSuggestedCustomResolution()
 	if (_suggestedGameSize.width == 0)
 	{
 		Size desktopSize{ GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
-		
+
 		_suggestedGameSize = _options.GetUserSpecifiedGameSize();
 		_suggestedGameSize.width = min(_suggestedGameSize.width, desktopSize.width);
 		_suggestedGameSize.height = min(_suggestedGameSize.height, desktopSize.height);
