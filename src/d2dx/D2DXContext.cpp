@@ -90,7 +90,7 @@ D2DXContext::D2DXContext(
 	{
 		try
 		{
-			_builtinResMod = std::make_unique<BuiltinResMod>(GetModuleHandleA("glide3x.dll"), _gameHelper);
+			_builtinResMod = std::make_unique<BuiltinResMod>(GetModuleHandleA("glide3x.dll"), GetSuggestedCustomResolution(), _gameHelper);
 			if (!_builtinResMod->IsActive())
 			{
 				_options.SetFlag(OptionsFlag::NoResMod, true);
@@ -185,6 +185,7 @@ void D2DXContext::OnSstWinOpen(
 	if (_customGameSize.width > 0)
 	{
 		gameSize = _customGameSize;
+		_customGameSize = { 0,0 };
 	}
 
 	if (gameSize.width != 640 || gameSize.height != 480)

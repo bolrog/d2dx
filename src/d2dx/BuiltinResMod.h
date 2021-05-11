@@ -28,6 +28,7 @@ namespace d2dx
     public:
         BuiltinResMod(
             _In_ HMODULE hModule,
+            _In_ Size gameSize,
             _In_ const std::shared_ptr<IGameHelper>& gameHelper);
         
         virtual ~BuiltinResMod() noexcept {}
@@ -38,8 +39,14 @@ namespace d2dx
         bool IsCompatible(
             _In_ IGameHelper* gameHelper);
 
-        void EnsureMpqExists(
-            _In_ HMODULE hModule);
+        bool WriteResourceToFile(
+            _In_ HMODULE hModule,
+            _In_ int32_t resourceId,
+            _In_z_ const char* ext,
+            _In_z_ const char* filename);
+
+        bool WriteConfig(
+            _In_ Size gameSize);
 
         bool _isActive = false;
     };

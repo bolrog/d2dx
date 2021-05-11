@@ -2,7 +2,8 @@
 // Microsoft Visual C++ generated include file.
 // Used by d2dx.rc
 //
-#define IDR_MPQ1                        101
+#define IDR_SGD2FR_MPQ                  101
+#define IDR_SGD2FR_DLL                  102
 
 // Next default values for new objects
 // 

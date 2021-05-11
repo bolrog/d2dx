@@ -3,7 +3,7 @@
 D2DX is a Glide-wrapper and mod that makes the classic Diablo II/LoD run well on modern PCs, while honoring the original look and feel of the game.
 Play in a window or in fullscreen, glitch-free, with or without enhancements like widescreen, true high framerate and anti-aliasing.
 
-Version 0.99.510
+Version 0.99.511
 
 ## Features
   - Turns the game into a well behaved DirectX 11 title on Windows 10 (also 7, 8 and 8.1).
@@ -27,8 +27,8 @@ Version 0.99.510
 
 ## Compatibility
 Game versions supported:
-  - All features: 1.12, 1.13c and 1.13d.
-  - All features except widescreen: 1.09d, 1.10 and 1.14d.
+  - All features: 1.09d, 1.13c, 1.13d and 1.14d.
+  - Without resolution switching: 1.12.
   - Other versions are unsupported, will display a warning at startup and exhibit glitches.
 
 D2DX has been tested working with the following mods:
@@ -67,15 +67,21 @@ Patch contributions: Xenthalon
 
 The research of many people in the Diablo II community over twenty years made this project possible.
 
-Thanks also to everyone who contributes bug reports!
+Thanks to Mir Drualga for making the fantastic SGD2FreeRes mod!
+Thanks also to everyone who contributes bug reports.
 
 D2DX uses the following third party libraries:
 - FNV1a hash reference implementation, which is in the public domain.
 - Detours by Microsoft.
-- SlashDiablo-HD/D2HD by Mir Drualga and Bartosz Jankowski, licensed under Affero GPL v3.
+- SGD2FreeRes by Mir Drualga, licensed under Affero GPL v3.
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 
 ## Recent release history
+
+### 0.99.511
+  - Change resolution mod from D2HD to the newer SGD2FreeRes (both by Mir Drualga).
+    Custom resolutions now work in 1.09 and 1.14d, but (at this time) there is no support for 1.12. Let me know if this is a problem!
+  - Some performance optimizations.
 
 ### 0.99.510
   - Add the possibility to set a custom in-game resolution in d2dx.cfg. See the wiki for details.

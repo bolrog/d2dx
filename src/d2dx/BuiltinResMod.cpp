@@ -24,13 +24,10 @@
 
 using namespace d2dx;
 
-#ifndef D2DX_UNITTEST
-bool SDHD_Initialize();
-#endif
-
 _Use_decl_annotations_
 BuiltinResMod::BuiltinResMod(
     HMODULE hModule,
+    Size gameSize,
     const std::shared_ptr<IGameHelper>& gameHelper)
 {
     if (!hModule || !gameHelper)
@@ -38,21 +35,35 @@ BuiltinResMod::BuiltinResMod(
         D2DX_CHECK_HR(E_INVALIDARG);
     }
 
+    _isActive = false;
+
 #ifndef D2DX_UNITTEST
     if (IsCompatible(gameHelper.get()))
     {
-        D2DX_LOG("Writing MPQ.");
-        EnsureMpqExists(hModule);
+        D2DX_LOG("Writing SGD2FreeRes files.");
 
-        D2DX_LOG("Initializing built-in resolution mod.");
-        SDHD_Initialize();
+        if (!WriteResourceToFile(hModule, IDR_SGD2FR_MPQ, "mpq", "d2dx_sgd2freeres.mpq"))
+        {
+            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+        }
+
+        if (!WriteResourceToFile(hModule, IDR_SGD2FR_DLL, "dll", "d2dx_sgd2freeres.dll"))
+        {
+            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+        }
+
+        if (!WriteConfig(gameSize))
+        {
+            D2DX_LOG("Failed to write SGD2FreeRes configuration.");
+        }
+
+        D2DX_LOG("Initializing SGD2FreeRes.");
+        LoadLibraryA("d2dx_sgd2freeres.dll");
 
         _isActive = true;
         return;
     }
 #endif
-
-    _isActive = false;
 }
 
 bool BuiltinResMod::IsActive() const
@@ -66,9 +77,10 @@ bool BuiltinResMod::IsCompatible(
 {
     auto gameVersion = gameHelper->GetVersion();
 
-    if (gameVersion != d2dx::GameVersion::Lod112 &&
+    if (gameVersion != d2dx::GameVersion::Lod109d &&
         gameVersion != d2dx::GameVersion::Lod113c &&
-        gameVersion != d2dx::GameVersion::Lod113d)
+        gameVersion != d2dx::GameVersion::Lod113d &&
+        gameVersion != d2dx::GameVersion::Lod114d)
     {
         D2DX_LOG("Unsupported game version, won't use built-in resolution mod.");
         return false;
@@ -78,53 +90,123 @@ bool BuiltinResMod::IsCompatible(
 }
 
 _Use_decl_annotations_
-void BuiltinResMod::EnsureMpqExists(
-    HMODULE hModule)
+bool BuiltinResMod::WriteResourceToFile(
+    HMODULE hModule,
+    int32_t resourceId,
+    const char* ext,
+    const char* filename)
 {
-    void* d2HDMpqPtr = nullptr;
-    DWORD d2HDMpqSize = 0;
-    HRSRC d2HDMpqResourceInfo = nullptr;
-    HGLOBAL d2HDMpqResourceData = nullptr;
-    HANDLE d2HDMpqFile = nullptr;
+    void* payloadPtr = nullptr;
+    DWORD payloadSize = 0;
+    HRSRC resourceInfo = nullptr;
+    HGLOBAL resourceData = nullptr;
+    HANDLE file = nullptr;
     DWORD bytesWritten = 0;
+    bool succeeded = true;
 
-    d2HDMpqResourceInfo = FindResourceA(hModule, MAKEINTRESOURCEA(IDR_MPQ1), "mpq");
-    if (!d2HDMpqResourceInfo)
+    resourceInfo = FindResourceA(hModule, MAKEINTRESOURCEA(resourceId), ext);
+    if (!resourceInfo)
     {
+        succeeded = false;
         goto end;
     }
 
-    d2HDMpqResourceData = LoadResource(hModule, d2HDMpqResourceInfo);
-    if (!d2HDMpqResourceData)
+    resourceData = LoadResource(hModule, resourceInfo);
+    if (!resourceData)
     {
+        succeeded = false;
         goto end;
     }
 
-    d2HDMpqSize = SizeofResource(hModule, d2HDMpqResourceInfo);
-    d2HDMpqPtr = LockResource(d2HDMpqResourceData);
-    if (!d2HDMpqPtr || !d2HDMpqSize)
+    payloadSize = SizeofResource(hModule, resourceInfo);
+    payloadPtr = LockResource(resourceData);
+    if (!payloadPtr || !payloadSize)
     {
+        succeeded = false;
         goto end;
     }
 
-    d2HDMpqFile = CreateFileA("d2dx_d2hd.mpq", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (!d2HDMpqFile)
+    file = CreateFileA(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (!file)
     {
+        succeeded = false;
         goto end;
     }
 
-    if (!WriteFile(d2HDMpqFile, d2HDMpqPtr, d2HDMpqSize, &bytesWritten, nullptr))
+    if (!WriteFile(file, payloadPtr, payloadSize, &bytesWritten, nullptr))
     {
+        succeeded = false;
         goto end;
     }
 
 end:
-    if (d2HDMpqResourceData)
+    if (resourceData)
     {
-        UnlockResource(d2HDMpqResourceData);
+        UnlockResource(resourceData);
     }
-    if (d2HDMpqFile)
+    if (file)
     {
-        CloseHandle(d2HDMpqFile);
+        CloseHandle(file);
     }
+
+    return succeeded;
+}
+
+_Use_decl_annotations_
+bool BuiltinResMod::WriteConfig(
+    _In_ Size gameSize)
+{
+    HANDLE file = nullptr;
+    DWORD bytesWritten = 0;
+    bool succeeded = true;
+
+    file = CreateFileA("d2dx_sgd2freeres.json", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (!file)
+    {
+        succeeded = false;
+        goto end;
+    }
+
+    char configStr[1024];
+
+    sprintf(configStr,
+        "{\r\n"
+        "   \"SlashGaming Diablo II Free Resolution\": {\r\n"
+        "       \"!!!Metadata (Do not modify)!!!\": {\r\n"
+        "           \"Major Version A\": 3,\r\n"
+        "           \"Major Version B\" : 0,\r\n"
+        "           \"Minor Version A\" : 1,\r\n"
+        "           \"Minor Version B\" : 0\r\n"
+        "       },\r\n"
+        "       \"Ingame Resolutions\": [\r\n"
+        "           \"640x480\",\r\n"
+        "           \"800x600\",\r\n"
+        "           \"%ix%i\"\r\n"
+        "       ],\r\n"
+        "       \"Ingame Resolution Mode\" : 2,\r\n"
+        "       \"Main Menu Resolution\" : \"800x600\",\r\n"
+        "       \"Custom MPQ File\": \"d2dx_sgd2freeres.mpq\",\r\n"
+        "       \"Enable Screen Border Frame?\" : true,\r\n"
+        "       \"Use Original Screen Border Frame?\" : false,\r\n"
+        "       \"Use 800 Interface Bar?\" : true\r\n"
+        "   },\r\n"
+        "   \"!!!Globals!!!\": {\r\n"
+        "       \"Config Tab Width\": 4\r\n"
+        "   }\r\n"
+        "}\r\n",
+        gameSize.width, gameSize.height);
+
+    if (!WriteFile(file, configStr, strlen(configStr), &bytesWritten, nullptr))
+    {
+        succeeded = false;
+        goto end;
+    }
+
+end:
+    if (file)
+    {
+        CloseHandle(file);
+    }
+
+    return succeeded;
 }

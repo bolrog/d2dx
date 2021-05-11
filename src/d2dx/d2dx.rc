@@ -74,7 +74,7 @@ BEGIN
             VALUE "LegalCopyright", "Copyright (C) 2021"
             VALUE "OriginalFilename", "d2dx.dll"
             VALUE "ProductName", "D2DX"
-            VALUE "ProductVersion", "0.99.330.0"
+            VALUE "ProductVersion", "0.99.511.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -89,7 +89,8 @@ END
 // mpq
 //
 
-IDR_MPQ1                mpq                     "..\\..\\thirdparty\\SlashDiablo-HD\\Resources\\SlashDiabloHD.mpq"
+IDR_SGD2FR_MPQ          mpq                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.mpq"
+IDR_SGD2FR_DLL          dll                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.dll"
 
 #endif    // Swedish (Sweden) resources
 /////////////////////////////////////////////////////////////////////////////
