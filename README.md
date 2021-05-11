@@ -28,7 +28,7 @@ Version 0.99.511
 ## Compatibility
 Game versions supported:
   - All features: 1.09d, 1.13c, 1.13d and 1.14d.
-  - Without resolution switching: 1.12.
+  - Without resolution switching: 1.10f, 1.12.
   - Other versions are unsupported, will display a warning at startup and exhibit glitches.
 
 D2DX has been tested working with the following mods:
