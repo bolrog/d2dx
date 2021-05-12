@@ -138,6 +138,9 @@
     </ClInclude>
     <ClInclude Include="WeatherMotionPredictor.h" />
     <ClInclude Include="TextureHasher.h" />
+    <ClInclude Include="..\..\thirdparty\pocketlzma\pocketlzma.hpp">
+      <Filter>thirdparty\pocketlzma</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />
@@ -166,6 +169,9 @@
     </Filter>
     <Filter Include="thirdparty\SGD2FreeRes">
       <UniqueIdentifier>{58015682-6898-45e8-8ec5-6e3fbfdad713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty\pocketlzma">
+      <UniqueIdentifier>{23de30e8-2931-41c8-9f15-02f244de52be}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

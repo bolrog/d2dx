@@ -89,8 +89,8 @@ END
 // mpq
 //
 
-IDR_SGD2FR_MPQ          mpq                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.mpq"
-IDR_SGD2FR_DLL          dll                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.dll"
+IDR_SGD2FR_MPQ          mpq                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.mpq.lzma"
+IDR_SGD2FR_DLL          dll                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.dll.lzma"
 
 #endif    // Swedish (Sweden) resources
 /////////////////////////////////////////////////////////////////////////////

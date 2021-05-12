@@ -135,6 +135,7 @@
     <ClInclude Include="..\..\thirdparty\glide3\glideutl.h" />
     <ClInclude Include="..\..\thirdparty\glide3\sst1init.h" />
     <ClInclude Include="..\..\thirdparty\glide3\SST1VID.H" />
+    <ClInclude Include="..\..\thirdparty\pocketlzma\pocketlzma.hpp" />
     <ClInclude Include="..\..\thirdparty\stb_image\stb_image_write.h" />
     <ClInclude Include="..\..\thirdparty\toml\toml.h" />
     <ClInclude Include="BuiltinResMod.h" />

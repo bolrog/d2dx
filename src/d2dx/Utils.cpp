@@ -22,6 +22,9 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "../../thirdparty/stb_image/stb_image_write.h"
 
+#define POCKETLZMA_LZMA_C_DEFINE
+#include "../../thirdparty/pocketlzma/pocketlzma.hpp"
+
 #pragma comment(lib, "Netapi32.lib")
 
 using namespace d2dx;
@@ -282,4 +285,46 @@ void d2dx::DumpTexture(
         }
     }
     stbi_write_bmp(s, w, h, 4, data.items);
+}
+
+_Use_decl_annotations_
+bool d2dx::DecompressLZMAToFile(
+    const uint8_t* data,
+    uint32_t dataSize,
+    const char* filename)
+{
+    bool succeeded = true;
+    plz::PocketLzma p;
+    std::vector<uint8_t> decompressed;
+    HANDLE file = nullptr;
+    DWORD bytesWritten = 0;
+
+    auto status = p.decompress(data, dataSize, decompressed);
+
+    if (status != plz::StatusCode::Ok)
+    {
+        succeeded = false;
+        goto end;
+    }
+
+    file = CreateFileA(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (!file)
+    {
+        succeeded = false;
+        goto end;
+    }
+
+    if (!WriteFile(file, decompressed.data(), decompressed.size(), &bytesWritten, nullptr))
+    {
+        succeeded = false;
+        goto end;
+    }
+
+end:
+    if (file)
+    {
+        CloseHandle(file);
+    }
+
+    return succeeded;
 }

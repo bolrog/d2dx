@@ -113,7 +113,7 @@ bool BuiltinResMod::WriteResourceToFile(
 
     resourceData = LoadResource(hModule, resourceInfo);
     if (!resourceData)
-    {
+    { 
         succeeded = false;
         goto end;
     }
@@ -125,19 +125,8 @@ bool BuiltinResMod::WriteResourceToFile(
         succeeded = false;
         goto end;
     }
-
-    file = CreateFileA(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (!file)
-    {
-        succeeded = false;
-        goto end;
-    }
-
-    if (!WriteFile(file, payloadPtr, payloadSize, &bytesWritten, nullptr))
-    {
-        succeeded = false;
-        goto end;
-    }
+    
+    succeeded = DecompressLZMAToFile((const uint8_t*)payloadPtr, payloadSize, filename);
 
 end:
     if (resourceData)
