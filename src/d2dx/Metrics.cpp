@@ -207,16 +207,14 @@ Rect d2dx::Metrics::GetRenderRect(
 	   rescale the image with a non-integer factor. */
 	if (rect.offset.x >= 16 && rect.offset.y >= 16)
 	{
-		if (rect.offset.x < rect.offset.y)
-		{
-			float scaleFactorF = (float)desktopSize.width / rect.size.width;
-			int32_t scaledHeight = (int32_t)(rect.size.height * scaleFactorF);
-			rect.offset.x = 0;
-			rect.offset.y = (desktopSize.height - scaledHeight) / 2;
-			rect.size.width = desktopSize.width;
-			rect.size.height = scaledHeight;
-		}
-		else
+		float scaleFactorF = (float)desktopSize.width / rect.size.width;
+		int32_t scaledHeight = (int32_t)(rect.size.height * scaleFactorF);
+		rect.offset.x = 0;
+		rect.offset.y = (desktopSize.height - scaledHeight) / 2;
+		rect.size.width = desktopSize.width;
+		rect.size.height = scaledHeight;
+
+		if (rect.offset.x < 0 || rect.offset.y < 0)
 		{
 			float scaleFactorF = (float)desktopSize.height / rect.size.height;
 			int32_t scaledWidth = (int32_t)(rect.size.width * scaleFactorF);
