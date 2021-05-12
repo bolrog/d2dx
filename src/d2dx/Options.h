@@ -38,6 +38,8 @@ namespace d2dx
 
 		TestMotionPrediction,
 
+		Frameless,
+
 		Count
 	};
 

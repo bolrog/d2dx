@@ -120,6 +120,12 @@ void Options::ApplyCfg(
 				SetWindowPosition({ (int32_t)x.u.i, (int32_t)y.u.i });
 			}
 		}
+
+		auto frameless = toml_bool_in(window, "frameless");
+		if (frameless.ok)
+		{
+			SetFlag(OptionsFlag::Frameless, frameless.u.b);
+		}
 	}
 
 	auto debug = toml_table_in(root, "debug");

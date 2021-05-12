@@ -819,7 +819,13 @@ void RenderContext::AdjustWindowPlacement(
 		const int32_t oldWindowCenterX = (oldWindowRect.left + oldWindowRect.right) / 2;
 		const int32_t oldWindowCenterY = (oldWindowRect.top + oldWindowRect.bottom) / 2;
 
-		const DWORD windowStyle = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
+		DWORD windowStyle = WS_VISIBLE;
+		
+		if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::Frameless))
+		{
+			windowStyle |= WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
+		}
+
 		RECT windowRect = { 0, 0, _windowSize.width, _windowSize.height };
 		AdjustWindowRect(&windowRect, windowStyle, FALSE);
 		const int32_t newWindowWidth = windowRect.right - windowRect.left;
