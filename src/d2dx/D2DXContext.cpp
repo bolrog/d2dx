@@ -512,19 +512,10 @@ void D2DXContext::OnAlphaCombine(
 {
 	auto alphaCombine = AlphaCombine::One;
 
-	if (function == GR_COMBINE_FUNCTION_ZERO && factor == GR_COMBINE_FACTOR_ZERO &&
-		local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
-	{
-		alphaCombine = AlphaCombine::One;
-	}
-	else if (function == GR_COMBINE_FUNCTION_LOCAL && factor == GR_COMBINE_FACTOR_ZERO &&
+	if (function == GR_COMBINE_FUNCTION_LOCAL && factor == GR_COMBINE_FACTOR_ZERO &&
 		local == GR_COMBINE_LOCAL_CONSTANT && other == GR_COMBINE_OTHER_CONSTANT)
 	{
 		alphaCombine = AlphaCombine::FromColor;
-	}
-	else
-	{
-		assert(false && "Unhandled alpha combine.");
 	}
 
 	_scratchBatch.SetAlphaCombine(alphaCombine);
