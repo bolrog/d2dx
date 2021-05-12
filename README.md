@@ -77,6 +77,14 @@ D2DX uses the following third party libraries:
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 - stb_image by Sean Barrett
 
+## Donations
+
+D2DX is free software, but if you enjoy the project and want to donate, here's how.
+
+Bitcoin: 39PdFKeGCDF7t56aumUwe2HCvNCpu88EqR
+
+(Working on setting up something more practical.)
+
 ## Recent release history
 
 ### 0.99.512c
