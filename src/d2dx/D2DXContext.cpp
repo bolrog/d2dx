@@ -743,7 +743,7 @@ void D2DXContext::OnDrawLine(
 
 		vertex2.SetPosition(
 			(int32_t)(d2Vertex1->x - normalVec.x),
-			(int32_t)(d2Vertex0->y - normalVec.y));
+			(int32_t)(d2Vertex1->y - normalVec.y));
 
 		vertex3.SetPosition(
 			(int32_t)(d2Vertex1->x + normalVec.x),
