@@ -838,15 +838,14 @@ void D2DXContext::OnDrawVertexArray(
 	uint8_t** pointers,
 	uint32_t gameContext)
 {
-	assert(count == 12);
-	assert(mode == GR_TRIANGLE_STRIP);
+	assert(mode == GR_TRIANGLE_STRIP || mode == GR_TRIANGLE_FAN);
 
-	if (mode != GR_TRIANGLE_STRIP || count != 12)
+	if (mode != GR_TRIANGLE_STRIP && mode != GR_TRIANGLE_FAN)
 	{
 		return;
 	}
 
-	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, 30, gameContext);
+	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, 3 * (count - 2), gameContext);
 	EnsureReadVertexStateUpdated(batch);
 
 	Vertex v = _readVertexState.templateVertex;
@@ -865,18 +864,35 @@ void D2DXContext::OnDrawVertexArray(
 		*pVertices++ = v;
 	}
 
-	for (int32_t i = 0; i < 9; ++i)
+	if (mode == GR_TRIANGLE_FAN)
 	{
-		*pVertices++ = pVertices[-2];
-		*pVertices++ = pVertices[-2];
-		const D2Vertex* d2Vertex = (const D2Vertex*)pointers[i + 3];
-		v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
-		v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
-		v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
-		*pVertices++ = v;
-	}
+		auto vertex0 = pVertices[-3];
 
-	_vertexCount += 30;
+		for (int32_t i = 0; i < (count - 3); ++i)
+		{
+			*pVertices++ = vertex0;
+			*pVertices++ = pVertices[-2];
+			const D2Vertex* d2Vertex = (const D2Vertex*)pointers[i + 3];
+			v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+			v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
+			v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
+			*pVertices++ = v;
+		}
+	}
+	else
+	{
+		for (int32_t i = 0; i < (count - 3); ++i)
+		{
+			*pVertices++ = pVertices[-2];
+			*pVertices++ = pVertices[-2];
+			const D2Vertex* d2Vertex = (const D2Vertex*)pointers[i + 3];
+			v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
+			v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
+			v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
+			*pVertices++ = v;
+		}
+	}
+	_vertexCount += 3 * (count-2);
 
 	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
 
