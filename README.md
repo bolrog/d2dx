@@ -80,11 +80,8 @@ D2DX uses the following third party libraries:
 
 ## Donations
 
-D2DX is free software, but if you enjoy the project and want to donate, here's how.
+D2DX is free software, but if you enjoy the project and want to donate, [click here](https://commerce.coinbase.com/checkout/13ed8fc7-d7f3-428c-b834-ab7bd6501db7).
 
-Bitcoin: 39PdFKeGCDF7t56aumUwe2HCvNCpu88EqR
-
-(Working on setting up something more practical.)
 
 ## Recent release history
 
