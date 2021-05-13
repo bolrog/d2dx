@@ -76,6 +76,7 @@ D2DX uses the following third party libraries:
 - SGD2FreeRes by Mir Drualga, licensed under Affero GPL v3.
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 - stb_image by Sean Barrett
+- pocketlzma by Robin Berg Pettersen
 
 ## Donations
 
