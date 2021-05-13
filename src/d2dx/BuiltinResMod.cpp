@@ -160,6 +160,7 @@ bool BuiltinResMod::WriteConfig(
 
     sprintf(configStr,
         "{\r\n"
+        "   \"D2DX\" : \"PLEASE DO NOT EDIT THIS CONFIGURATION FILE. IT IS GENERATED ON EVERY STARTUP.\",\r\n"
         "   \"SlashGaming Diablo II Free Resolution\": {\r\n"
         "       \"!!!Metadata (Do not modify)!!!\": {\r\n"
         "           \"Major Version A\": 3,\r\n"
