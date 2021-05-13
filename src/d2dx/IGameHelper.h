@@ -70,8 +70,6 @@ namespace d2dx
 
 		virtual bool TryApplyFpsFix() = 0;
 
-		virtual Offset GetPlayerTargetPos() const = 0;
-
 		virtual void* GetFunction(
 			_In_ D2Function function) const = 0;
 

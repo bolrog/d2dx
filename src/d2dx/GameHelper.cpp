@@ -626,12 +626,6 @@ D2::UnitAny* GameHelper::FindUnit(
 	return findServerSideUnit ? findServerSideUnit((DWORD)unitId, (DWORD)unitType) : nullptr;
 }
 
-Offset GameHelper::GetPlayerTargetPos() const
-{
-	Offset pos = { 0,0 };
-	return pos;
-}
-
 _Use_decl_annotations_
 void* GameHelper::GetFunction(
 	D2Function function) const

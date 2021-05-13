@@ -425,14 +425,14 @@ void D2DXContext::OnBufferSwap()
 
 		for (uint32_t i = 0; i < _batchCount; ++i)
 		{
-			const Batch& batch = _batches.items[i];
+			const auto& batch = _batches.items[i];
 			auto surfaceId = _vertices.items[batch.GetStartVertex()].GetSurfaceId();
 
 			if (surfaceId != D2DX_SURFACE_ID_USER_INTERFACE &&
 				batch.GetTextureCategory() != TextureCategory::Player)
 			{
 				const auto batchVertexCount = batch.GetVertexCount();
-				int32_t vertexIndex = batch.GetStartVertex();
+				auto vertexIndex = batch.GetStartVertex();
 				for (uint32_t j = 0; j < batchVertexCount; ++j)
 				{
 					_vertices.items[vertexIndex++].AddOffset(-screenOffsetX, -screenOffsetY);
@@ -468,8 +468,6 @@ void D2DXContext::OnBufferSwap()
 	_avgDir = { 0.0f, 0.0f };
 
 	_readVertexState.isDirty = true;
-
-	//D2DX_LOG("Time %f, Player %f,  %f (interpolated %f, %f)", _time, _lastPlayerX, _lastPlayerY, _itpPlayerX, _itpPlayerY);
 }
 
 _Use_decl_annotations_
@@ -631,8 +629,7 @@ void D2DXContext::OnDrawLine(
 	if (_options.GetFlag(OptionsFlag::TestMotionPrediction) && currentlyDrawingWeatherParticles)
 	{
 		uint32_t currentWeatherParticleIndex = *currentlyDrawingWeatherParticleIndexPtr;
-
-		int32_t act = _gameHelper->GetCurrentAct();
+		const int32_t act = _gameHelper->GetCurrentAct();
 
 		OffsetF startPos{ d2Vertex0->x, d2Vertex0->y };
 		OffsetF endPos{ d2Vertex1->x, d2Vertex1->y };
@@ -644,7 +641,7 @@ void D2DXContext::OnDrawLine(
 			currentWeatherParticleIndex += 256;
 		}
 
-		const OffsetF offset = _weatherMotionPredictor.GetOffset(currentWeatherParticleIndex, startPos);
+		const auto offset = _weatherMotionPredictor.GetOffset(currentWeatherParticleIndex, startPos);
 		startPos += offset;
 		endPos += offset;
 
@@ -652,20 +649,21 @@ void D2DXContext::OnDrawLine(
 		float len = dir.Length();
 		dir.Normalize();
 
-		float blendFactor = 0.1f;
+		const float blendFactor = 0.1f;
+		const float oneMinusBlendFactor = 1.0f - blendFactor;
+		
 		if (_avgDir.x == 0.0f && _avgDir.y == 0.0f)
 		{
 			_avgDir = dir;
 		}
 		else
 		{
-			_avgDir.x = (1.0f - blendFactor) * _avgDir.x + blendFactor * dir.x;
-			_avgDir.y = (1.0f - blendFactor) * _avgDir.y + blendFactor * dir.y;
+			_avgDir = _avgDir * oneMinusBlendFactor + dir * blendFactor;
 			_avgDir.Normalize();
 		}
 		dir = _avgDir;
 
-		OffsetF normalVec{ -dir.y * 1.25f, dir.x * 1.25f };
+		const OffsetF wideningVec{ -dir.y * 1.25f, dir.x * 1.25f };
 		const float stretchBack = act == 4 ? 1.0f : 3.0f;
 		const float stretchAhead = act == 4 ? 1.0f : 1.0f;
 
@@ -680,9 +678,9 @@ void D2DXContext::OnDrawLine(
 
 		vertex0.SetPosition((int32_t)midPos.x, (int32_t)midPos.y);
 		vertex1.SetPosition((int32_t)startPos.x, (int32_t)startPos.y);
-		vertex2.SetPosition((int32_t)(midPos.x + normalVec.x), (int32_t)(midPos.y + normalVec.y));
+		vertex2.SetPosition((int32_t)(midPos.x + wideningVec.x), (int32_t)(midPos.y + wideningVec.y));
 		vertex3.SetPosition((int32_t)endPos.x, (int32_t)endPos.y);
-		vertex4.SetPosition((int32_t)(midPos.x - normalVec.x), (int32_t)(midPos.y - normalVec.y));
+		vertex4.SetPosition((int32_t)(midPos.x - wideningVec.x), (int32_t)(midPos.y - wideningVec.y));
 
 		uint32_t c = vertex0.GetColor();
 		c &= 0x00FFFFFF;
@@ -715,30 +713,30 @@ void D2DXContext::OnDrawLine(
 	}
 	else
 	{
-		OffsetF normalVec = { d2Vertex0->y - d2Vertex1->y, d2Vertex1->x - d2Vertex0->x };
-		const float len = normalVec.Length();
+		OffsetF wideningVec = { d2Vertex0->y - d2Vertex1->y, d2Vertex1->x - d2Vertex0->x };
+		const float len = wideningVec.Length();
 		const float halfinvlen = 1.0f / (2.0f * len);
-		normalVec *= halfinvlen;
+		wideningVec *= halfinvlen;
 
 		Vertex vertex1 = vertex0;
 		Vertex vertex2 = vertex0;
 		Vertex vertex3 = vertex0;
 
 		vertex0.SetPosition(
-			(int32_t)(d2Vertex0->x - normalVec.x),
-			(int32_t)(d2Vertex0->y - normalVec.y));
+			(int32_t)(d2Vertex0->x - wideningVec.x),
+			(int32_t)(d2Vertex0->y - wideningVec.y));
 
 		vertex1.SetPosition(
-			(int32_t)(d2Vertex0->x + normalVec.x),
-			(int32_t)(d2Vertex0->y + normalVec.y));
+			(int32_t)(d2Vertex0->x + wideningVec.x),
+			(int32_t)(d2Vertex0->y + wideningVec.y));
 
 		vertex2.SetPosition(
-			(int32_t)(d2Vertex1->x - normalVec.x),
-			(int32_t)(d2Vertex1->y - normalVec.y));
+			(int32_t)(d2Vertex1->x - wideningVec.x),
+			(int32_t)(d2Vertex1->y - wideningVec.y));
 
 		vertex3.SetPosition(
-			(int32_t)(d2Vertex1->x + normalVec.x),
-			(int32_t)(d2Vertex1->y + normalVec.y));
+			(int32_t)(d2Vertex1->x + wideningVec.x),
+			(int32_t)(d2Vertex1->y + wideningVec.y));
 
 		assert((_vertexCount + 6) < _vertices.capacity);
 		_vertices.items[_vertexCount++] = vertex0;

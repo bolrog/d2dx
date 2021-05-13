@@ -49,8 +49,6 @@ namespace d2dx
 
 		virtual bool TryApplyFpsFix() override;
 
-		virtual Offset GetPlayerTargetPos() const override;
-
 		virtual void* GetFunction(
 			_In_ D2Function function) const override;
 
