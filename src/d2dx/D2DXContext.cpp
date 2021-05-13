@@ -784,6 +784,12 @@ const Batch D2DXContext::PrepareBatchForSubmit(
 	auto gameAddress = _gameHelper->IdentifyGameAddress(gameContext);
 
 	auto tcl = _renderContext->UpdateTexture(batch, _glideState.tmuMemory.items, _glideState.tmuMemory.capacity);
+
+	if (tcl._textureAtlas < 0)
+	{
+		return batch;
+	}
+
 	batch.SetTextureAtlas(tcl._textureAtlas);
 	batch.SetTextureIndex(tcl._textureIndex);
 
@@ -835,6 +841,12 @@ void D2DXContext::OnDrawVertexArray(
 	}
 
 	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, 3 * (count - 2), gameContext);
+	
+	if (!batch.IsValid())
+	{
+		return;
+	}
+	
 	EnsureReadVertexStateUpdated(batch);
 
 	Vertex v = _readVertexState.templateVertex;
@@ -918,6 +930,12 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	}
 
 	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, 6, gameContext);
+
+	if (!batch.IsValid())
+	{
+		return;
+	}
+
 	EnsureReadVertexStateUpdated(batch);
 
 	const uint32_t iteratedColorMask = _readVertexState.iteratedColorMask;

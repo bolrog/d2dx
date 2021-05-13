@@ -600,7 +600,11 @@ TextureCacheLocation RenderContext::UpdateTexture(
 	const uint8_t* tmuData,
 	uint32_t tmuDataSize)
 {
-	assert(batch.IsValid() && "Batch has no texture set.");
+	if (!batch.IsValid())
+	{
+		return { -1, -1 };
+	}
+
 	const uint32_t contentKey = batch.GetHash();
 
 	ITextureCache* atlas = GetTextureCache(batch);
