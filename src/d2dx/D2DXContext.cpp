@@ -834,7 +834,7 @@ void D2DXContext::OnDrawVertexArray(
 {
 	assert(mode == GR_TRIANGLE_STRIP || mode == GR_TRIANGLE_FAN);
 
-	if (mode != GR_TRIANGLE_STRIP && mode != GR_TRIANGLE_FAN)
+	if (count < 3 || (mode != GR_TRIANGLE_STRIP && mode != GR_TRIANGLE_FAN))
 	{
 		return;
 	}
@@ -868,7 +868,7 @@ void D2DXContext::OnDrawVertexArray(
 	{
 		auto vertex0 = pVertices[-3];
 
-		for (int32_t i = 0; i < (count - 3); ++i)
+		for (uint32_t i = 0; i < (count - 3); ++i)
 		{
 			*pVertices++ = vertex0;
 			*pVertices++ = pVertices[-2];
@@ -881,7 +881,7 @@ void D2DXContext::OnDrawVertexArray(
 	}
 	else
 	{
-		for (int32_t i = 0; i < (count - 3); ++i)
+		for (uint32_t i = 0; i < (count - 3); ++i)
 		{
 			*pVertices++ = pVertices[-2];
 			*pVertices++ = pVertices[-2];
@@ -892,6 +892,7 @@ void D2DXContext::OnDrawVertexArray(
 			*pVertices++ = v;
 		}
 	}
+
 	_vertexCount += 3 * (count-2);
 
 	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
