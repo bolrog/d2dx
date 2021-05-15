@@ -34,7 +34,7 @@ namespace d2dx
 		D2Win_DrawText = 6, /* mov ebx, [esp+4+arg_8] */
 		D2Win_DrawTextEx = 7,
 		D2Win_DrawFramedText = 8,
-		D2Win_DrawRectangledText = 9,
+		D2Win_DrawRectangledText = 9, /* setle   cl */
 		D2Client_DrawUnit = 10, /* push    52Bh */
 		D2Client_DrawMissile = 11, 
 		D2Client_DrawWeatherParticles = 12,

@@ -793,7 +793,7 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
-	DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
+	//DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 
@@ -816,7 +816,8 @@ void d2dx::AttachLateDetours(
 	LONG lError = DetourTransactionCommit();
 
 	if (lError != NO_ERROR) {
-		D2DX_FATAL_ERROR("Failed to detour D2Gfx functions.");
+		D2DX_LOG("Failed to detour D2Gfx functions: %i.", lError);
+		D2DX_FATAL_ERROR("Failed to detour D2Gfx functions");
 	}
 }
 
