@@ -146,6 +146,7 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="D2DXConfigurator.h" />
     <ClInclude Include="dx256_bmp.h" />
+    <ClInclude Include="ISupportFeature.h" />
     <ClInclude Include="TextMotionPredictor.h" />
     <ClInclude Include="IBuiltinResMod.h" />
     <ClInclude Include="ID2DXContext.h" />

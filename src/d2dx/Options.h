@@ -33,10 +33,9 @@ namespace d2dx
 		NoCompatModeFix,
 		NoTitleChange,
 		NoVSync,
+		NoMotionPrediction,
 
 		DbgDumpTextures,
-
-		TestMotionPrediction,
 
 		Frameless,
 

@@ -211,7 +211,6 @@ typedef void(__fastcall* D2Win_DrawFramedTextFunc)(const wchar_t* wStr, int xPos
 typedef void(__fastcall* D2Win_DrawRectangledTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD rectColor, DWORD rectTransparency, DWORD color);
 typedef uint32_t(__stdcall* D2Client_DrawUnitFunc)(D2::UnitAny* unit, uint32_t b, uint32_t c, uint32_t d, uint32_t e);
 typedef void* NakedFunc;
-typedef void(__cdecl* D2Gfx_DrawStringFunc)(int nXpos, int nYpos, const char* szFormat, ...);
 
 D2Gfx_DrawImageFunc D2Gfx_DrawImage_Real = nullptr;
 D2Gfx_DrawShiftedImageFunc D2Gfx_DrawShiftedImage_Real = nullptr;
@@ -226,7 +225,6 @@ D2Win_DrawRectangledTextFunc D2Win_DrawRectangledText_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawUnit_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawMissile_Real = nullptr;
 NakedFunc D2Client_DrawWeatherParticles_Real = nullptr;
-D2Gfx_DrawStringFunc D2Gfx_DrawString_Real = nullptr;
 
 void __stdcall D2Gfx_DrawImage_Hooked(
 	D2::CellContext * cellContext,
@@ -469,9 +467,11 @@ void __fastcall D2Win_DrawFramedText_Hooked(
 	OffsetF offset{ 0.0f, 0.0f };
 
 	if (wStr)
+	{
 		offset = d2InterceptionHandler->GetTextOffset(
 			((uint64_t)_ReturnAddress() << 32ULL) | (uint64_t)wStr,
 			{ (float)xPos, (float)yPos });
+	}
 
 	D2Win_DrawFramedText_Real(wStr, xPos + (int32_t)offset.x, yPos + (int32_t)offset.y, dwColor, centered);
 
@@ -499,9 +499,11 @@ void __fastcall D2Win_DrawRectangledText_Hooked(
 	OffsetF offset{ 0.0f, 0.0f };
 
 	if (wStr)
+	{
 		offset = d2InterceptionHandler->GetTextOffset(
 			((uint64_t)_ReturnAddress() << 32ULL) | (uint64_t)wStr,
 			{ (float)xPos, (float)yPos });
+	}
 
 	D2Win_DrawRectangledText_Real(wStr, xPos + (int32_t)offset.x, yPos + (int32_t)offset.y, rectColor, rectTransparency, color);
 
@@ -509,11 +511,6 @@ void __fastcall D2Win_DrawRectangledText_Hooked(
 	{
 		d2InterceptionHandler->EndDrawText();
 	}
-}
-
-void __cdecl D2Gfx_DrawString_Hooked(int nXpos, int nYpos, const char* szFormat, ...)
-{
-	D2Gfx_DrawString_Real(nXpos, nYpos, szFormat);
 }
 
 __declspec(naked) void D2Client_DrawUnit_Stack_Hooked()
@@ -749,7 +746,8 @@ void d2dx::AttachDetours()
 
 _Use_decl_annotations_
 void d2dx::AttachLateDetours(
-	IGameHelper * gameHelper)
+	IGameHelper* gameHelper,
+	ISupportFeature* supportFeature)
 {
 	if (hasLateDetoured)
 	{
@@ -794,21 +792,31 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 	//DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
-	DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
-	DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 
-	DetourAttach(&(PVOID&)D2Client_DrawUnit_Real,
-		(gameHelper->GetVersion() == GameVersion::Lod109d ||
-			gameHelper->GetVersion() == GameVersion::Lod110 ||
-			gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
-
-	if (D2Client_DrawMissile_Real)
+	if (supportFeature->IsFeatureSupported(Feature::TextMotionPrediction))
 	{
+		assert(D2Win_DrawFramedText_Real);
+		DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
+
+		assert(D2Win_DrawRectangledText_Real);
+		DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
+	}
+
+	if (supportFeature->IsFeatureSupported(Feature::UnitMotionPrediction))
+	{
+		assert(D2Client_DrawUnit_Real);
+		DetourAttach(&(PVOID&)D2Client_DrawUnit_Real,
+			(gameHelper->GetVersion() == GameVersion::Lod109d ||
+				gameHelper->GetVersion() == GameVersion::Lod110 ||
+				gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
+	
+		assert(D2Client_DrawMissile_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 	}
 
-	if (D2Client_DrawWeatherParticles_Real)
+	if (supportFeature->IsFeatureSupported(Feature::WeatherMotionPrediction))
 	{
+		assert(D2Client_DrawWeatherParticles_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real,
 			gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawWeatherParticles114d_Hooked : D2Client_DrawWeatherParticles_Hooked);
 	}

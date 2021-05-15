@@ -198,6 +198,13 @@ namespace d2dx
 
 #pragma endregion ID2InterceptionHandler
 
+#pragma region ISupportFeature
+
+		virtual bool IsFeatureSupported(
+			Feature feature) const override;
+
+#pragma endregion ISupportFeature
+
 	private:
 		struct D2Vertex
 		{

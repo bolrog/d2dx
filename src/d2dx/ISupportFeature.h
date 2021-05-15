@@ -18,31 +18,18 @@
 */
 #pragma once
 
-#include "IGlide3x.h"
-#include "IWin32InterceptionHandler.h"
-#include "ID2InterceptionHandler.h"
-#include "ISupportFeature.h"
-#include "Options.h"
-
 namespace d2dx
 {
-	struct ID2DXContext abstract : 
-		public IGlide3x,
-		public IWin32InterceptionHandler,
-		public ID2InterceptionHandler,
-		public ISupportFeature
+	enum class Feature
 	{
-		virtual ~ID2DXContext() noexcept {}
+		UnitMotionPrediction = 0,
+		WeatherMotionPrediction = 1,
+		TextMotionPrediction = 2,
+	};
 
-		virtual void SetCustomResolution(
-			_In_ Size size) = 0;
-
-		virtual Size GetSuggestedCustomResolution() = 0;
-
-		virtual GameVersion GetGameVersion() const = 0;
-
-		virtual void DisableBuiltinResMod() = 0;
-
-		virtual Options& GetOptions() = 0;
+	struct ISupportFeature abstract
+	{
+		virtual bool IsFeatureSupported(
+			Feature feature) const = 0;
 	};
 }

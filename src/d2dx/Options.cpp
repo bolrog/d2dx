@@ -139,17 +139,6 @@ void Options::ApplyCfg(
 		}
 	}
 
-	auto experimental = toml_table_in(root, "experimental");
-
-	if (experimental)
-	{
-		auto testMoP = toml_bool_in(experimental, "testmop");
-		if (testMoP.ok)
-		{
-			SetFlag(OptionsFlag::TestMotionPrediction, testMoP.u.b);
-		}
-	}
-
 	toml_free(root);
 }
 
@@ -166,13 +155,12 @@ void Options::ApplyCommandLine(
 	if (strstr(cmdLine, "-dxnoaa")) SetFlag(OptionsFlag::NoAntiAliasing, true);
 	if (strstr(cmdLine, "-dxnocompatmodefix")) SetFlag(OptionsFlag::NoCompatModeFix, true);
 	if (strstr(cmdLine, "-dxnotitlechange")) SetFlag(OptionsFlag::NoTitleChange, true);
+	if (strstr(cmdLine, "-dxnomop")) SetFlag(OptionsFlag::NoMotionPrediction, true);
 
 	if (strstr(cmdLine, "-dxscale3")) SetWindowScale(3);
 	else if (strstr(cmdLine, "-dxscale2")) SetWindowScale(2);
 
 	if (strstr(cmdLine, "-dxdbg_dump_textures")) SetFlag(OptionsFlag::DbgDumpTextures, true);
-
-	if (strstr(cmdLine, "-dxtestmop")) SetFlag(OptionsFlag::TestMotionPrediction, true);
 }
 
 _Use_decl_annotations_
