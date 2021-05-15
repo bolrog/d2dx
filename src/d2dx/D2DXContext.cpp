@@ -750,27 +750,6 @@ void D2DXContext::OnDrawLine(
 }
 
 _Use_decl_annotations_
-Vertex D2DXContext::ReadVertex(
-	const D2Vertex* vertex,
-	const Batch& batch,
-	int32_t surfaceId)
-{
-	int32_t x = (int32_t)vertex->x;
-	int32_t y = (int32_t)vertex->y;
-	int32_t s = (int32_t)vertex->s >> _glideState.stShift;
-	int32_t t = (int32_t)vertex->t >> _glideState.stShift;
-	uint32_t color = vertex->color;
-
-	if (batch.GetAlphaCombine() == AlphaCombine::One)
-	{
-		color |= 0xFF000000;
-	}
-
-	int32_t paletteIndex = batch.GetRgbCombine() == RgbCombine::ColorMultipliedByTexture ? batch.GetPaletteIndex() : D2DX_WHITE_PALETTE_INDEX;
-	return Vertex(x, y, s, t, batch.SelectColorAndAlpha(color, _glideState.constantColor), batch.IsChromaKeyEnabled(), batch.GetTextureIndex(), paletteIndex, surfaceId);
-}
-
-_Use_decl_annotations_
 const Batch D2DXContext::PrepareBatchForSubmit(
 	Batch batch,
 	PrimitiveType primitiveType,

@@ -233,11 +233,6 @@ namespace d2dx
 		void EnsureReadVertexStateUpdated(
 			_In_ const Batch& batch);
 
-		Vertex ReadVertex(
-			_In_ const D2Vertex* vertex,
-			_In_ const Batch& batch,
-			_In_ int32_t batchIndex);
-
 		struct GlideState
 		{
 			Buffer<uint8_t> tmuMemory{ D2DX_TMU_MEMORY_SIZE };

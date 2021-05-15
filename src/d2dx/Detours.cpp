@@ -219,7 +219,7 @@ D2Gfx_DrawClippedImageFunc D2Gfx_DrawClippedImage_Real = nullptr;
 D2Gfx_DrawImageFastFunc D2Gfx_DrawImageFast_Real = nullptr;
 D2Gfx_DrawShadowFunc D2Gfx_DrawShadow_Real = nullptr;
 D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
-D2Win_DrawTextExFunc D2Win_DrawTextEx_Real = nullptr;
+//D2Win_DrawTextExFunc D2Win_DrawTextEx_Real = nullptr;
 D2Win_DrawFramedTextFunc D2Win_DrawFramedText_Real = nullptr;
 D2Win_DrawRectangledTextFunc D2Win_DrawRectangledText_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawUnit_Real = nullptr;
@@ -427,28 +427,28 @@ void __fastcall D2Win_DrawText_Hooked(
 	}
 }
 
-void __fastcall D2Win_DrawTextEx_Hooked(
-	const wchar_t* wStr,
-	int xPos,
-	int yPos,
-	DWORD dwColor,
-	DWORD centered,
-	DWORD transparency)
-{
-	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
-	if (d2InterceptionHandler)
-	{
-		d2InterceptionHandler->BeginDrawText();
-	}
-
-	D2Win_DrawTextEx_Real(wStr, xPos, yPos, dwColor, centered, transparency);
-
-	if (d2InterceptionHandler)
-	{
-		d2InterceptionHandler->EndDrawText();
-	}
-}
+//void __fastcall D2Win_DrawTextEx_Hooked(
+//	const wchar_t* wStr,
+//	int xPos,
+//	int yPos,
+//	DWORD dwColor,
+//	DWORD centered,
+//	DWORD transparency)
+//{
+//	auto d2InterceptionHandler = GetD2InterceptionHandler();
+//
+//	if (d2InterceptionHandler)
+//	{
+//		d2InterceptionHandler->BeginDrawText();
+//	}
+//
+//	D2Win_DrawTextEx_Real(wStr, xPos, yPos, dwColor, centered, transparency);
+//
+//	if (d2InterceptionHandler)
+//	{
+//		d2InterceptionHandler->EndDrawText();
+//	}
+//}
 
 void __fastcall D2Win_DrawFramedText_Hooked(
 	const wchar_t* wStr,
@@ -763,7 +763,7 @@ void d2dx::AttachLateDetours(
 	D2Gfx_DrawImageFast_Real = (D2Gfx_DrawImageFastFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawImageFast);
 	D2Gfx_DrawShadow_Real = (D2Gfx_DrawShadowFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawShadow);
 	D2Win_DrawText_Real = (D2Win_DrawTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawText);
-	D2Win_DrawTextEx_Real = (D2Win_DrawTextExFunc)gameHelper->GetFunction(D2Function::D2Win_DrawTextEx);
+	//D2Win_DrawTextEx_Real = (D2Win_DrawTextExFunc)gameHelper->GetFunction(D2Function::D2Win_DrawTextEx);
 	D2Win_DrawFramedText_Real = (D2Win_DrawFramedTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawFramedText);
 	D2Win_DrawRectangledText_Real = (D2Win_DrawRectangledTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawRectangledText);
 	D2Client_DrawUnit_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawUnit);
