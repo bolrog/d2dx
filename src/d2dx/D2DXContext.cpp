@@ -412,8 +412,7 @@ void D2DXContext::OnBufferSwap()
 	CheckMajorGameState();
 	InsertLogoOnTitleScreen();
 
-	if (IsFeatureSupported(Feature::UnitMotionPrediction) &&
-		!_options.GetFlag(OptionsFlag::NoMotionPrediction) &&
+	if (IsFeatureEnabled(Feature::UnitMotionPrediction) &&
 		_majorGameState == MajorGameState::InGame)
 	{
 		auto offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
@@ -622,8 +621,7 @@ void D2DXContext::OnDrawLine(
 	vertex0.SetTexcoord((int32_t)d2Vertex1->s >> _glideState.stShift, (int32_t)d2Vertex1->t >> _glideState.stShift);
 	vertex0.SetColor(maskedConstantColor | (d2Vertex1->color & iteratedColorMask));
 
-	if (IsFeatureSupported(Feature::WeatherMotionPrediction) &&
-		!_options.GetFlag(OptionsFlag::NoMotionPrediction) && 
+	if (IsFeatureEnabled(Feature::WeatherMotionPrediction) &&
 		currentlyDrawingWeatherParticles)
 	{
 		uint32_t currentWeatherParticleIndex = *currentlyDrawingWeatherParticleIndexPtr;
@@ -1264,20 +1262,19 @@ Options& D2DXContext::GetOptions()
 
 void D2DXContext::OnBufferClear()
 {
-	if (!_options.GetFlag(OptionsFlag::NoMotionPrediction) && 
-		_majorGameState == MajorGameState::InGame)
+	if (_majorGameState == MajorGameState::InGame)
 	{
-		if (IsFeatureSupported(Feature::UnitMotionPrediction))
+		if (IsFeatureEnabled(Feature::UnitMotionPrediction))
 		{
 			_unitMotionPredictor.Update(_renderContext.get());
 		}
 
-		if (IsFeatureSupported(Feature::TextMotionPrediction))
+		if (IsFeatureEnabled(Feature::TextMotionPrediction))
 		{
 			_textMotionPredictor.Update(_renderContext.get());
 		}
 
-		if (IsFeatureSupported(Feature::WeatherMotionPrediction))
+		if (IsFeatureEnabled(Feature::WeatherMotionPrediction))
 		{
 			_weatherMotionPredictor.Update(_renderContext.get());
 		}
@@ -1356,29 +1353,40 @@ void D2DXContext::EndDrawImage()
 }
 
 _Use_decl_annotations_
-bool D2DXContext::IsFeatureSupported(
-	Feature feature) const
+bool D2DXContext::IsFeatureEnabled(
+	Feature feature)
 {
-	static auto gameVersion = _gameHelper->GetVersion();
-
-	switch (feature) 
+	if (!_areFeatureFlagsInitialized)
 	{
-	case Feature::UnitMotionPrediction:
-		return
-			gameVersion == GameVersion::Lod113c ||
-			gameVersion == GameVersion::Lod113d ||
-			gameVersion == GameVersion::Lod114d;
-	case Feature::WeatherMotionPrediction:
-		return
-			gameVersion == GameVersion::Lod113c ||
-			gameVersion == GameVersion::Lod113d ||
-			gameVersion == GameVersion::Lod114d;
-	case Feature::TextMotionPrediction:
-		return
-			gameVersion == GameVersion::Lod113c ||
-			gameVersion == GameVersion::Lod113d ||
-			gameVersion == GameVersion::Lod114d;
-	default:
-		return false;
+		const auto gameVersion = _gameHelper->GetVersion();
+
+		_featureFlags = 0;
+		D2DX_LOG("Feature flags:");
+
+		if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
+		{
+			if (gameVersion == GameVersion::Lod112 ||
+				gameVersion == GameVersion::Lod113c ||
+				gameVersion == GameVersion::Lod113d ||
+				gameVersion == GameVersion::Lod114d)
+			{
+				_featureFlags |= (uint32_t)Feature::UnitMotionPrediction;
+				D2DX_LOG("  UnitMotionPrediction");
+				_featureFlags |= (uint32_t)Feature::WeatherMotionPrediction;
+				D2DX_LOG("  WeatherMotionPrediction");
+			}
+
+			if (gameVersion == GameVersion::Lod113c ||
+				gameVersion == GameVersion::Lod113d ||
+				gameVersion == GameVersion::Lod114d)
+			{
+				_featureFlags |= (uint32_t)Feature::TextMotionPrediction;
+				D2DX_LOG("  TextMotionPrediction");
+			}
+		}
+
+		_areFeatureFlagsInitialized = true;
 	}
+
+	return (_featureFlags & (uint32_t)feature) != 0;
 }

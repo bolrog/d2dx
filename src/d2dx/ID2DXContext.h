@@ -21,7 +21,7 @@
 #include "IGlide3x.h"
 #include "IWin32InterceptionHandler.h"
 #include "ID2InterceptionHandler.h"
-#include "ISupportFeature.h"
+#include "IFeatureFlags.h"
 #include "Options.h"
 
 namespace d2dx
@@ -30,7 +30,7 @@ namespace d2dx
 		public IGlide3x,
 		public IWin32InterceptionHandler,
 		public ID2InterceptionHandler,
-		public ISupportFeature
+		public IFeatureFlags
 	{
 		virtual ~ID2DXContext() noexcept {}
 

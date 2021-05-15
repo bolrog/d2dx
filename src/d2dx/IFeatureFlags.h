@@ -22,14 +22,14 @@ namespace d2dx
 {
 	enum class Feature
 	{
-		UnitMotionPrediction = 0,
-		WeatherMotionPrediction = 1,
-		TextMotionPrediction = 2,
+		UnitMotionPrediction = 1,
+		WeatherMotionPrediction = 2,
+		TextMotionPrediction = 4,
 	};
 
-	struct ISupportFeature abstract
+	struct IFeatureFlags abstract
 	{
-		virtual bool IsFeatureSupported(
-			Feature feature) const = 0;
+		virtual bool IsFeatureEnabled(
+			_In_ Feature feature) = 0;
 	};
 }

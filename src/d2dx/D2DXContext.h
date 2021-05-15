@@ -198,12 +198,12 @@ namespace d2dx
 
 #pragma endregion ID2InterceptionHandler
 
-#pragma region ISupportFeature
+#pragma region IFeatureFlags
 
-		virtual bool IsFeatureSupported(
-			Feature feature) const override;
+		virtual bool IsFeatureEnabled(
+			_In_ Feature feature) override;
 
-#pragma endregion ISupportFeature
+#pragma endregion IFeatureFlags
 
 	private:
 		struct D2Vertex
@@ -300,5 +300,8 @@ namespace d2dx
 		uint32_t _lastWeatherParticleIndex = 0xFFFFFFFF;
 
 		OffsetF _avgDir = { 0.0f, 0.0f };
+
+		bool _areFeatureFlagsInitialized = false;
+		uint32_t _featureFlags;
 	};
 }

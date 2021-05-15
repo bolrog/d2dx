@@ -747,7 +747,7 @@ void d2dx::AttachDetours()
 _Use_decl_annotations_
 void d2dx::AttachLateDetours(
 	IGameHelper* gameHelper,
-	ISupportFeature* supportFeature)
+	IFeatureFlags* supportFeature)
 {
 	if (hasLateDetoured)
 	{
@@ -793,7 +793,7 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 	//DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
 
-	if (supportFeature->IsFeatureSupported(Feature::TextMotionPrediction))
+	if (supportFeature->IsFeatureEnabled(Feature::TextMotionPrediction))
 	{
 		assert(D2Win_DrawFramedText_Real);
 		DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
@@ -802,7 +802,7 @@ void d2dx::AttachLateDetours(
 		DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 	}
 
-	if (supportFeature->IsFeatureSupported(Feature::UnitMotionPrediction))
+	if (supportFeature->IsFeatureEnabled(Feature::UnitMotionPrediction))
 	{
 		assert(D2Client_DrawUnit_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawUnit_Real,
@@ -814,7 +814,7 @@ void d2dx::AttachLateDetours(
 		DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 	}
 
-	if (supportFeature->IsFeatureSupported(Feature::WeatherMotionPrediction))
+	if (supportFeature->IsFeatureEnabled(Feature::WeatherMotionPrediction))
 	{
 		assert(D2Client_DrawWeatherParticles_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real,
