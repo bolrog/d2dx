@@ -21,16 +21,21 @@
 #include "IGlide3x.h"
 #include "IWin32InterceptionHandler.h"
 #include "ID2InterceptionHandler.h"
-#include "IFeatureFlags.h"
 #include "Options.h"
 
 namespace d2dx
 {
+	enum class Feature
+	{
+		UnitMotionPrediction = 1,
+		WeatherMotionPrediction = 2,
+		TextMotionPrediction = 4,
+	};
+
 	struct ID2DXContext abstract : 
 		public IGlide3x,
 		public IWin32InterceptionHandler,
-		public ID2InterceptionHandler,
-		public IFeatureFlags
+		public ID2InterceptionHandler
 	{
 		virtual ~ID2DXContext() noexcept {}
 
@@ -44,5 +49,8 @@ namespace d2dx
 		virtual void DisableBuiltinResMod() = 0;
 
 		virtual Options& GetOptions() = 0;
+		
+		virtual bool IsFeatureEnabled(
+			_In_ Feature feature) = 0;
 	};
 }

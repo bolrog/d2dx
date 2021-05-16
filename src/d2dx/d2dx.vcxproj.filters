@@ -143,7 +143,6 @@
     <ClInclude Include="..\..\thirdparty\pocketlzma\pocketlzma.hpp">
       <Filter>thirdparty\pocketlzma</Filter>
     </ClInclude>
-    <ClInclude Include="IFeatureFlags.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />

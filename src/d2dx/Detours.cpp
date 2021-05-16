@@ -747,7 +747,7 @@ void d2dx::AttachDetours()
 _Use_decl_annotations_
 void d2dx::AttachLateDetours(
 	IGameHelper* gameHelper,
-	IFeatureFlags* supportFeature)
+	ID2DXContext* d2dxContext)
 {
 	if (hasLateDetoured)
 	{
@@ -793,7 +793,7 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 	//DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
 
-	if (supportFeature->IsFeatureEnabled(Feature::TextMotionPrediction))
+	if (d2dxContext->IsFeatureEnabled(Feature::TextMotionPrediction))
 	{
 		assert(D2Win_DrawFramedText_Real);
 		DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
@@ -802,19 +802,19 @@ void d2dx::AttachLateDetours(
 		DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 	}
 
-	if (supportFeature->IsFeatureEnabled(Feature::UnitMotionPrediction))
+	if (d2dxContext->IsFeatureEnabled(Feature::UnitMotionPrediction))
 	{
 		assert(D2Client_DrawUnit_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawUnit_Real,
 			(gameHelper->GetVersion() == GameVersion::Lod109d ||
-				gameHelper->GetVersion() == GameVersion::Lod110 ||
-				gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
+			 gameHelper->GetVersion() == GameVersion::Lod110 ||
+			 gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
 	
 		assert(D2Client_DrawMissile_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 	}
 
-	if (supportFeature->IsFeatureEnabled(Feature::WeatherMotionPrediction))
+	if (d2dxContext->IsFeatureEnabled(Feature::WeatherMotionPrediction))
 	{
 		assert(D2Client_DrawWeatherParticles_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real,
@@ -830,7 +830,7 @@ void d2dx::AttachLateDetours(
 }
 
 void d2dx::DetachDetours()
-{
+{ 
 	if (!hasDetoured)
 	{
 		return;

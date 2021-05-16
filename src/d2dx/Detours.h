@@ -21,13 +21,13 @@
 namespace d2dx
 {
 	struct IGameHelper;
-	struct IFeatureFlags;
-
+	struct ID2DXContext;
+	
 	void AttachDetours();
 
 	void AttachLateDetours(
 		_In_ IGameHelper* gameHelper,
-		_In_ IFeatureFlags* supportFeature);
+		_In_ ID2DXContext* d2dxContext);
 
 	void DetachDetours();
 }
