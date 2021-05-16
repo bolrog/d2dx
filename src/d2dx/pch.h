@@ -58,18 +58,6 @@
 template<typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-template<typename ...TInterfaces>
-using RuntimeClass = Microsoft::WRL::RuntimeClass<TInterfaces...>;
-
-template<unsigned int flags>
-using RuntimeClassFlags = Microsoft::WRL::RuntimeClassFlags<flags>;
-
-using RuntimeClassType = Microsoft::WRL::RuntimeClassType;
-
-using Microsoft::WRL::Details::Make;
-
-using Microsoft::WRL::Details::MakeAndInitialize;
-
 using EventHandle = Microsoft::WRL::Wrappers::HandleT<Microsoft::WRL::Wrappers::HandleTraits::EventTraits>;
 
 #endif //PCH_H
