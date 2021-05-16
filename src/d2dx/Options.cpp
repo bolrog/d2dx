@@ -78,6 +78,7 @@ void Options::ApplyCfg(
 		READ_OPTOUTS_FLAG(OptionsFlag::NoAntiAliasing, "noaa");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoCompatModeFix, "nocompatmodefix");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoTitleChange, "notitlechange");
+		READ_OPTOUTS_FLAG(OptionsFlag::NoMotionPrediction, "nomotionprediction");
 
 #undef READ_OPTOUTS_FLAG
 	}
