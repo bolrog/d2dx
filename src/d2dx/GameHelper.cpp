@@ -986,3 +986,24 @@ bool GameHelper::IsGameMenuOpen() const
 		return false;
 	}
 }
+
+bool GameHelper::IsInGame() const
+{
+	auto playerUnit = GetPlayerUnit();
+
+	switch (_version)
+	{
+	case GameVersion::Lod109d:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x1109FC)) != 0 && playerUnit != 0 && playerUnit->u.v109.path != 0;
+	case GameVersion::Lod112:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x11BCC4)) != 0 && playerUnit != 0 && playerUnit->u.v112.path != 0;
+	case GameVersion::Lod113c:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0xF8C9C)) != 0 && playerUnit != 0 && playerUnit->u.v112.path != 0;
+	case GameVersion::Lod113d:
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0xF79E0)) != 0 && playerUnit != 0 && playerUnit->u.v112.path != 0;
+	case GameVersion::Lod114d:
+		return *((uint32_t*)((uint32_t)_hGameExe + 0x3A27C0)) != 0 && playerUnit != 0 && playerUnit->u.v112.path != 0;
+	default:
+		return false;
+	}
+}

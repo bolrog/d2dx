@@ -318,37 +318,23 @@ void D2DXContext::CheckMajorGameState()
 
 	_majorGameState = MajorGameState::Menus;
 
-	if (_gameHelper->ScreenOpenMode() == 3)
+	if (_gameHelper->IsInGame())
 	{
 		_majorGameState = MajorGameState::InGame;
+		AttachLateDetours(_gameHelper.get(), this);
 	}
 	else
 	{
 		for (int32_t i = 0; i < batchCount; ++i)
 		{
 			const Batch& batch = _batches.items[i];
+			const int32_t y0 = _vertices.items[batch.GetStartVertex()].GetY();
 
-			if ((GameAddress)batch.GetGameAddress() == GameAddress::DrawFloor)
+			if (batch.GetHash() == 0x4bea7b80 && y0 >= 550)
 			{
-				_majorGameState = MajorGameState::InGame;
-				AttachLateDetours(_gameHelper.get(), this);
+				_majorGameState = MajorGameState::TitleScreen;
 				break;
-			}
-		}
-
-		if (_majorGameState == MajorGameState::Menus)
-		{
-			for (int32_t i = 0; i < batchCount; ++i)
-			{
-				const Batch& batch = _batches.items[i];
-				const int32_t y0 = _vertices.items[batch.GetStartVertex()].GetY();
-
-				if (batch.GetHash() == 0x4bea7b80 && y0 >= 550)
-				{
-					_majorGameState = MajorGameState::TitleScreen;
-					break;
-				}
-			}
+			} 
 		}
 	}
 }

@@ -73,6 +73,8 @@ namespace d2dx
 		virtual int32_t GetCurrentAct() const override;
 
 		virtual bool IsGameMenuOpen() const override;
+		
+		virtual bool IsInGame() const override;
 
 	private:
 		GameVersion GetGameVersion();

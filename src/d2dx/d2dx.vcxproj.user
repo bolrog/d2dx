@@ -8,9 +8,9 @@
     <LocalDebuggerDebuggerType>NativeOnly</LocalDebuggerDebuggerType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommand>C:\games\Diablo II\Game.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>C:\games\Diablo II\game.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-3dfx -ns -w -dxtestmop -dxnoclipcursor</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-3dfx -ns -w -dxnoclipcursor</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>C:\games\Diablo II\</LocalDebuggerWorkingDirectory>
     <LocalDebuggerDebuggerType>NativeOnly</LocalDebuggerDebuggerType>
   </PropertyGroup>

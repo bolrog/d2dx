@@ -97,5 +97,7 @@ namespace d2dx
 		virtual int32_t GetCurrentAct() const = 0;
 
 		virtual bool IsGameMenuOpen() const = 0;
+
+		virtual bool IsInGame() const = 0;
 	};
 }
