@@ -113,7 +113,7 @@ WindowsVersion d2dx::GetActualWindowsVersion()
 }
 
 static bool logFileOpened = false;
-static FILE* logFile = 0;
+static FILE* logFile = nullptr;
 static CRITICAL_SECTION logFileCS;
 
 static void EnsureLogFileOpened()
@@ -121,7 +121,10 @@ static void EnsureLogFileOpened()
     if (!logFileOpened)
     {
         logFileOpened = true;
-        fopen_s(&logFile, "d2dx_log.txt", "w");
+        if (fopen_s(&logFile, "d2dx_log.txt", "w") != 0)
+        {
+            logFile = nullptr;
+        }
         InitializeCriticalSection(&logFileCS);
     }
 }
@@ -134,8 +137,11 @@ static DWORD WINAPI WriteToLogFileWorkItemFunc(PVOID pvContext)
 
     EnterCriticalSection(&logFileCS);
 
-    fwrite(s, strlen(s), 1, logFile);
-    fflush(logFile);
+    if (logFile)
+    {
+        fwrite(s, strlen(s), 1, logFile);
+        fflush(logFile);
+    }
 
     LeaveCriticalSection(&logFileCS);
 
@@ -175,6 +181,7 @@ Buffer<char> d2dx::ReadTextFile(
     {
         Buffer<char> str(1);
         str.items[0] = 0;
+        fclose(cfgFile);
         return str;
     }
 
