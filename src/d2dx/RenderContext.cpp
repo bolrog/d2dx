@@ -268,7 +268,7 @@ RenderContext::RenderContext(
 
 	_vbCapacity = 4 * 1024 * 1024;
 
-	AdjustWindowPlacement(hWnd, false);
+	SetSizes(_gameSize, _windowSize);
 
 	_resources = std::make_unique<RenderContextResources>(
 			_vbCapacity * sizeof(Vertex),
@@ -806,9 +806,11 @@ ITextureCache* RenderContext::GetTextureCache(
 
 _Use_decl_annotations_
 void RenderContext::AdjustWindowPlacement(
-	HWND hWnd,
-	bool centerOnCurrentPosition)
+	HWND hWnd)
 {
+	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
+	_hasAdjustedWindowPlacement = true;
+
 	const int32_t desktopCenterX = _desktopSize.width / 2;
 	const int32_t desktopCenterY = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize.height / 2 : _desktopClientMaxHeight / 2;
 	const Offset preferredPosition = _d2dxContext->GetOptions().GetWindowPosition();
@@ -837,7 +839,7 @@ void RenderContext::AdjustWindowPlacement(
 		const int32_t newWindowCenterX = centerOnCurrentPosition ? oldWindowCenterX : desktopCenterX;
 		const int32_t newWindowCenterY = centerOnCurrentPosition ? oldWindowCenterY : desktopCenterY;
 		const int32_t newWindowX = usePreferredPosition ? preferredPosition.x : (newWindowCenterX - newWindowWidth / 2);
-		const int32_t newWindowY = usePreferredPosition ? preferredPosition.y : (newWindowCenterY - newWindowHeight / 2);
+		const int32_t newWindowY = max(0, usePreferredPosition ? preferredPosition.y : (newWindowCenterY - newWindowHeight / 2));
 
 		SetWindowLongPtr(hWnd, GWL_STYLE, windowStyle);
 		SetWindowPos_Real(hWnd, HWND_TOP, newWindowX, newWindowY, newWindowWidth, newWindowHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
@@ -917,7 +919,7 @@ void RenderContext::SetSizes(
 	{
 		const float aspectRatio = (float)windowSize.width / windowSize.height;
 		windowSize.height = maxWindowSize.height;
-		windowSize.width = maxWindowSize.height * aspectRatio;
+		windowSize.width = (int32_t)(maxWindowSize.height * aspectRatio);
 	}
 
 	_gameSize = gameSize;
@@ -930,7 +932,7 @@ void RenderContext::SetSizes(
 		displaySize,
 		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
 
-	AdjustWindowPlacement(_hWnd, true);
+	AdjustWindowPlacement(_hWnd);
 }
 
 bool RenderContext::IsFrameLatencyWaitableObjectSupported() const

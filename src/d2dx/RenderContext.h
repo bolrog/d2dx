@@ -133,8 +133,7 @@ namespace d2dx
 			_In_ AlphaBlend alphaBlend);
 
 		void AdjustWindowPlacement(
-			_In_ HWND hWnd,
-			_In_ bool resetPosition);
+			_In_ HWND hWnd);
 
 		uint32_t UpdateVerticesWithFullScreenTriangle(
 			_In_ Size srcSize,
@@ -210,6 +209,7 @@ namespace d2dx
 		DeviceContextState _shadowState;
 		EventHandle _frameLatencyWaitableObject;
 		int64_t _timeStart;
+		bool _hasAdjustedWindowPlacement = false;
 
 		double _prevTime;
 		double _frameTimeMs;
