@@ -810,7 +810,7 @@ void RenderContext::AdjustWindowPlacement(
 	bool centerOnCurrentPosition)
 {
 	const int32_t desktopCenterX = _desktopSize.width / 2;
-	const int32_t desktopCenterY = _desktopSize.height / 2;
+	const int32_t desktopCenterY = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize.height / 2 : _desktopClientMaxHeight / 2;
 	const Offset preferredPosition = _d2dxContext->GetOptions().GetWindowPosition();
 	bool usePreferredPosition = preferredPosition.x >= 0 && preferredPosition.y >= 0;
 
@@ -911,6 +911,15 @@ void RenderContext::SetSizes(
 	Size gameSize,
 	Size windowSize)
 {
+	auto maxWindowSize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : Size{ _desktopSize.width, _desktopClientMaxHeight };
+
+	if (windowSize.height > maxWindowSize.height)
+	{
+		const float aspectRatio = (float)windowSize.width / windowSize.height;
+		windowSize.height = maxWindowSize.height;
+		windowSize.width = maxWindowSize.height * aspectRatio;
+	}
+
 	_gameSize = gameSize;
 	_windowSize = windowSize;
 
