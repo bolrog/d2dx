@@ -23,7 +23,6 @@
 
 namespace d2dx
 {
-#pragma once
 	class TextMotionPredictor
 	{
 	public:

@@ -32,7 +32,6 @@ namespace d2dx
 		TextureCachePolicyBitPmru(
 			_In_ uint32_t capacity,
 			_In_ const std::shared_ptr<ISimd>& simd);
-		 
 		~TextureCachePolicyBitPmru() noexcept {}
 
 		int32_t Find(

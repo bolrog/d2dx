@@ -53,7 +53,6 @@ void TextMotionPredictor::Update(
 
 		if (abs((int64_t)_frame - (int64_t)tm.lastUsedFrame) > 2)
 		{
-			//D2DX_LOG("expired text %llu", tm.id);
 			tm.id = 0;
 			expiredTextIndex = i;
 			continue;
