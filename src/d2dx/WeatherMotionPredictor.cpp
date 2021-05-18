@@ -45,12 +45,10 @@ OffsetF WeatherMotionPredictor::GetOffset(
 {
 	ParticleMotion& pm = _particleMotions.items[particleIndex & 511];
 
-	float dx = posFromGame.x - pm.lastPos.x;
-	float dy = posFromGame.y - pm.lastPos.y;
+	const OffsetF diff = posFromGame - pm.lastPos;
+	const float error = max(abs(diff.x), abs(diff.y));
 
-	float error = max(abs(dx), abs(dy));
-
-	if (abs((int32_t)_frame - (int32_t)pm.lastUsedFrame) > 2 ||
+	if (abs(_frame - pm.lastUsedFrame) > 2 ||
 		error > 100.0f)
 	{
 		pm.velocity = { 0.0f, 0.0f };
@@ -59,17 +57,15 @@ OffsetF WeatherMotionPredictor::GetOffset(
 	}
 	else
 	{
-		if (dx != 0 || dy != 0)
+		if (error > 0.0f)
 		{
-			pm.velocity = { 25.0f * dx, 25.0f * dy };
+			pm.velocity = diff * 25.0f;
 			pm.lastPos = posFromGame;
 		}
 	}
 
-	pm.predictedPos.x += pm.velocity.x * _dt;
-	pm.predictedPos.y += pm.velocity.y * _dt;
-
+	pm.predictedPos += pm.velocity * _dt;
 	pm.lastUsedFrame = _frame;
 
-	return { pm.predictedPos.x - pm.lastPos.x, pm.predictedPos.y - pm.lastPos.y };
+	return pm.predictedPos - pm.lastPos;
 }

@@ -40,15 +40,14 @@ namespace d2dx
 	private:
 		struct ParticleMotion final
 		{
-			uint32_t lastUsedFrame = 0;
 			OffsetF lastPos = { 0, 0 };
 			OffsetF velocity = { 0, 0 };
 			OffsetF predictedPos = { 0, 0 };
-			int64_t dtLastPosChange = 0;
+			int32_t lastUsedFrame = 0;
 		};
 
 		std::shared_ptr<IGameHelper> _gameHelper;
-		uint32_t _frame = 0;
+		int32_t _frame = 0;
 		float _dt = 0;
 		Buffer<ParticleMotion> _particleMotions;
 	};
