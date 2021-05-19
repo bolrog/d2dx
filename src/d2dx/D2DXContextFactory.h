@@ -25,7 +25,7 @@ namespace d2dx
 	class D2DXContextFactory
 	{
 	public:
-		static ID2DXContext* GetInstance();
+		static ID2DXContext* GetInstance(bool createIfNeeded = true);
 		static void DestroyInstance();
 	};
 }

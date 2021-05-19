@@ -28,11 +28,12 @@ using namespace d2dx;
 static bool destroyed = false;
 static std::shared_ptr<ID2DXContext> instance;
 
-ID2DXContext* D2DXContextFactory::GetInstance()
+ID2DXContext* D2DXContextFactory::GetInstance(
+	bool createIfNeeded)
 {
 	/* The game is single threaded and there's no worry about synchronization. */
 
-	if (!instance && !destroyed)
+	if (!instance && !destroyed && createIfNeeded)
 	{
 		auto gameHelper = std::make_shared<GameHelper>();
 		auto simd = std::make_shared<SimdSse2>();

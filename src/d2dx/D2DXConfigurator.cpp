@@ -68,7 +68,7 @@ public:
         int32_t width,
         int32_t height) noexcept
     {
-        auto d2dxContext = D2DXContextFactory::GetInstance();
+        auto d2dxContext = D2DXContextFactory::GetInstance(false);
 
         if (!d2dxContext)
         {
@@ -89,7 +89,7 @@ public:
             return E_INVALIDARG;
         }
 
-        auto d2dxContext = D2DXContextFactory::GetInstance();
+        auto d2dxContext = D2DXContextFactory::GetInstance(false);
 
         if (!d2dxContext)
         {
@@ -117,7 +117,15 @@ extern "C"
 {
     D2DX_EXPORTED ID2DXConfigurator* __stdcall D2DXGetConfigurator()
     {
-        D2DXContextFactory::GetInstance()->DisableBuiltinResMod();
+        auto d2dxInstance = D2DXContextFactory::GetInstance(false);
+
+        if (!d2dxInstance)
+        {
+            return nullptr;
+        }
+
+        d2dxInstance->DisableBuiltinResMod();
+
         return GetConfiguratorInternal();
     }
 }

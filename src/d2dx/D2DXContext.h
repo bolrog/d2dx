@@ -177,6 +177,9 @@ namespace d2dx
 		virtual Offset OnMouseMoveMessage(
 			_In_ Offset pos) override;
 
+		virtual int32_t OnSleep(
+			_In_ int32_t ms) override;
+
 #pragma endregion IWin32InterceptionHandler
 
 #pragma region ID2InterceptionHandler

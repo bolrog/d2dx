@@ -1189,6 +1189,18 @@ Offset D2DXContext::OnMouseMoveMessage(
 }
 
 _Use_decl_annotations_
+int32_t D2DXContext::OnSleep(
+	int32_t ms)
+{
+	if (_majorGameState == MajorGameState::InGame)
+	{
+		return -1;
+	}
+
+	return ms;
+}
+
+_Use_decl_annotations_
 void D2DXContext::SetCustomResolution(
 	Size size)
 {

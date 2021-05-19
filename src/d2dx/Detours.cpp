@@ -37,19 +37,82 @@ uint32_t* currentlyDrawingWeatherParticleIndexPtr = nullptr;
 
 static IWin32InterceptionHandler* GetWin32InterceptionHandler()
 {
-	ID2DXContext* d2dxContext = D2DXContextFactory::GetInstance();
+	ID2DXContext* d2dxContext = D2DXContextFactory::GetInstance(false);
 
 	if (!d2dxContext)
 	{
 		return nullptr;
 	}
 
-	return dynamic_cast<IWin32InterceptionHandler*>(d2dxContext);
+	return static_cast<IWin32InterceptionHandler*>(d2dxContext);
 }
 
 static ID2InterceptionHandler* GetD2InterceptionHandler()
 {
-	return D2DXContextFactory::GetInstance();
+	return D2DXContextFactory::GetInstance(false);
+}
+
+static thread_local bool isInSleepDetour = false;
+
+DWORD
+(WINAPI*
+SleepEx_Real)(
+	_In_ DWORD dwMilliseconds,
+	_In_ BOOL bAlertable
+) = SleepEx;
+
+DWORD WINAPI SleepEx_Hooked(
+	_In_ DWORD dwMilliseconds,
+	_In_ BOOL bAlertable)
+{
+	if (isInSleepDetour)
+	{
+		return SleepEx_Real(dwMilliseconds, bAlertable);
+	}
+
+	auto win32InterceptionHandler = GetWin32InterceptionHandler();
+
+	int32_t adjustedMs = (int32_t)dwMilliseconds;
+
+	if (win32InterceptionHandler)
+	{
+		adjustedMs = win32InterceptionHandler->OnSleep((int32_t)dwMilliseconds);
+	}
+
+	if (adjustedMs >= 0)
+	{
+		return SleepEx_Real((DWORD)adjustedMs, bAlertable);
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+VOID
+(WINAPI*
+Sleep_Real)(
+	_In_ DWORD dwMilliseconds
+) = Sleep;
+
+VOID WINAPI Sleep_Hooked(
+	_In_ DWORD dwMilliseconds)
+{
+	auto win32InterceptionHandler = GetWin32InterceptionHandler();
+
+	int32_t adjustedMs = (int32_t)dwMilliseconds;
+
+	if (win32InterceptionHandler)
+	{
+		adjustedMs = win32InterceptionHandler->OnSleep((int32_t)dwMilliseconds);
+	}
+
+	if (adjustedMs >= 0)
+	{
+		isInSleepDetour = true;
+		Sleep_Real((DWORD)adjustedMs);
+		isInSleepDetour = false;
+	}
 }
 
 COLORREF(WINAPI* GetPixel_real)(
@@ -735,6 +798,8 @@ void d2dx::AttachDetours()
 	DetourAttach(&(PVOID&)SendMessageA_Real, SendMessageA_Hooked);
 	DetourAttach(&(PVOID&)ShowCursor_Real, ShowCursor_Hooked);
 	DetourAttach(&(PVOID&)SetCursorPos_Real, SetCursorPos_Hooked);
+	DetourAttach(&(PVOID&)Sleep_Real, Sleep_Hooked);
+	DetourAttach(&(PVOID&)SleepEx_Real, SleepEx_Hooked);
 	auto r = DetourAttach(&(PVOID&)SetWindowPos_Real, SetWindowPos_Hooked);
 
 	LONG lError = DetourTransactionCommit();
