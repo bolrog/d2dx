@@ -615,6 +615,29 @@ bool GameHelper::TryApplyInGameSleepFixes()
 	case GameVersion::Lod110:
 		break;
 	case GameVersion::Lod112:
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x6CFD4;
+		expectedProbes[patchCount] = 0x15FF0A6A;
+		patchValues[patchCount] = 0x90909090;
+		++patchCount;
+
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x6CFD8;
+		expectedProbes[patchCount] = 0x6FB7EF7C;
+		patchValues[patchCount] = 0x90909090;
+		++patchCount;
+
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x7BD18;
+		expectedProbes[patchCount] = 0xD3FF006A;
+		patchValues[patchCount] = 0x90909090;
+		++patchCount;
+
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x7BD3D;
+		expectedProbes[patchCount] = 0xD3FF006A;
+		patchValues[patchCount] = 0x90909090;
+		++patchCount;
 		break;
 	case GameVersion::Lod113c:
 		hModules[patchCount] = _hD2ClientDll;
