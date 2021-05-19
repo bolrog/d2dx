@@ -71,7 +71,9 @@ namespace d2dx
 			_In_ TextureCategory previousCategory,
 			_In_ GameAddress gameAddress) const = 0;
 
-		virtual bool TryApplyFpsFix() = 0;
+		virtual bool TryApplyInGameFpsFix() = 0;
+
+		virtual bool TryApplyMenuFpsFix() = 0;
 
 		virtual void* GetFunction(
 			_In_ D2Function function) const = 0;

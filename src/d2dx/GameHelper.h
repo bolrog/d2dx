@@ -47,7 +47,9 @@ namespace d2dx
 			_In_ TextureCategory previousCategory,
 			_In_ GameAddress gameAddress) const override;
 
-		virtual bool TryApplyFpsFix() override;
+		virtual bool TryApplyInGameFpsFix() override;
+		
+		virtual bool TryApplyMenuFpsFix() override;
 
 		virtual void* GetFunction(
 			_In_ D2Function function) const override;

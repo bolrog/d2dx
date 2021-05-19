@@ -448,7 +448,7 @@ GameVersion GameHelper::GetGameVersion()
 	return version;
 }
 
-bool GameHelper::TryApplyFpsFix()
+bool GameHelper::TryApplyInGameFpsFix()
 {
 	/* The offsets taken from The Phrozen Keep: https://d2mods.info/forum/viewtopic.php?t=65239. */
 
@@ -525,6 +525,78 @@ bool GameHelper::TryApplyFpsFix()
 	VirtualProtect(patchLocation0, 8, dwOldPage, &dwOldPage);
 
 	D2DX_LOG("Fps fix applied.");
+	return true;
+}
+
+bool GameHelper::TryApplyMenuFpsFix()
+{
+	/* Patches found using 1.10 lead from D2Tweaks: https://github.com/Revan600/d2tweaks/. */
+
+	uint32_t expectedProbe = 0;
+	uint32_t patchOffset = 0;
+	uint32_t patchValue = 0;
+	HANDLE hModule = nullptr;
+
+	switch (_version)
+	{
+	case GameVersion::Lod109d:
+		break;
+	case GameVersion::Lod110:
+		hModule = _hD2WinDll;
+		patchOffset = 0xD029;
+		expectedProbe = 0x8128C783;
+		patchValue = 0x81909090;
+		break;
+	case GameVersion::Lod112:
+		hModule = _hD2WinDll;
+		patchOffset = 0xD949;
+		expectedProbe = 0x8128C783;
+		patchValue = 0x81909090;
+		break;
+	case GameVersion::Lod113c:
+		hModule = _hD2WinDll;
+		patchOffset = 0x18A19;
+		expectedProbe = 0x8128C783;
+		patchValue = 0x81909090;
+		break;
+	case GameVersion::Lod113d:
+		hModule = _hD2WinDll;
+		patchOffset = 0xED69;
+		expectedProbe = 0x8128C783;
+		patchValue = 0x81909090;
+		break;
+	case GameVersion::Lod114d:
+		hModule = _hGameExe;
+		patchOffset = 0xFA62B;
+		expectedProbe = 0x8128C783;
+		patchValue = 0x81909090;
+		break;
+	}
+
+	if (patchOffset == 0)
+	{
+		D2DX_LOG("Menu fps fix aborted: unsupported game version.");
+		return false;
+	}
+
+	const uint32_t probe = *(const uint32_t*)((uint32_t)hModule + patchOffset);
+
+	if (probe != expectedProbe)
+	{
+		D2DX_LOG("Menu fps fix aborted: location appears to be patched already.");
+		return false;
+	}
+
+	uint32_t* patchLocation = (uint32_t*)((uint32_t)hModule + patchOffset);
+
+	DWORD dwOldPage;
+	VirtualProtect(patchLocation, 4, PAGE_EXECUTE_READWRITE, &dwOldPage);
+
+	*patchLocation = patchValue;
+
+	VirtualProtect(patchLocation, 4, dwOldPage, &dwOldPage);
+
+	D2DX_LOG("Menu fps fix applied.");
 	return true;
 }
 

@@ -100,7 +100,8 @@ D2DXContext::D2DXContext(
 
 	if (!_options.GetFlag(OptionsFlag::NoFpsFix))
 	{
-		_gameHelper->TryApplyFpsFix();
+		_gameHelper->TryApplyInGameFpsFix();
+		_gameHelper->TryApplyMenuFpsFix();
 	}
 }
 
