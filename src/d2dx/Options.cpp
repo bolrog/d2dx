@@ -174,7 +174,7 @@ void Options::ApplyCommandLine(
 
 	if (strstr(cmdLine, "-dxdbg_dump_textures")) SetFlag(OptionsFlag::DbgDumpTextures, true);
 
-	if (strstr(cmdLine, "-dxteststutterfix")) SetFlag(OptionsFlag::TestSleepFixes, true);
+	if (strstr(cmdLine, "-dxtestsleepfix")) SetFlag(OptionsFlag::TestSleepFixes, true);
 }
 
 _Use_decl_annotations_

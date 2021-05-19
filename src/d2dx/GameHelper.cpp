@@ -617,9 +617,31 @@ bool GameHelper::TryApplyInGameSleepFixes()
 	case GameVersion::Lod112:
 		break;
 	case GameVersion::Lod113c:
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x3CB92;
+		expectedProbes[patchCount] = 0x0A6A0874;
+		patchValues[patchCount] = 0x0A6A08EB;
+		++patchCount;
+
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x43988;
+		expectedProbes[patchCount] = 0xD3FF006A;
+		patchValues[patchCount] = 0x90909090;
+		++patchCount;
+
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x439AD;
+		expectedProbes[patchCount] = 0xD3FF006A;
+		patchValues[patchCount] = 0x90909090;
+		++patchCount;
 		break;
 	case GameVersion::Lod113d:
-		
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x27722;
+		expectedProbes[patchCount] = 0x0A6A0874;
+		patchValues[patchCount] = 0x0A6A08EB;
+		++patchCount;
+
 		hModules[patchCount] = _hD2ClientDll;
 		patchOffsets[patchCount] = 0x4494D;
 		expectedProbes[patchCount] = 0xD3FF006A;
@@ -630,12 +652,6 @@ bool GameHelper::TryApplyInGameSleepFixes()
 		patchOffsets[patchCount] = 0x44928;
 		expectedProbes[patchCount] = 0xD3FF006A;
 		patchValues[patchCount] = 0x90909090;
-		++patchCount;
-
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x27722;
-		expectedProbes[patchCount] = 0x0A6A0874;
-		patchValues[patchCount] = 0x0A6A08EB;
 		++patchCount;
 
 		break;
