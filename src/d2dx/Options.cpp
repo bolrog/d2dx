@@ -140,6 +140,17 @@ void Options::ApplyCfg(
 		}
 	}
 
+	auto experimental = toml_table_in(root, "experimental");
+
+	if (experimental)
+	{
+		auto testSleepFixes = toml_bool_in(experimental, "testsleepfixes");
+		if (testSleepFixes.ok)
+		{
+			SetFlag(OptionsFlag::TestSleepFixes, testSleepFixes.u.b);
+		}
+	}
+
 	toml_free(root);
 }
 
@@ -162,6 +173,8 @@ void Options::ApplyCommandLine(
 	else if (strstr(cmdLine, "-dxscale2")) SetWindowScale(2);
 
 	if (strstr(cmdLine, "-dxdbg_dump_textures")) SetFlag(OptionsFlag::DbgDumpTextures, true);
+
+	if (strstr(cmdLine, "-dxteststutterfix")) SetFlag(OptionsFlag::TestSleepFixes, true);
 }
 
 _Use_decl_annotations_

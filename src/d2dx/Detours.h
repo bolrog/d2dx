@@ -29,5 +29,7 @@ namespace d2dx
 		_In_ IGameHelper* gameHelper,
 		_In_ ID2DXContext* d2dxContext);
 
+	void DetachLateDetours();
+
 	void DetachDetours();
 }

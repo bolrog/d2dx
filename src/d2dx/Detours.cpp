@@ -27,13 +27,14 @@ using namespace d2dx;
 
 #pragma comment(lib, "../../thirdparty/detours/detours.lib")
 
-bool hasDetoured = false;
-bool hasLateDetoured = false;
+static bool hasDetoured = false;
+static bool hasDetachedDetours = false;
+static bool hasLateDetoured = false;
+static bool hasDetachedLateDetours = false;
 
 D2::UnitAny* currentlyDrawingUnit = nullptr;
 uint32_t currentlyDrawingWeatherParticles = 0;
 uint32_t* currentlyDrawingWeatherParticleIndexPtr = nullptr;
-
 
 static IWin32InterceptionHandler* GetWin32InterceptionHandler()
 {
@@ -52,67 +53,69 @@ static ID2InterceptionHandler* GetD2InterceptionHandler()
 	return D2DXContextFactory::GetInstance(false);
 }
 
-static thread_local bool isInSleepDetour = false;
+static thread_local bool isInSleepCall = false;
 
-DWORD
-(WINAPI*
-SleepEx_Real)(
-	_In_ DWORD dwMilliseconds,
-	_In_ BOOL bAlertable
-) = SleepEx;
-
-DWORD WINAPI SleepEx_Hooked(
-	_In_ DWORD dwMilliseconds,
-	_In_ BOOL bAlertable)
-{
-	if (isInSleepDetour)
-	{
-		return SleepEx_Real(dwMilliseconds, bAlertable);
-	}
-
-	auto win32InterceptionHandler = GetWin32InterceptionHandler();
-
-	int32_t adjustedMs = (int32_t)dwMilliseconds;
-
-	if (win32InterceptionHandler)
-	{
-		adjustedMs = win32InterceptionHandler->OnSleep((int32_t)dwMilliseconds);
-	}
-
-	if (adjustedMs >= 0)
-	{
-		return SleepEx_Real((DWORD)adjustedMs, bAlertable);
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-VOID
+static VOID
 (WINAPI*
 Sleep_Real)(
 	_In_ DWORD dwMilliseconds
 ) = Sleep;
 
-VOID WINAPI Sleep_Hooked(
+static VOID WINAPI Sleep_Hooked(
 	_In_ DWORD dwMilliseconds)
 {
 	auto win32InterceptionHandler = GetWin32InterceptionHandler();
-
-	int32_t adjustedMs = (int32_t)dwMilliseconds;
-
 	if (win32InterceptionHandler)
 	{
-		adjustedMs = win32InterceptionHandler->OnSleep((int32_t)dwMilliseconds);
+		int32_t adjustedMs = win32InterceptionHandler->OnSleep((int32_t)dwMilliseconds);
+
+		if (adjustedMs >= 0)
+		{
+			isInSleepCall = true;
+			Sleep_Real((DWORD)adjustedMs);
+			isInSleepCall = false;
+		}
+	}
+	else
+	{
+		isInSleepCall = true;
+		Sleep_Real(dwMilliseconds);
+		isInSleepCall = false;
+	}
+}
+
+static DWORD
+(WINAPI*
+	SleepEx_Real)(
+		_In_ DWORD dwMilliseconds,
+		_In_ BOOL bAlertable
+		) = SleepEx;
+
+static DWORD WINAPI SleepEx_Hooked(
+	_In_ DWORD dwMilliseconds,
+	_In_ BOOL bAlertable)
+{
+	if (isInSleepCall)
+	{
+		return SleepEx_Real(dwMilliseconds, bAlertable);
 	}
 
-	if (adjustedMs >= 0)
+	auto win32InterceptionHandler = GetWin32InterceptionHandler();
+	if (win32InterceptionHandler)
 	{
-		isInSleepDetour = true;
-		Sleep_Real((DWORD)adjustedMs);
-		isInSleepDetour = false;
+		int32_t adjustedMs = win32InterceptionHandler->OnSleep((int32_t)dwMilliseconds);
+
+		if (adjustedMs >= 0)
+		{
+			return SleepEx_Real((DWORD)adjustedMs, bAlertable);
+		}
 	}
+	else
+	{
+		return SleepEx_Real(dwMilliseconds, bAlertable);
+	}
+
+	return 0;
 }
 
 COLORREF(WINAPI* GetPixel_real)(
@@ -798,8 +801,6 @@ void d2dx::AttachDetours()
 	DetourAttach(&(PVOID&)SendMessageA_Real, SendMessageA_Hooked);
 	DetourAttach(&(PVOID&)ShowCursor_Real, ShowCursor_Hooked);
 	DetourAttach(&(PVOID&)SetCursorPos_Real, SetCursorPos_Hooked);
-	DetourAttach(&(PVOID&)Sleep_Real, Sleep_Hooked);
-	DetourAttach(&(PVOID&)SleepEx_Real, SleepEx_Hooked);
 	auto r = DetourAttach(&(PVOID&)SetWindowPos_Real, SetWindowPos_Hooked);
 
 	LONG lError = DetourTransactionCommit();
@@ -849,6 +850,8 @@ void d2dx::AttachLateDetours(
 
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(&(PVOID&)Sleep_Real, Sleep_Hooked);
+	DetourAttach(&(PVOID&)SleepEx_Real, SleepEx_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawImage_Real, D2Gfx_DrawImage_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawShiftedImage_Real, D2Gfx_DrawShiftedImage_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawVerticalCropImage_Real, D2Gfx_DrawVerticalCropImage_Hooked);
@@ -894,14 +897,46 @@ void d2dx::AttachLateDetours(
 	}
 }
 
-void d2dx::DetachDetours()
-{ 
-	if (!hasDetoured)
+void d2dx::DetachLateDetours()
+{
+	if (!hasLateDetoured || hasDetachedLateDetours)
 	{
 		return;
 	}
 
-	hasDetoured = false;
+	hasDetachedLateDetours = true;
+	
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+
+	DetourDetach(&(PVOID&)D2Gfx_DrawImage_Real, D2Gfx_DrawImage_Hooked);
+	DetourDetach(&(PVOID&)D2Gfx_DrawShiftedImage_Real, D2Gfx_DrawShiftedImage_Hooked);
+	DetourDetach(&(PVOID&)D2Gfx_DrawVerticalCropImage_Real, D2Gfx_DrawVerticalCropImage_Hooked);
+	DetourDetach(&(PVOID&)D2Gfx_DrawClippedImage_Real, D2Gfx_DrawClippedImage_Hooked);
+	DetourDetach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
+	DetourDetach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
+	DetourDetach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
+	DetourDetach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
+	DetourDetach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
+	DetourDetach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
+	DetourDetach(&(PVOID&)Sleep_Real, Sleep_Hooked);
+	DetourDetach(&(PVOID&)SleepEx_Real, SleepEx_Hooked);
+
+	LONG lError = DetourTransactionCommit();
+
+	if (lError != NO_ERROR) {
+		/* An error here doesn't really matter. The process is going. */
+	}
+}
+
+void d2dx::DetachDetours()
+{ 
+	if (!hasDetoured || hasDetachedDetours)
+	{
+		return;
+	}
+
+	hasDetachedDetours = true;
 
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());

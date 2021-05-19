@@ -47,7 +47,7 @@ namespace d2dx
 			_In_ const std::shared_ptr<ISimd>& simd,
 			_In_ const std::shared_ptr<CompatibilityModeDisabler>& compatibilityModeDisabler);
 		
-		virtual ~D2DXContext() noexcept {}
+		virtual ~D2DXContext() noexcept;
 
 #pragma region IGlide3x
 
@@ -301,5 +301,9 @@ namespace d2dx
 
 		bool _areFeatureFlagsInitialized = false;
 		uint32_t _featureFlags;
+
+		bool _skipCountingSleep = false;
+		int32_t _sleeps = 0;
+		uint32_t _threadId = 0;
 	};
 }

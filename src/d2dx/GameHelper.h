@@ -51,6 +51,8 @@ namespace d2dx
 		
 		virtual bool TryApplyMenuFpsFix() override;
 
+		virtual bool TryApplyInGameSleepFixes() override;
+
 		virtual void* GetFunction(
 			_In_ D2Function function) const override;
 

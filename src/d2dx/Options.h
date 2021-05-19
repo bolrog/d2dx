@@ -39,6 +39,8 @@ namespace d2dx
 
 		Frameless,
 
+		TestSleepFixes,
+
 		Count
 	};
 

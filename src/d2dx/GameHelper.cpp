@@ -600,6 +600,79 @@ bool GameHelper::TryApplyMenuFpsFix()
 	return true;
 }
 
+bool GameHelper::TryApplyInGameSleepFixes()
+{
+	int32_t patchCount = 0;
+	uint32_t expectedProbes[16];
+	uint32_t patchOffsets[16];
+	uint32_t patchValues[16];
+	HANDLE hModules[16];
+
+	switch (_version)
+	{
+	case GameVersion::Lod109d:
+		break;
+	case GameVersion::Lod110:
+		break;
+	case GameVersion::Lod112:
+		break;
+	case GameVersion::Lod113c:
+		break;
+	case GameVersion::Lod113d:
+		
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x4494D;
+		expectedProbes[patchCount] = 0xD3FF006A;
+		patchValues[patchCount] = 0x90909090;
+		++patchCount;
+
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x44928;
+		expectedProbes[patchCount] = 0xD3FF006A;
+		patchValues[patchCount] = 0x90909090;
+		++patchCount;
+
+		hModules[patchCount] = _hD2ClientDll;
+		patchOffsets[patchCount] = 0x27722;
+		expectedProbes[patchCount] = 0x0A6A0874;
+		patchValues[patchCount] = 0x0A6A08EB;
+		++patchCount;
+
+		break;
+	case GameVersion::Lod114d:
+		break;
+	}
+
+	if (patchCount == 0)
+	{
+		D2DX_LOG("In-game sleep fixes aborted: unsupported game version.");
+		return false;
+	}
+
+	for (int32_t i = 0; i < patchCount; ++i)
+	{
+		const uint32_t probe = *(const uint32_t*)((uint32_t)hModules[i] + patchOffsets[i]);
+
+		if (probe != expectedProbes[i])
+		{
+			D2DX_LOG("In-game sleep fix %i/%i skipped: location appears to be patched already.", i+1, patchCount);
+			return false;
+		}
+
+		uint32_t* patchLocation = (uint32_t*)((uint32_t)hModules[i] + patchOffsets[i]);
+
+		DWORD dwOldPage;
+		VirtualProtect(patchLocation, 4, PAGE_EXECUTE_READWRITE, &dwOldPage);
+
+		*patchLocation = patchValues[i];
+
+		VirtualProtect(patchLocation, 4, dwOldPage, &dwOldPage);
+	}
+
+	D2DX_LOG("In-game sleep fixes applied.");
+	return true;
+}
+
 typedef D2::UnitAny* (__stdcall* GetClientPlayerFunc)();
 
 D2::UnitAny* GameHelper::GetPlayerUnit() const

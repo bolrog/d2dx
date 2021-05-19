@@ -72,6 +72,8 @@ D2DXContext::D2DXContext(
 	_unitMotionPredictor{ gameHelper },
 	_weatherMotionPredictor{ gameHelper }
 {
+	_threadId = GetCurrentThreadId();
+	
 	if (!_options.GetFlag(OptionsFlag::NoCompatModeFix))
 	{
 		_compatibilityModeDisabler->DisableCompatibilityMode();
@@ -102,7 +104,17 @@ D2DXContext::D2DXContext(
 	{
 		_gameHelper->TryApplyInGameFpsFix();
 		_gameHelper->TryApplyMenuFpsFix();
+
+		if (_options.GetFlag(OptionsFlag::TestSleepFixes))
+		{
+			_gameHelper->TryApplyInGameSleepFixes();
+		}
 	}
+}
+
+D2DXContext::~D2DXContext() noexcept
+{
+	DetachLateDetours();
 }
 
 _Use_decl_annotations_
@@ -171,6 +183,8 @@ void D2DXContext::OnSstWinOpen(
 	int32_t width,
 	int32_t height)
 {
+	_threadId = GetCurrentThreadId();
+
 	Size windowSize = _gameHelper->GetConfiguredGameSize();
 	if (!_options.GetFlag(OptionsFlag::NoResMod))
 	{
@@ -387,7 +401,7 @@ void D2DXContext::DrawBatches(
 		++drawCalls;
 	}
 
-	if (!(_frame & 31))
+	if (!(_frame & 255))
 	{
 		D2DX_DEBUG_LOG("Nr draw calls: %i", drawCalls);
 	}
@@ -429,13 +443,18 @@ void D2DXContext::OnBufferSwap()
 
 	DrawBatches(startVertexLocation);
 
+	_skipCountingSleep = true;
 	_renderContext->Present();
+	_skipCountingSleep = false;
 
 	++_frame;
 
 	if (!(_frame & 255))
 	{
 		_textureHasher.PrintStats();
+
+		D2DX_DEBUG_LOG("Sleeps/frame: %.2f", _sleeps/256.0f);
+		_sleeps = 0;
 	}
 
 	_batchCount = 0;
@@ -1192,9 +1211,16 @@ _Use_decl_annotations_
 int32_t D2DXContext::OnSleep(
 	int32_t ms)
 {
+	if (_skipCountingSleep || _threadId != GetCurrentThreadId())
+	{
+		return ms;
+	}
+
 	if (_majorGameState == MajorGameState::InGame)
 	{
-		return -1;
+		++_sleeps;
+
+		return ms;
 	}
 
 	return ms;
