@@ -158,7 +158,7 @@ bool BuiltinResMod::WriteConfig(
 
     char configStr[1024];
 
-    sprintf(configStr,
+    sprintf_s(configStr,
         "{\r\n"
         "   \"D2DX\" : \"PLEASE DO NOT EDIT THIS CONFIGURATION FILE. IT IS GENERATED ON EVERY STARTUP.\",\r\n"
         "   \"SlashGaming Diablo II Free Resolution\": {\r\n"

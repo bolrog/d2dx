@@ -243,16 +243,16 @@ namespace d2dx
 			Buffer<uint32_t> palettes{ D2DX_MAX_PALETTES * 256 };
 			Buffer<uint32_t> gammaTable{ 256 };
 			uint32_t constantColor{ 0xFFFFFFFF };
-			int32_t stShift;
+			int32_t stShift{ 0 };
 		};
 
 		struct ReadVertexState
 		{
 			Vertex templateVertex;
-			uint32_t constantColorMask;
-			uint32_t iteratedColorMask;
-			uint32_t maskedConstantColor;
-			bool isDirty;
+			uint32_t constantColorMask{ 0 };
+			uint32_t iteratedColorMask{ 0 };
+			uint32_t maskedConstantColor{ 0 };
+			bool isDirty{ false };
 		};
 
 		GlideState _glideState;

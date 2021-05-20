@@ -18,6 +18,8 @@
 */
 #pragma once
 
+#include "ErrorHandling.h"
+
 namespace d2dx
 {
 	template<typename T>
@@ -34,6 +36,11 @@ namespace d2dx
 			capacity(capacity_)
 		{
 			assert(items);
+
+			if (!items)
+			{
+				D2DX_FATAL_ERROR("Out of memory.");
+			}
 			
 			if (!zeroFill)
 			{

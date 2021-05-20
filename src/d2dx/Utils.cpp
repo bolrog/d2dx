@@ -60,7 +60,6 @@ float d2dx::TimeEndMs(int64_t sinceThisTime)
     return (float)(double(li.QuadPart - sinceThisTime) / _freq);
 }
 
-typedef LONG NTSTATUS, * PNTSTATUS;
 #define STATUS_SUCCESS (0x00000000)
 
 typedef NTSTATUS(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);

@@ -70,7 +70,8 @@ D2DXContext::D2DXContext(
 	_surfaceIdTracker{ gameHelper },
 	_textMotionPredictor{ gameHelper },
 	_unitMotionPredictor{ gameHelper },
-	_weatherMotionPredictor{ gameHelper }
+	_weatherMotionPredictor{ gameHelper },
+	_featureFlags{ 0 }
 {
 	_threadId = GetCurrentThreadId();
 	

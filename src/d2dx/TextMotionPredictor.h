@@ -49,7 +49,7 @@ namespace d2dx
 		std::shared_ptr<IGameHelper> _gameHelper;
 		uint32_t _frame = 0;
 		Buffer<TextMotion> _textMotions;
-		uint32_t _textsCount;
+		int32_t _textsCount;
 		Size _gameSize;
 	};
 }
