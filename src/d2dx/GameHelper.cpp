@@ -475,21 +475,21 @@ bool GameHelper::TryApplyInGameFpsFix()
 		}
 		break;
 	case GameVersion::Lod113c:
-		if (ProbeUInt32(_hD2ClientDll, 0x44E55, 0x35756FBD))
+		if (ProbeUInt32(_hD2ClientDll, 0x44E4D, 0xFFFC8455))
 		{
 			PatchUInt32(_hD2ClientDll, 0x44E51, 0x90909090);
 			PatchUInt32(_hD2ClientDll, 0x44E55, 0x90909090);
 		}
 		break;
 	case GameVersion::Lod113d:
-		if (ProbeUInt32(_hD2ClientDll, 0x45E9D, 0xfffc738b))
+		if (ProbeUInt32(_hD2ClientDll, 0x45E9D, 0xFFFC738B))
 		{
 			PatchUInt32(_hD2ClientDll, 0x45EA1, 0x90909090);
 			PatchUInt32(_hD2ClientDll, 0x45EA5, 0x90909090);
 		}
 		break;
 	case GameVersion::Lod114d:
-		if (ProbeUInt32(_hGameExe, 0x4F27C, 0x2475007A))
+		if (ProbeUInt32(_hGameExe, 0x4F274, 0x000C6A68))
 		{
 			PatchUInt32(_hGameExe, 0x4F278, 0x90909090);
 			PatchUInt32(_hGameExe, 0x4F27C, 0x90909090);
@@ -577,6 +577,13 @@ bool GameHelper::TryApplyInGameSleepFixes()
 		}
 		break;
 	case GameVersion::Lod113c:
+		if (ProbeUInt32(_hD2WinDll, 0x18A63, 0xC815FF50) &&
+			ProbeUInt32(_hD2WinDll, 0x18A67, 0xA16F8FB2))
+		{
+			PatchUInt32(_hD2WinDll, 0x18A63, 0x90909090);
+			PatchUInt32(_hD2WinDll, 0x18A67, 0xA1909090);
+		}
+
 		if (ProbeUInt32(_hD2ClientDll, 0x3CB92, 0x0A6A0874))
 		{
 			PatchUInt32(_hD2ClientDll, 0x3CB92, 0x0A6A08EB);
@@ -687,12 +694,12 @@ bool GameHelper::ProbeUInt32(
 	HANDLE hModule, 
 	uint32_t offset, 
 	uint32_t probeValue)
-{
+{ 
 	uint32_t* patchLocation = (uint32_t*)((uint32_t)hModule + offset);
 
 	if (*patchLocation != probeValue)
 	{
-		D2DX_LOG("Probe failed at %08x, expected %08x but found %08x.", offset, probeValue, *patchLocation);
+		//D2DX_LOG("Probe failed at %#010x, expected %#010x but found %#010x.", offset, probeValue, *patchLocation);
 		return false;
 	}
 
