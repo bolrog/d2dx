@@ -1217,10 +1217,10 @@ int32_t D2DXContext::OnSleep(
 		return ms;
 	}
 
+	++_sleeps;
+
 	if (_majorGameState == MajorGameState::InGame)
 	{
-		++_sleeps;
-
 		return ms;
 	}
 
