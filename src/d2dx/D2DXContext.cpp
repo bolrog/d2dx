@@ -417,10 +417,9 @@ void D2DXContext::OnBufferSwap()
 	if (IsFeatureEnabled(Feature::UnitMotionPrediction) &&
 		_majorGameState == MajorGameState::InGame)
 	{
-		auto offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
-
-		int32_t screenOffsetX = (int32_t)(32.0f * (offset.x - offset.y) / sqrt(2.0f) + 0.5f);
-		int32_t screenOffsetY = (int32_t)(16.0f * (offset.x + offset.y) / sqrt(2.0f) + 0.5f);
+		const OffsetF offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
+		const OffsetF scaleFactors{ 32.0f / sqrtf(2.0f), 16.0f / sqrtf(2.0f) };
+		const OffsetF screenOffsetf = scaleFactors * OffsetF{ offset.x - offset.y, offset.x + offset.y } + 0.5f;
 
 		for (uint32_t i = 0; i < _batchCount; ++i)
 		{
@@ -434,7 +433,9 @@ void D2DXContext::OnBufferSwap()
 				auto vertexIndex = batch.GetStartVertex();
 				for (uint32_t j = 0; j < batchVertexCount; ++j)
 				{
-					_vertices.items[vertexIndex++].AddOffset(-screenOffsetX, -screenOffsetY);
+					_vertices.items[vertexIndex++].AddOffset(
+						(int32_t)-screenOffsetf.x,
+						(int32_t)-screenOffsetf.y);
 				}
 			}
 		}
