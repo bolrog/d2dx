@@ -82,14 +82,25 @@ namespace d2dx
 
 	private:
 		GameVersion GetGameVersion();
+		
 		void InitializeTextureHashPrefixTable();
+		
+		bool ProbeUInt32(
+			_In_ HANDLE hModule, 
+			_In_ uint32_t offset,
+			_In_ uint32_t expectedValue);
+
+		void PatchUInt32(
+			_In_ HANDLE hModule,
+			_In_ uint32_t offset,
+			_In_ uint32_t value);
 
 		HANDLE _hProcess;
 		HANDLE _hGameExe;
 		HANDLE _hD2ClientDll;
-		HMODULE _hD2CommonDll;
-		HMODULE _hD2GfxDll;
-		HMODULE _hD2WinDll;
+		HANDLE _hD2CommonDll;
+		HANDLE _hD2GfxDll;
+		HANDLE _hD2WinDll;
 		GameVersion _version;
 	};
 }

@@ -452,77 +452,53 @@ bool GameHelper::TryApplyInGameFpsFix()
 {
 	/* The offsets taken from The Phrozen Keep: https://d2mods.info/forum/viewtopic.php?t=65239. */
 
-	uint32_t expectedProbe = 0;
-	uint32_t patchOffset0 = 0;
-	uint32_t patchOffset1 = 0;
-	HANDLE hModule = nullptr;
-
 	switch (_version)
 	{
 	case GameVersion::Lod109d:
-		hModule = _hD2ClientDll;
-		patchOffset0 = 0x9B5F;
-		patchOffset1 = 0x9B63;
-		expectedProbe = 0x2B756FBB;
+		if (ProbeUInt32(_hD2ClientDll, 0x9B63, 0x2B756FBB))
+		{
+			PatchUInt32(_hD2ClientDll, 0x9B5F, 0x90909090);
+			PatchUInt32(_hD2ClientDll, 0x9B63, 0x90909090);
+		}
 		break;
 	case GameVersion::Lod110:
-		hModule = _hD2ClientDll;
-		patchOffset0 = 0xA2C9;
-		expectedProbe = 0x2B75C085;
+		if (ProbeUInt32(_hD2ClientDll, 0xA2C9, 0x2B75C085))
+		{
+			PatchUInt32(_hD2ClientDll, 0xA2C9, 0x90909090);
+		}
 		break;
 	case GameVersion::Lod112:
-		hModule = _hD2ClientDll;
-		patchOffset0 = 0x7D1E1;
-		patchOffset1 = 0x7D1E5;
-		expectedProbe = 0x35756FBD;
+		if (ProbeUInt32(_hD2ClientDll, 0x7D1E5, 0x35756FBD))
+		{
+			PatchUInt32(_hD2ClientDll, 0x7D1E1, 0x90909090);
+			PatchUInt32(_hD2ClientDll, 0x7D1E5, 0x90909090);
+		}
 		break;
 	case GameVersion::Lod113c:
-		hModule = _hD2ClientDll;
-		patchOffset0 = 0x44E51;
-		patchOffset1 = 0x44E55;
-		expectedProbe = 0x35756FBD;
+		if (ProbeUInt32(_hD2ClientDll, 0x44E55, 0x35756FBD))
+		{
+			PatchUInt32(_hD2ClientDll, 0x44E51, 0x90909090);
+			PatchUInt32(_hD2ClientDll, 0x44E55, 0x90909090);
+		}
 		break;
 	case GameVersion::Lod113d:
-		hModule = _hD2ClientDll;
-		patchOffset0 = 0x45EA1;
-		patchOffset1 = 0x45EA5;
-		expectedProbe = 0x35756FBD;
+		if (ProbeUInt32(_hD2ClientDll, 0x45E9D, 0xfffc738b))
+		{
+			PatchUInt32(_hD2ClientDll, 0x45EA1, 0x90909090);
+			PatchUInt32(_hD2ClientDll, 0x45EA5, 0x90909090);
+		}
 		break;
 	case GameVersion::Lod114d:
-		hModule = _hGameExe;
-		patchOffset0 = 0x4F278;
-		patchOffset1 = 0x4F27C;
-		expectedProbe = 0x2475007A;
+		if (ProbeUInt32(_hGameExe, 0x4F27C, 0x2475007A))
+		{
+			PatchUInt32(_hGameExe, 0x4F278, 0x90909090);
+			PatchUInt32(_hGameExe, 0x4F27C, 0x90909090);
+		}
 		break;
-	}
-
-	if (patchOffset0 == 0)
-	{
+	default:
 		D2DX_LOG("Fps fix aborted: unsupported game version.");
 		return false;
 	}
-
-	const uint32_t probe = *(const uint32_t*)((uint32_t)hModule + (patchOffset1 != 0 ? patchOffset1 : patchOffset0));
-
-	if (probe != expectedProbe)
-	{
-		D2DX_LOG("Fps fix aborted: location appears to be patched already.");
-		return false;
-	}
-
-	uint32_t* patchLocation0 = (uint32_t*)((uint32_t)hModule + patchOffset0);
-
-	DWORD dwOldPage;
-	VirtualProtect(patchLocation0, 8, PAGE_EXECUTE_READWRITE, &dwOldPage);
-
-	*patchLocation0 = 0x90909090;
-
-	if (patchOffset1 != 0)
-	{
-		*(uint32_t*)((uint32_t)hModule + patchOffset1) = 0x90909090;
-	}
-
-	VirtualProtect(patchLocation0, 8, dwOldPage, &dwOldPage);
 
 	D2DX_LOG("Fps fix applied.");
 	return true;
@@ -532,69 +508,44 @@ bool GameHelper::TryApplyMenuFpsFix()
 {
 	/* Patches found using 1.10 lead from D2Tweaks: https://github.com/Revan600/d2tweaks/. */
 
-	uint32_t expectedProbe = 0;
-	uint32_t patchOffset = 0;
-	uint32_t patchValue = 0;
-	HANDLE hModule = nullptr;
-
-	switch (_version)
+	switch (_version) 
 	{
 	case GameVersion::Lod109d:
 		break;
 	case GameVersion::Lod110:
-		hModule = _hD2WinDll;
-		patchOffset = 0xD029;
-		expectedProbe = 0x8128C783;
-		patchValue = 0x81909090;
+		if (ProbeUInt32(_hD2WinDll, 0xD029, 0x8128C783))
+		{
+			PatchUInt32(_hD2WinDll, 0xD029, 0x81909090);
+		}
 		break;
 	case GameVersion::Lod112:
-		hModule = _hD2WinDll;
-		patchOffset = 0xD949;
-		expectedProbe = 0x8128C783;
-		patchValue = 0x81909090;
+		if (ProbeUInt32(_hD2WinDll, 0xD949, 0x8128C783))
+		{
+			PatchUInt32(_hD2WinDll, 0xD949, 0x81909090);
+		}
 		break;
 	case GameVersion::Lod113c:
-		hModule = _hD2WinDll;
-		patchOffset = 0x18A19;
-		expectedProbe = 0x8128C783;
-		patchValue = 0x81909090;
+		if (ProbeUInt32(_hD2WinDll, 0x18A19, 0x8128C783))
+		{
+			PatchUInt32(_hD2WinDll, 0x18A19, 0x81909090);
+		}
 		break;
 	case GameVersion::Lod113d:
-		hModule = _hD2WinDll;
-		patchOffset = 0xED69;
-		expectedProbe = 0x8128C783;
-		patchValue = 0x81909090;
+		if (ProbeUInt32(_hD2WinDll, 0xED69, 0x8128C783))
+		{
+			PatchUInt32(_hD2WinDll, 0xED69, 0x81909090);
+		}
 		break;
 	case GameVersion::Lod114d:
-		hModule = _hGameExe;
-		patchOffset = 0xFA62B;
-		expectedProbe = 0x8128C783;
-		patchValue = 0x81909090;
+		if (ProbeUInt32(_hGameExe, 0xFA62B, 0x8128C783))
+		{
+			PatchUInt32(_hGameExe, 0xFA62B, 0x81909090);
+		}
 		break;
-	}
-
-	if (patchOffset == 0)
-	{
+	default:
 		D2DX_LOG("Menu fps fix aborted: unsupported game version.");
 		return false;
 	}
-
-	const uint32_t probe = *(const uint32_t*)((uint32_t)hModule + patchOffset);
-
-	if (probe != expectedProbe)
-	{
-		D2DX_LOG("Menu fps fix aborted: location appears to be patched already.");
-		return false;
-	}
-
-	uint32_t* patchLocation = (uint32_t*)((uint32_t)hModule + patchOffset);
-
-	DWORD dwOldPage;
-	VirtualProtect(patchLocation, 4, PAGE_EXECUTE_READWRITE, &dwOldPage);
-
-	*patchLocation = patchValue;
-
-	VirtualProtect(patchLocation, 4, dwOldPage, &dwOldPage);
 
 	D2DX_LOG("Menu fps fix applied.");
 	return true;
@@ -602,134 +553,102 @@ bool GameHelper::TryApplyMenuFpsFix()
 
 bool GameHelper::TryApplyInGameSleepFixes()
 {
-	int32_t patchCount = 0;
-	uint32_t expectedProbes[16];
-	uint32_t patchOffsets[16];
-	uint32_t patchValues[16];
-	HANDLE hModules[16];
-
 	switch (_version)
 	{
-	case GameVersion::Lod109d:
-		break;
-	case GameVersion::Lod110:
-		break;
 	case GameVersion::Lod112:
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x6CFD4;
-		expectedProbes[patchCount] = 0x15FF0A6A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
+		if (ProbeUInt32(_hD2ClientDll, 0x6CFD4, 0x15FF0A6A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x6CFD4, 0x90909090);
+		}
 
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x6CFD8;
-		expectedProbes[patchCount] = 0x6FB7EF7C;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
+		if (ProbeUInt32(_hD2ClientDll, 0x6CFD8, 0x6FB7EF7C))
+		{
+			PatchUInt32(_hD2ClientDll, 0x6CFD8, 0x90909090);
+		}
 
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x7BD18;
-		expectedProbes[patchCount] = 0xD3FF006A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
+		if (ProbeUInt32(_hD2ClientDll, 0x7BD18, 0xD3FF006A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x7BD18, 0x90909090);
+		}
 
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x7BD3D;
-		expectedProbes[patchCount] = 0xD3FF006A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
+		if (ProbeUInt32(_hD2ClientDll, 0x7BD3D, 0xD3FF006A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x7BD3D, 0x90909090);
+		}
 		break;
 	case GameVersion::Lod113c:
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x3CB92;
-		expectedProbes[patchCount] = 0x0A6A0874;
-		patchValues[patchCount] = 0x0A6A08EB;
-		++patchCount;
+		if (ProbeUInt32(_hD2ClientDll, 0x3CB92, 0x0A6A0874))
+		{
+			PatchUInt32(_hD2ClientDll, 0x3CB92, 0x0A6A08EB);
+		}
 
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x43988;
-		expectedProbes[patchCount] = 0xD3FF006A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
+		if (ProbeUInt32(_hD2ClientDll, 0x43988, 0xD3FF006A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x43988, 0x90909090);
+		}
 
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x439AD;
-		expectedProbes[patchCount] = 0xD3FF006A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
+		if (ProbeUInt32(_hD2ClientDll, 0x439AD, 0xD3FF006A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x439AD, 0x90909090);
+		}
+
 		break;
 	case GameVersion::Lod113d:
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x27722;
-		expectedProbes[patchCount] = 0x0A6A0874;
-		patchValues[patchCount] = 0x0A6A08EB;
-		++patchCount;
+		if (ProbeUInt32(_hD2WinDll, 0xEDB3, 0xB815FF50))
+		{
+			PatchUInt32(_hD2WinDll, 0xEDB3, 0x90909090);
+		}
 
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x4494D;
-		expectedProbes[patchCount] = 0xD3FF006A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
+		if (ProbeUInt32(_hD2WinDll, 0xEDB7, 0xA16F8FB2))
+		{
+			PatchUInt32(_hD2WinDll, 0xEDB7, 0xA1909090);
+		}
 
-		hModules[patchCount] = _hD2ClientDll;
-		patchOffsets[patchCount] = 0x44928;
-		expectedProbes[patchCount] = 0xD3FF006A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
+		if (ProbeUInt32(_hD2ClientDll, 0x27724, 0x15FF0A6A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x27724, 0x90909090);
+		}
+
+		if (ProbeUInt32(_hD2ClientDll, 0x27728, 0x6FB7FF6C))
+		{
+			PatchUInt32(_hD2ClientDll, 0x27728, 0x90909090);
+		}
+
+		if (ProbeUInt32(_hD2ClientDll, 0x4494D, 0xD3FF006A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x4494D, 0x90909090);
+		}
+
+		if (ProbeUInt32(_hD2ClientDll, 0x44928, 0xD3FF006A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x44928, 0x90909090);
+		}
 
 		break;
 	case GameVersion::Lod114d:
-		hModules[patchCount] = _hGameExe;
-		patchOffsets[patchCount] = 0x51C42;
-		expectedProbes[patchCount] = 0x15FF0A6A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
-
-		hModules[patchCount] = _hGameExe;
-		patchOffsets[patchCount] = 0x51C46;
-		expectedProbes[patchCount] = 0x006CC258;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
-
-		hModules[patchCount] = _hGameExe;
-		patchOffsets[patchCount] = 0x4C711;
-		expectedProbes[patchCount] = 0xD7FF006A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
-
-		hModules[patchCount] = _hGameExe;
-		patchOffsets[patchCount] = 0x4C740;
-		expectedProbes[patchCount] = 0xD7FF006A;
-		patchValues[patchCount] = 0x90909090;
-		++patchCount;
-
-		break;
-	}
-
-	if (patchCount == 0)
-	{
-		D2DX_LOG("In-game sleep fixes aborted: unsupported game version.");
-		return false;
-	}
-
-	for (int32_t i = 0; i < patchCount; ++i)
-	{
-		const uint32_t probe = *(const uint32_t*)((uint32_t)hModules[i] + patchOffsets[i]);
-
-		if (probe != expectedProbes[i])
+		if (ProbeUInt32(_hGameExe, 0x51C42, 0x15FF0A6A))
 		{
-			D2DX_LOG("In-game sleep fix %i/%i skipped: location appears to be patched already.", i+1, patchCount);
-			return false;
+			PatchUInt32(_hGameExe, 0x51C42, 0x90909090);
 		}
 
-		uint32_t* patchLocation = (uint32_t*)((uint32_t)hModules[i] + patchOffsets[i]);
+		if (ProbeUInt32(_hGameExe, 0x51C46, 0x006CC258))
+		{
+			PatchUInt32(_hGameExe, 0x51C46, 0x90909090);
+		}
 
-		DWORD dwOldPage;
-		VirtualProtect(patchLocation, 4, PAGE_EXECUTE_READWRITE, &dwOldPage);
+		if (ProbeUInt32(_hGameExe, 0x4C711, 0xD7FF006A))
+		{
+			PatchUInt32(_hGameExe, 0x4C711, 0x90909090);
+		}
 
-		*patchLocation = patchValues[i];
-
-		VirtualProtect(patchLocation, 4, dwOldPage, &dwOldPage);
+		if (ProbeUInt32(_hGameExe, 0x4C740, 0xD7FF006A))
+		{
+			PatchUInt32(_hGameExe, 0x4C740, 0x90909090);
+		}
+		break;
+	default:
+		D2DX_LOG("In-game sleep fixes aborted: unsupported game version.");
+		return false;
 	}
 
 	D2DX_LOG("In-game sleep fixes applied.");
@@ -761,6 +680,39 @@ D2::UnitAny* GameHelper::GetPlayerUnit() const
 	default:
 		return nullptr;
 	}
+}
+
+_Use_decl_annotations_
+bool GameHelper::ProbeUInt32(
+	HANDLE hModule, 
+	uint32_t offset, 
+	uint32_t probeValue)
+{
+	uint32_t* patchLocation = (uint32_t*)((uint32_t)hModule + offset);
+
+	if (*patchLocation != probeValue)
+	{
+		D2DX_LOG("Probe failed at %08x, expected %08x but found %08x.", offset, probeValue, *patchLocation);
+		return false;
+	}
+
+	return true;
+}
+
+_Use_decl_annotations_
+void GameHelper::PatchUInt32(
+	HANDLE hModule,
+	uint32_t offset,
+	uint32_t value)
+{
+	uint32_t* patchLocation = (uint32_t*)((uint32_t)hModule + offset);
+
+	DWORD dwOldPage;
+	VirtualProtect(patchLocation, 4, PAGE_EXECUTE_READWRITE, &dwOldPage);
+	
+	*patchLocation = value;
+
+	VirtualProtect(patchLocation, 4, dwOldPage, &dwOldPage);
 }
 
 _Use_decl_annotations_
@@ -838,7 +790,7 @@ _Use_decl_annotations_
 void* GameHelper::GetFunction(
 	D2Function function) const
 {
-	HMODULE hModule = nullptr;
+	HANDLE hModule = nullptr;
 	int32_t ordinal = 0;
 
 	switch (_version)
@@ -1138,7 +1090,7 @@ void* GameHelper::GetFunction(
 		return nullptr;
 	}
 
-	return GetProcAddress(hModule, MAKEINTRESOURCEA(ordinal));
+	return GetProcAddress((HMODULE)hModule, MAKEINTRESOURCEA(ordinal));
 }
 
 _Use_decl_annotations_
