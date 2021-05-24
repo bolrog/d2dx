@@ -74,7 +74,7 @@ D2DXContext::D2DXContext(
 	_featureFlags{ 0 }
 {
 	_threadId = GetCurrentThreadId();
-	
+
 	if (!_options.GetFlag(OptionsFlag::NoCompatModeFix))
 	{
 		_compatibilityModeDisabler->DisableCompatibilityMode();
@@ -350,7 +350,7 @@ void D2DXContext::CheckMajorGameState()
 			{
 				_majorGameState = MajorGameState::TitleScreen;
 				break;
-			} 
+			}
 		}
 	}
 }
@@ -455,7 +455,7 @@ void D2DXContext::OnBufferSwap()
 	{
 		_textureHasher.PrintStats();
 
-		D2DX_DEBUG_LOG("Sleeps/frame: %.2f", _sleeps/256.0f);
+		D2DX_DEBUG_LOG("Sleeps/frame: %.2f", _sleeps / 256.0f);
 		_sleeps = 0;
 	}
 
@@ -655,7 +655,7 @@ void D2DXContext::OnDrawLine(
 
 		const float blendFactor = 0.1f;
 		const float oneMinusBlendFactor = 1.0f - blendFactor;
-		
+
 		if (_avgDir.x == 0.0f && _avgDir.y == 0.0f)
 		{
 			_avgDir = dir;
@@ -824,12 +824,12 @@ void D2DXContext::OnDrawVertexArray(
 	}
 
 	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, 3 * (count - 2), gameContext);
-	
+
 	if (!batch.IsValid())
 	{
 		return;
 	}
-	
+
 	EnsureReadVertexStateUpdated(batch);
 
 	Vertex v = _readVertexState.templateVertex;
@@ -877,7 +877,7 @@ void D2DXContext::OnDrawVertexArray(
 		}
 	}
 
-	_vertexCount += 3 * (count-2);
+	_vertexCount += 3 * (count - 2);
 
 	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
 
@@ -1288,30 +1288,39 @@ void D2DXContext::OnBufferClear()
 }
 
 _Use_decl_annotations_
-void D2DXContext::BeginDrawText(
-	wchar_t* str)
+Offset D2DXContext::BeginDrawText(
+	wchar_t* str,
+	Offset pos,
+	uint32_t returnAddress)
 {
 	_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 	_isDrawingText = true;
 
-	if (str && _gameHelper->GetVersion() == GameVersion::Lod114d)
+	Offset offset{ 0, 0 };
+
+	if (!str)
+	{
+		return offset;
+	}
+
+	if (IsFeatureEnabled(Feature::TextMotionPrediction))
+	{
+		const uint64_t textId = ((uint64_t)returnAddress << 32ULL) | (uint64_t)(uintptr_t)str;
+		offset = _textMotionPredictor.GetOffset(textId, pos);
+	}
+
+	if (_gameHelper->GetVersion() == GameVersion::Lod114d)
 	{
 		// In 1.14d, some color codes are black. Remap them.
-		
+
 		// Bright white -> white
 		while (wchar_t* subStr = wcsstr(str, L"ÿc/"))
 		{
 			subStr[2] = L'0';
 		}
 	}
-}
 
-_Use_decl_annotations_
-OffsetF D2DXContext::GetTextOffset(
-	uint64_t textId,
-	OffsetF posFromGame)
-{
-	return _textMotionPredictor.GetOffset(textId, posFromGame);
+	return offset;
 }
 
 void D2DXContext::EndDrawText()

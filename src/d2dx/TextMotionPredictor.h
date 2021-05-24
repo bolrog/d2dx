@@ -32,9 +32,9 @@ namespace d2dx
 		void Update(
 			_In_ IRenderContext* renderContext);
 
-		OffsetF GetOffset(
+		Offset GetOffset(
 			_In_ uint64_t textId,
-			_In_ OffsetF posFromGame);
+			_In_ Offset posFromGame);
 
 	private:
 		struct TextMotion final

@@ -91,10 +91,11 @@ void TextMotionPredictor::Update(
 }
 
 _Use_decl_annotations_
-OffsetF TextMotionPredictor::GetOffset(
+Offset TextMotionPredictor::GetOffset(
 	uint64_t textId,
-	OffsetF posFromGame)
+	Offset posFromGame)
 {
+	OffsetF posFromGameF{ (float)posFromGame.x, (float)posFromGame.y };
 	int32_t textIndex = -1;
 
 	for (int32_t i = 0; i < _textsCount; ++i)
@@ -103,27 +104,27 @@ OffsetF TextMotionPredictor::GetOffset(
 		{
 			bool resetCurrentPos = false;
 
-			if ((_gameHelper->ScreenOpenMode() & 1) && posFromGame.x >= _gameSize.width / 2)
+			if ((_gameHelper->ScreenOpenMode() & 1) && posFromGameF.x >= _gameSize.width / 2)
 			{
 				resetCurrentPos = true;
 			}
-			else if ((_gameHelper->ScreenOpenMode() & 2) && posFromGame.x <= _gameSize.width / 2)
+			else if ((_gameHelper->ScreenOpenMode() & 2) && posFromGameF.x <= _gameSize.width / 2)
 			{
 				resetCurrentPos = true;
 			}
 			else
 			{
-				auto distance = (posFromGame - _textMotions.items[i].targetPos).Length();
+				auto distance = (posFromGameF - _textMotions.items[i].targetPos).Length();
 				if (distance > 32.0f)
 				{
 					resetCurrentPos = true;
 				}
 			}
 
-			_textMotions.items[i].targetPos = posFromGame;
+			_textMotions.items[i].targetPos = posFromGameF;
 			if (resetCurrentPos)
 			{
-				_textMotions.items[i].currentPos = posFromGame;
+				_textMotions.items[i].currentPos = posFromGameF;
 			}
 			_textMotions.items[i].lastUsedFrame = _frame;
 			textIndex = i;
@@ -137,8 +138,8 @@ OffsetF TextMotionPredictor::GetOffset(
 		{
 			textIndex = _textsCount++;
 			_textMotions.items[textIndex].id = textId;
-			_textMotions.items[textIndex].targetPos = posFromGame;
-			_textMotions.items[textIndex].currentPos = posFromGame;
+			_textMotions.items[textIndex].targetPos = posFromGameF;
+			_textMotions.items[textIndex].currentPos = posFromGameF;
 			_textMotions.items[textIndex].lastUsedFrame = _frame;
 		}
 		else
@@ -149,9 +150,9 @@ OffsetF TextMotionPredictor::GetOffset(
 
 	if (textIndex < 0)
 	{
-		return { 0.0f, 0.0f };
+		return { 0, 0 };
 	}
 
 	TextMotion& tm = _textMotions.items[textIndex];
-	return { tm.currentPos.x - posFromGame.x, tm.currentPos.y - posFromGame.y };
+	return { (int32_t)(tm.currentPos.x - posFromGame.x), (int32_t)(tm.currentPos.y - posFromGame.y) };
 }

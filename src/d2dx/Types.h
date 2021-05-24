@@ -123,6 +123,12 @@ namespace d2dx
 		float x = 0;
 		float y = 0;
 
+		OffsetF(float x_, float y_) noexcept :
+			x{ x_ },
+			y{ y_ }
+		{
+		}
+
 		OffsetF& operator+=(const OffsetF& rhs) noexcept
 		{
 			x += rhs.x;
@@ -231,6 +237,78 @@ namespace d2dx
 			x{ (int32_t)rhs.x },
 			y{ (int32_t)rhs.y }
 		{
+		}
+
+		Offset& operator+=(const Offset& rhs) noexcept
+		{
+			x += rhs.x;
+			y += rhs.y;
+			return *this;
+		}
+
+		Offset& operator-=(const Offset& rhs) noexcept
+		{
+			x -= rhs.x;
+			y -= rhs.y;
+			return *this;
+		}
+
+		Offset& operator*=(const Offset& rhs) noexcept
+		{
+			x *= rhs.x;
+			y *= rhs.y;
+			return *this;
+		}
+
+		Offset& operator+=(int32_t rhs) noexcept
+		{
+			x += rhs;
+			y += rhs;
+			return *this;
+		}
+
+		Offset& operator-=(int32_t rhs) noexcept
+		{
+			x -= rhs;
+			y -= rhs;
+			return *this;
+		}
+
+		Offset& operator*=(int32_t rhs) noexcept
+		{
+			x *= rhs;
+			y *= rhs;
+			return *this;
+		}
+
+		Offset operator+(const Offset& rhs) const noexcept
+		{
+			return { x + rhs.x, y + rhs.y };
+		}
+
+		Offset operator-(const Offset& rhs) const noexcept
+		{
+			return { x - rhs.x, y - rhs.y };
+		}
+
+		Offset operator*(const Offset& rhs) const noexcept
+		{
+			return { x * rhs.x, y * rhs.y };
+		}
+
+		Offset operator+(int32_t rhs) const noexcept
+		{
+			return { x + rhs, y + rhs };
+		}
+
+		Offset operator-(int32_t rhs) const noexcept
+		{
+			return { x - rhs, y - rhs };
+		}
+
+		Offset operator*(int32_t rhs) const noexcept
+		{
+			return { x * rhs, y * rhs };
 		}
 
 		bool operator==(const Offset& rhs) const noexcept

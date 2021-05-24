@@ -480,12 +480,14 @@ void __fastcall D2Win_DrawText_Hooked(
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
+	Offset pos{ xPos, yPos };
+
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawText(wStr);
+		pos += d2InterceptionHandler->BeginDrawText(wStr, pos, (uint32_t)(uintptr_t)_ReturnAddress());
 	}
 
-	D2Win_DrawText_Real(wStr, xPos, yPos, dwColor, centered);
+	D2Win_DrawText_Real(wStr, pos.x, pos.y, dwColor, centered);
 
 	if (d2InterceptionHandler)
 	{
@@ -525,21 +527,14 @@ void __fastcall D2Win_DrawFramedText_Hooked(
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
+	Offset pos{ xPos, yPos };
+
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawText(wStr);
+		pos += d2InterceptionHandler->BeginDrawText(wStr, pos, (uint32_t)(uintptr_t)_ReturnAddress());
 	}
 
-	OffsetF offset{ 0.0f, 0.0f };
-
-	if (wStr)
-	{
-		offset = d2InterceptionHandler->GetTextOffset(
-			((uint64_t)_ReturnAddress() << 32ULL) | (uint64_t)wStr,
-			{ (float)xPos, (float)yPos });
-	}
-
-	D2Win_DrawFramedText_Real(wStr, xPos + (int32_t)offset.x, yPos + (int32_t)offset.y, dwColor, centered);
+	D2Win_DrawFramedText_Real(wStr, pos.x, pos.y, dwColor, centered);
 
 	if (d2InterceptionHandler)
 	{
@@ -557,21 +552,14 @@ void __fastcall D2Win_DrawRectangledText_Hooked(
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
+	Offset pos{ xPos, yPos };
+
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawText(wStr);
+		pos += d2InterceptionHandler->BeginDrawText(wStr, pos, (uint32_t)(uintptr_t)_ReturnAddress());
 	}
 
-	OffsetF offset{ 0.0f, 0.0f };
-
-	if (wStr)
-	{
-		offset = d2InterceptionHandler->GetTextOffset(
-			((uint64_t)_ReturnAddress() << 32ULL) | (uint64_t)wStr,
-			{ (float)xPos, (float)yPos });
-	}
-
-	D2Win_DrawRectangledText_Real(wStr, xPos + (int32_t)offset.x, yPos + (int32_t)offset.y, rectColor, rectTransparency, color);
+	D2Win_DrawRectangledText_Real(wStr, pos.x, pos.y, rectColor, rectTransparency, color);
 
 	if (d2InterceptionHandler)
 	{
@@ -861,12 +849,13 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
 	//DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
 
-	if (d2dxContext->IsFeatureEnabled(Feature::TextMotionPrediction))
+	if (D2Win_DrawFramedText_Real)
 	{
-		assert(D2Win_DrawFramedText_Real);
 		DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
+	}
 
-		assert(D2Win_DrawRectangledText_Real);
+	if (D2Win_DrawRectangledText_Real)
+	{
 		DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 	}
 

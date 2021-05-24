@@ -184,12 +184,10 @@ namespace d2dx
 
 #pragma region ID2InterceptionHandler
 
-		virtual void BeginDrawText(
-			_Inout_z_ wchar_t* str) override;
-
-		virtual OffsetF GetTextOffset(
-			_In_ uint64_t textId,
-			_In_ OffsetF posFromGame) override;
+		virtual Offset BeginDrawText(
+			_Inout_z_ wchar_t* str,
+			_In_ Offset pos,
+			_In_ uint32_t returnAddress) override;
 
 		virtual void EndDrawText() override;
 
