@@ -27,7 +27,7 @@ namespace d2dx
 	{
 		virtual ~ID2InterceptionHandler() noexcept {}
 
-		virtual void BeginDrawText() = 0;
+		virtual void BeginDrawText(wchar_t* str) = 0;
 
 		virtual OffsetF GetTextOffset(
 			_In_ uint64_t textId,

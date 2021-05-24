@@ -1287,10 +1287,23 @@ void D2DXContext::OnBufferClear()
 	}
 }
 
-void D2DXContext::BeginDrawText()
+_Use_decl_annotations_
+void D2DXContext::BeginDrawText(
+	wchar_t* str)
 {
 	_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 	_isDrawingText = true;
+
+	if (str && _gameHelper->GetVersion() == GameVersion::Lod114d)
+	{
+		// In 1.14d, some color codes are black. Remap them.
+		
+		// Bright white -> white
+		while (wchar_t* subStr = wcsstr(str, L"ÿc/"))
+		{
+			subStr[2] = L'0';
+		}
+	}
 }
 
 _Use_decl_annotations_

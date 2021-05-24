@@ -472,7 +472,7 @@ void __stdcall D2Gfx_DrawShadow_Hooked(
 }
 
 void __fastcall D2Win_DrawText_Hooked(
-	const wchar_t* wStr,
+	wchar_t* wStr,
 	int xPos,
 	int yPos,
 	DWORD dwColor,
@@ -482,7 +482,7 @@ void __fastcall D2Win_DrawText_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawText();
+		d2InterceptionHandler->BeginDrawText(wStr);
 	}
 
 	D2Win_DrawText_Real(wStr, xPos, yPos, dwColor, centered);
@@ -517,7 +517,7 @@ void __fastcall D2Win_DrawText_Hooked(
 //}
 
 void __fastcall D2Win_DrawFramedText_Hooked(
-	const wchar_t* wStr,
+	wchar_t* wStr,
 	int xPos,
 	int yPos,
 	DWORD dwColor,
@@ -527,7 +527,7 @@ void __fastcall D2Win_DrawFramedText_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawText();
+		d2InterceptionHandler->BeginDrawText(wStr);
 	}
 
 	OffsetF offset{ 0.0f, 0.0f };
@@ -548,7 +548,7 @@ void __fastcall D2Win_DrawFramedText_Hooked(
 }
 
 void __fastcall D2Win_DrawRectangledText_Hooked(
-	const wchar_t* wStr,
+	wchar_t* wStr,
 	int xPos,
 	int yPos,
 	DWORD rectColor,
@@ -559,7 +559,7 @@ void __fastcall D2Win_DrawRectangledText_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawText();
+		d2InterceptionHandler->BeginDrawText(wStr);
 	}
 
 	OffsetF offset{ 0.0f, 0.0f };
