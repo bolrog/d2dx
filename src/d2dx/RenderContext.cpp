@@ -424,7 +424,7 @@ void RenderContext::Present()
 #ifndef NDEBUG
 	if (!(_frameCount & 255))
 	{
-		D2DX_LOG("Texture cache use: %u, %u, %u, %u, %u, %u, %u", 
+		D2DX_LOG("Texture cache use: %u, %u, %u, %u, %u, %u, %u",
 			this->_resources->GetTextureCache(8, 8)->GetUsedCount(),
 			this->_resources->GetTextureCache(16, 16)->GetUsedCount(),
 			this->_resources->GetTextureCache(32, 32)->GetUsedCount(),
@@ -448,7 +448,7 @@ void RenderContext::Present()
 		::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
 		break;
 	case RenderContextSyncStrategy::Interval1:
-		D2DX_CHECK_HR(_swapChain1->Present(1, 0));		
+		D2DX_CHECK_HR(_swapChain1->Present(1, 0));
 		/*
 		ComPtr<IDXGIOutput> output;
 		_swapChain1->GetContainingOutput(&output);
@@ -804,89 +804,6 @@ ITextureCache* RenderContext::GetTextureCache(
 	return _resources->GetTextureCache(batch.GetTextureWidth(), batch.GetTextureHeight());
 }
 
-_Use_decl_annotations_
-void RenderContext::AdjustWindowPlacement(
-	HWND hWnd)
-{
-	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
-	_hasAdjustedWindowPlacement = true;
-
-	const int32_t desktopCenterX = _desktopSize.width / 2;
-	const int32_t desktopCenterY = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize.height / 2 : _desktopClientMaxHeight / 2;
-	const Offset preferredPosition = _d2dxContext->GetOptions().GetWindowPosition();
-	bool usePreferredPosition = preferredPosition.x >= 0 && preferredPosition.y >= 0;
-
-	if (_screenMode == ScreenMode::Windowed)
-	{
-		RECT oldWindowRect;
-		GetWindowRect(hWnd, &oldWindowRect);
-		const int32_t oldWindowWidth = oldWindowRect.right - oldWindowRect.left;
-		const int32_t oldWindowHeight = oldWindowRect.bottom - oldWindowRect.top;
-		const int32_t oldWindowCenterX = (oldWindowRect.left + oldWindowRect.right) / 2;
-		const int32_t oldWindowCenterY = (oldWindowRect.top + oldWindowRect.bottom) / 2;
-
-		DWORD windowStyle = WS_VISIBLE;
-		
-		if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::Frameless))
-		{
-			windowStyle |= WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
-		}
-
-		RECT windowRect = { 0, 0, _windowSize.width, _windowSize.height };
-		AdjustWindowRect(&windowRect, windowStyle, FALSE);
-		const int32_t newWindowWidth = windowRect.right - windowRect.left;
-		const int32_t newWindowHeight = windowRect.bottom - windowRect.top;
-		const int32_t newWindowCenterX = centerOnCurrentPosition ? oldWindowCenterX : desktopCenterX;
-		const int32_t newWindowCenterY = centerOnCurrentPosition ? oldWindowCenterY : desktopCenterY;
-		const int32_t newWindowX = usePreferredPosition ? preferredPosition.x : (newWindowCenterX - newWindowWidth / 2);
-		const int32_t newWindowY = max(0, usePreferredPosition ? preferredPosition.y : (newWindowCenterY - newWindowHeight / 2));
-
-		SetWindowLongPtr(hWnd, GWL_STYLE, windowStyle);
-		SetWindowPos_Real(hWnd, HWND_TOP, newWindowX, newWindowY, newWindowWidth, newWindowHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
-
-#ifndef NDEBUG
-		RECT newWindowRect;
-		GetWindowRect(hWnd, &newWindowRect);
-		assert(newWindowWidth == (newWindowRect.right - newWindowRect.left));
-		assert(newWindowHeight == (newWindowRect.bottom - newWindowRect.top));
-#endif
-	}
-	else if (_screenMode == ScreenMode::FullscreenDefault)
-	{
-		SetWindowLongPtr(hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
-		SetWindowPos_Real(hWnd, HWND_TOP, 0, 0, _desktopSize.width, _desktopSize.height, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
-	}
-
-	ClipCursor();
-
-	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoTitleChange))
-	{
-		char newWindowText[256];
-		sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
-			_gameSize.width,
-			_gameSize.height,
-			(int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
-		::SetWindowTextA(hWnd, newWindowText);
-	}
-
-	D2DX_LOG("Sizes: desktop %ix%i, window %ix%i, game %ix%i, render %ix%i", 
-		_desktopSize.width,
-		_desktopSize.height,
-		_windowSize.width,
-		_windowSize.height,
-		_gameSize.width,
-		_gameSize.height,
-		_renderRect.size.width,
-		_renderRect.size.height);
-
-	if (_resources)
-	{
-		ResizeBackbuffer();
-		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
-		Present();
-	}
-}
-
 void RenderContext::ResizeBackbuffer()
 {
 	if (_backbufferSizingStrategy == RenderContextBackbufferSizingStrategy::SetSourceSize)
@@ -913,15 +830,6 @@ void RenderContext::SetSizes(
 	Size gameSize,
 	Size windowSize)
 {
-	auto maxWindowSize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : Size{ _desktopSize.width, _desktopClientMaxHeight };
-
-	if (windowSize.height > maxWindowSize.height)
-	{
-		const float aspectRatio = (float)windowSize.width / windowSize.height;
-		windowSize.height = maxWindowSize.height;
-		windowSize.width = (int32_t)(maxWindowSize.height * aspectRatio);
-	}
-
 	_gameSize = gameSize;
 	_windowSize = windowSize;
 
@@ -932,7 +840,104 @@ void RenderContext::SetSizes(
 		displaySize,
 		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
 
-	AdjustWindowPlacement(_hWnd);
+	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
+	_hasAdjustedWindowPlacement = true;
+
+	const int32_t desktopCenterX = _desktopSize.width / 2;
+	const int32_t desktopCenterY = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize.height / 2 : _desktopClientMaxHeight / 2;
+	const Offset preferredPosition = _d2dxContext->GetOptions().GetWindowPosition();
+	bool usePreferredPosition = preferredPosition.x >= 0 && preferredPosition.y >= 0;
+
+	if (_screenMode == ScreenMode::Windowed)
+	{
+		Size maxWindowSize{ _desktopSize.width, _desktopClientMaxHeight };
+
+		RECT oldWindowRect;
+		GetWindowRect(_hWnd, &oldWindowRect);
+		const int32_t oldWindowWidth = oldWindowRect.right - oldWindowRect.left;
+		const int32_t oldWindowHeight = oldWindowRect.bottom - oldWindowRect.top;
+		const int32_t oldWindowCenterX = (oldWindowRect.left + oldWindowRect.right) / 2;
+		const int32_t oldWindowCenterY = (oldWindowRect.top + oldWindowRect.bottom) / 2;
+
+		DWORD windowStyle = WS_VISIBLE;
+
+		if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::Frameless))
+		{
+			windowStyle |= WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU;
+		}
+
+		Size windowStylingSize{ 0,0 };
+		RECT windowRect = { 0, 0, _windowSize.width, _windowSize.height };
+		AdjustWindowRect(&windowRect, windowStyle, FALSE);
+		windowStylingSize.width = (windowRect.right - windowRect.left) - _windowSize.width;
+		windowStylingSize.height = (windowRect.bottom - windowRect.top) - _windowSize.height;
+
+		if (_windowSize.height > maxWindowSize.height)
+		{
+			const float aspectRatio = (float)maxWindowSize.width / maxWindowSize.height;
+			_windowSize.height = maxWindowSize.height;
+			_windowSize.width = (int32_t)(_windowSize.height * aspectRatio);
+
+			_renderRect = Metrics::GetRenderRect(
+				_gameSize,
+				_windowSize,
+				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+
+			windowRect = { 0, 0, _windowSize.width, _windowSize.height };
+			AdjustWindowRect(&windowRect, windowStyle, FALSE);
+		}
+
+		const int32_t newWindowWidth = windowRect.right - windowRect.left;
+		const int32_t newWindowHeight = windowRect.bottom - windowRect.top;
+		const int32_t newWindowCenterX = centerOnCurrentPosition ? oldWindowCenterX : desktopCenterX;
+		const int32_t newWindowCenterY = centerOnCurrentPosition ? oldWindowCenterY : desktopCenterY;
+		const int32_t newWindowX = usePreferredPosition ? preferredPosition.x : (newWindowCenterX - newWindowWidth / 2);
+		const int32_t newWindowY = max(0, usePreferredPosition ? preferredPosition.y : (newWindowCenterY - newWindowHeight / 2));
+
+		SetWindowLongPtr(_hWnd, GWL_STYLE, windowStyle);
+		SetWindowPos_Real(_hWnd, HWND_TOP, newWindowX, newWindowY, newWindowWidth, newWindowHeight, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
+
+#ifndef NDEBUG
+		RECT newWindowRect;
+		GetWindowRect(_hWnd, &newWindowRect);
+		assert(newWindowWidth == (newWindowRect.right - newWindowRect.left));
+		assert(newWindowHeight == (newWindowRect.bottom - newWindowRect.top));
+#endif
+	}
+	else if (_screenMode == ScreenMode::FullscreenDefault)
+	{
+		SetWindowLongPtr(_hWnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+		SetWindowPos_Real(_hWnd, HWND_TOP, 0, 0, _desktopSize.width, _desktopSize.height, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
+	}
+
+	ClipCursor();
+
+	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoTitleChange))
+	{
+		char newWindowText[256];
+		sprintf_s(newWindowText, "Diablo II DX [%ix%i, scale %i%%]",
+			_gameSize.width,
+			_gameSize.height,
+			(int)(((float)_renderRect.size.height / _gameSize.height) * 100.0f));
+		::SetWindowTextA(_hWnd, newWindowText);
+	}
+
+	D2DX_LOG("Sizes: desktop %ix%i, window %ix%i, game %ix%i, render %ix%i",
+		_desktopSize.width,
+		_desktopSize.height,
+		_windowSize.width,
+		_windowSize.height,
+		_gameSize.width,
+		_gameSize.height,
+		_renderRect.size.width,
+		_renderRect.size.height);
+
+	if (_resources)
+	{
+		ResizeBackbuffer();
+		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+		Present();
+	}
 }
 
 bool RenderContext::IsFrameLatencyWaitableObjectSupported() const

@@ -205,7 +205,7 @@ Rect d2dx::Metrics::GetRenderRect(
 
 	/* Allow for a small amount of black margin on all sides. When more than that,
 	   rescale the image with a non-integer factor. */
-	if (rect.offset.x >= 16 && rect.offset.y >= 16)
+	if (rect.offset.x < 0 || rect.offset.y < 0 || (rect.offset.x >= 16 && rect.offset.y >= 16))
 	{
 		float scaleFactorF = (float)desktopSize.width / rect.size.width;
 		int32_t scaledHeight = (int32_t)(rect.size.height * scaleFactorF);
