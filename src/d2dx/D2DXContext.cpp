@@ -413,9 +413,7 @@ void D2DXContext::OnBufferSwap()
 	if (IsFeatureEnabled(Feature::UnitMotionPrediction) &&
 		_majorGameState == MajorGameState::InGame)
 	{
-		const OffsetF offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
-		const OffsetF scaleFactors{ 32.0f / sqrtf(2.0f), 16.0f / sqrtf(2.0f) };
-		const OffsetF screenOffsetf = scaleFactors * OffsetF{ offset.x - offset.y, offset.x + offset.y } + 0.5f;
+		const Offset offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
 
 		for (uint32_t i = 0; i < _batchCount; ++i)
 		{
@@ -430,8 +428,8 @@ void D2DXContext::OnBufferSwap()
 				for (uint32_t j = 0; j < batchVertexCount; ++j)
 				{
 					_vertices.items[vertexIndex++].AddOffset(
-						(int32_t)-screenOffsetf.x,
-						(int32_t)-screenOffsetf.y);
+						-offset.x,
+						-offset.y);
 				}
 			}
 		}
@@ -898,17 +896,6 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 		return;
 	}
 
-	Offset screenOffset = { 0,0 };
-	if (_majorGameState == MajorGameState::InGame)
-	{
-		if (currentlyDrawingUnit && currentlyDrawingUnit != _gameHelper->GetPlayerUnit())
-		{
-			auto drawOffset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
-			screenOffset.x = (int32_t)(32.0f * (drawOffset.x - drawOffset.y) / sqrt(2.0f) + 0.5f);
-			screenOffset.y = (int32_t)(16.0f * (drawOffset.x + drawOffset.y) / sqrt(2.0f) + 0.5f);
-		}
-	}
-
 	Batch batch = PrepareBatchForSubmit(_scratchBatch, PrimitiveType::Triangles, 6, gameContext);
 
 	if (!batch.IsValid())
@@ -929,7 +916,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 
 	for (int32_t i = 0; i < 4; ++i)
 	{
-		v.SetPosition((int32_t)d2Vertices[i].x + screenOffset.x, (int32_t)d2Vertices[i].y + screenOffset.y);
+		v.SetPosition((int32_t)d2Vertices[i].x, (int32_t)d2Vertices[i].y);
 		v.SetTexcoord((int32_t)d2Vertices[i].s >> _glideState.stShift, (int32_t)d2Vertices[i].t >> _glideState.stShift);
 		v.SetColor(maskedConstantColor | (d2Vertices[i].color & iteratedColorMask));
 		pVertices[i] = v;
@@ -1326,31 +1313,50 @@ void D2DXContext::EndDrawText()
 }
 
 _Use_decl_annotations_
-void D2DXContext::BeginDrawImage(
+Offset D2DXContext::BeginDrawImage(
 	const D2::CellContext* cellContext,
 	uint32_t drawMode,
-	Offset pos)
+	Offset pos,
+	D2Function d2Function)
 {
+	Offset offset{ 0,0 };
+
 	if (_isDrawingText)
 	{
-		return;
+		return offset;
 	}
 
 	if (currentlyDrawingUnit)
 	{
+		_unitMotionPredictor.SetUnitScreenPos(currentlyDrawingUnit, pos.x, pos.y);
+
 		if (currentlyDrawingUnit == _gameHelper->GetPlayerUnit())
 		{
 			// The player unit itself.
 			_scratchBatch.SetTextureCategory(TextureCategory::Player);
 			_playerScreenPos = pos;
 		}
+		else
+		{
+			offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
+		}
 	}
 	else
 	{
-		const bool isPlayerShadow = _playerScreenPos.x > 0 && max(abs(pos.x - _playerScreenPos.x), abs(pos.y - _playerScreenPos.y)) < 4;
-		if (isPlayerShadow)
+		if (d2Function == D2Function::D2Gfx_DrawShadow)
 		{
-			_scratchBatch.SetTextureCategory(TextureCategory::Player);
+			const bool isPlayerShadow =
+				_playerScreenPos.x > 0 &&
+				max(abs(pos.x - _playerScreenPos.x), abs(pos.y - _playerScreenPos.y)) < 8;
+
+			if (isPlayerShadow)
+			{
+				_scratchBatch.SetTextureCategory(TextureCategory::Player);
+			}
+			else
+			{
+				offset = _unitMotionPredictor.GetOffsetForShadow(pos.x, pos.y);
+			}
 		}
 		else
 		{
@@ -1364,6 +1370,8 @@ void D2DXContext::BeginDrawImage(
 			}
 		}
 	}
+
+	return offset;
 }
 
 void D2DXContext::EndDrawImage()

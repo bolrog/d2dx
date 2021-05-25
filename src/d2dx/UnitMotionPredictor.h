@@ -32,8 +32,17 @@ namespace d2dx
 		void Update(
 			_In_ IRenderContext* renderContext);
 
-		OffsetF GetOffset(
+		Offset GetOffset(
 			_In_ const D2::UnitAny* unit);
+
+		void SetUnitScreenPos(
+			_In_ const D2::UnitAny* unit,
+			_In_ int32_t x,
+			_In_ int32_t y);
+
+		Offset GetOffsetForShadow(
+			_In_ int32_t x,
+			_In_ int32_t y);
 
 	private:
 		struct UnitIdAndType final
@@ -44,6 +53,8 @@ namespace d2dx
 
 		struct UnitMotion final
 		{
+			Offset GetOffset() const;
+
 			uint32_t lastUsedFrame = 0;
 			Offset lastPos = { 0, 0 };
 			Offset velocity = { 0, 0 };
@@ -56,6 +67,7 @@ namespace d2dx
 		uint32_t _frame = 0;
 		Buffer<UnitIdAndType> _unitIdAndTypes;
 		Buffer<UnitMotion> _unitMotions;
+		Buffer<Offset> _unitScreenPositions;
 		int32_t _unitsCount = 0;
 	};
 }

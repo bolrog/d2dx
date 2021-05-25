@@ -18,6 +18,7 @@
 */
 #pragma once
 
+#include "IGameHelper.h"
 #include "Types.h"
 #include "D2Types.h"
 
@@ -34,10 +35,11 @@ namespace d2dx
 
 		virtual void EndDrawText() = 0;
 
-		virtual void BeginDrawImage(
+		virtual Offset BeginDrawImage(
 			_In_ const D2::CellContext* cellContext,
 			_In_ uint32_t drawMode,
-			_In_ Offset pos) = 0;
+			_In_ Offset pos,
+			_In_ D2Function d2Function) = 0;
 
 		virtual void EndDrawImage() = 0;
 	};

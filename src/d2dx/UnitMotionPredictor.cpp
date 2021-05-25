@@ -27,7 +27,8 @@ UnitMotionPredictor::UnitMotionPredictor(
 	const std::shared_ptr<IGameHelper>& gameHelper) :
 	_gameHelper{ gameHelper },
 	_unitIdAndTypes{ 1024, true },
-	_unitMotions{ 1024, true }
+	_unitMotions{ 1024, true },
+	_unitScreenPositions{ 1024, true }
 {
 }
 
@@ -157,7 +158,7 @@ void UnitMotionPredictor::Update(
 }
 
 _Use_decl_annotations_
-OffsetF UnitMotionPredictor::GetOffset(
+Offset UnitMotionPredictor::GetOffset(
 	const D2::UnitAny* unit)
 {
 	int32_t unitIndex = -1;
@@ -194,9 +195,59 @@ OffsetF UnitMotionPredictor::GetOffset(
 
 	if (unitIndex < 0)
 	{
-		return { 0.0f, 0.0f };
+		return { 0, 0 };
 	}
 
-	UnitMotion& um = _unitMotions.items[unitIndex];
-	return { (um.predictedPos.x - um.lastPos.x) / 65536.0f, (um.predictedPos.y - um.lastPos.y) / 65536.0f };
+	return _unitMotions.items[unitIndex].GetOffset();
+}
+
+_Use_decl_annotations_
+void UnitMotionPredictor::SetUnitScreenPos(
+	const D2::UnitAny* unit,
+	int32_t x,
+	int32_t y)
+{
+	auto unitId = _gameHelper->GetUnitId(unit);
+	auto unitType = _gameHelper->GetUnitType(unit);
+
+	for (int32_t unitIndex = 0; unitIndex < _unitsCount; ++unitIndex)
+	{
+		if (_unitIdAndTypes.items[unitIndex].unitId == (uint16_t)unitId &&
+			_unitIdAndTypes.items[unitIndex].unitType == (uint16_t)unitType)
+		{
+			_unitScreenPositions.items[unitIndex] = { x, y };
+			break;
+		}
+	}
+}
+
+_Use_decl_annotations_
+Offset UnitMotionPredictor::GetOffsetForShadow(
+	_In_ int32_t x,
+	_In_ int32_t y)
+{
+	for (int32_t i = 0; i < _unitsCount; ++i)
+	{
+		if (!_unitIdAndTypes.items[i].unitId)
+		{
+			continue;
+		}
+
+		const int32_t dist = max(abs(_unitScreenPositions.items[i].x - x), abs(_unitScreenPositions.items[i].y - y));
+
+		if (dist < 8)
+		{
+			return _unitMotions.items[i].GetOffset();
+		}
+	}
+
+	return { 0, 0 };
+}
+
+Offset UnitMotionPredictor::UnitMotion::GetOffset() const
+{
+	const OffsetF offset{ (predictedPos.x - lastPos.x) / 65536.0f, (predictedPos.y - lastPos.y) / 65536.0f };
+	const OffsetF scaleFactors{ 32.0f / sqrtf(2.0f), 16.0f / sqrtf(2.0f) };
+	const OffsetF screenOffset = scaleFactors * OffsetF{ offset.x - offset.y, offset.x + offset.y } + 0.5f;
+	return { (int32_t)screenOffset.x, (int32_t)screenOffset.y };
 }

@@ -315,12 +315,14 @@ void __stdcall D2Gfx_DrawImage_Hooked(
 
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
+	Offset offset{ 0,0 };
+
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, nDrawMode, { nXpos, nYpos });
+		offset = d2InterceptionHandler->BeginDrawImage(cellContext, nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawImage);
 	}
 
-	D2Gfx_DrawImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, pPalette);
+	D2Gfx_DrawImage_Real(cellContext, nXpos + offset.x, nYpos + offset.y, dwGamma, nDrawMode, pPalette);
 
 	if (d2InterceptionHandler)
 	{
@@ -339,7 +341,7 @@ void __stdcall D2Gfx_DrawClippedImage_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawClippedImage);
 	}
 
 	D2Gfx_DrawClippedImage_Real(cellContext, nXpos, nYpos, pCropRect, nDrawMode);
@@ -378,7 +380,7 @@ void __stdcall D2Gfx_DrawShiftedImage_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawShiftedImage);
 	}
 
 	D2Gfx_DrawShiftedImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, nGlobalPaletteShift);
@@ -410,7 +412,7 @@ void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawVerticalCropImage);
 	}
 
 	D2Gfx_DrawVerticalCropImage_Real(cellContext, nXpos, nYpos, nSkipLines, nDrawLines, nDrawMode);
@@ -431,7 +433,7 @@ void __stdcall D2Gfx_DrawImageFast_Hooked(
 
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos });
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos }, D2Function::D2Gfx_DrawImageFast);
 	}
 
 	D2Gfx_DrawImageFast_Real(cellContext, nXpos, nYpos, nPaletteIndex);
@@ -458,12 +460,14 @@ void __stdcall D2Gfx_DrawShadow_Hooked(
 
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
+	Offset offset{ 0,0 };
+
 	if (d2InterceptionHandler)
 	{
-		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos });
+		offset = d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos }, D2Function::D2Gfx_DrawShadow);
 	}
 
-	D2Gfx_DrawShadow_Real(cellContext, nXpos, nYpos);
+	D2Gfx_DrawShadow_Real(cellContext, nXpos + offset.x, nYpos + offset.y);
 
 	if (d2InterceptionHandler)
 	{
