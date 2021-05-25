@@ -105,11 +105,7 @@ D2DXContext::D2DXContext(
 	{
 		_gameHelper->TryApplyInGameFpsFix();
 		_gameHelper->TryApplyMenuFpsFix();
-
-		if (_options.GetFlag(OptionsFlag::TestSleepFixes))
-		{
-			_gameHelper->TryApplyInGameSleepFixes();
-		}
+		_gameHelper->TryApplyInGameSleepFixes();
 	}
 }
 
