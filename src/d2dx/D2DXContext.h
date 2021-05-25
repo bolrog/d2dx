@@ -165,7 +165,10 @@ namespace d2dx
 
 		virtual void DisableBuiltinResMod() override;
 
-		virtual Options& GetOptions() override;
+		virtual const Options& GetOptions() const override;
+
+		virtual bool IsFeatureEnabled(
+			_In_ Feature feature) override;
 
 #pragma endregion ID2DXContext
 
@@ -199,13 +202,6 @@ namespace d2dx
 		virtual void EndDrawImage() override;
 
 #pragma endregion ID2InterceptionHandler
-
-#pragma region IFeatureFlags
-
-		virtual bool IsFeatureEnabled(
-			_In_ Feature feature) override;
-
-#pragma endregion IFeatureFlags
 
 	private:
 		struct D2Vertex

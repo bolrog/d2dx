@@ -1261,7 +1261,7 @@ void D2DXContext::DisableBuiltinResMod()
 	_options.SetFlag(OptionsFlag::NoResMod, true);
 }
 
-Options& D2DXContext::GetOptions()
+const Options& D2DXContext::GetOptions() const
 {
 	return _options;
 }

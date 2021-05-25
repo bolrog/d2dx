@@ -48,7 +48,7 @@ namespace d2dx
 
 		virtual void DisableBuiltinResMod() = 0;
 
-		virtual Options& GetOptions() = 0;
+		virtual const Options& GetOptions() const = 0;
 		
 		virtual bool IsFeatureEnabled(
 			_In_ Feature feature) = 0;
