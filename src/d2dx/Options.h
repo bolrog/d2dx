@@ -38,6 +38,7 @@ namespace d2dx
 		DbgDumpTextures,
 
 		Frameless,
+		BlurryBilinear,
 
 		Count
 	};

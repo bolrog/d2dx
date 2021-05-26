@@ -399,11 +399,16 @@ void RenderContext::Present()
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 	UpdateViewport(_renderRect);
 
-	const bool isIntegerScale = IsIntegerScale();
+	RenderContextPixelShader pixelShader =
+		_d2dxContext->GetOptions().GetFlag(OptionsFlag::BlurryBilinear) ?
+			RenderContextPixelShader::DisplayBilinearScale :
+			(IsIntegerScale() ?
+				RenderContextPixelShader::DisplayIntegerScale :
+				RenderContextPixelShader::DisplayNonintegerScale);
 
 	SetShaderState(
 		_resources->GetVertexShader(RenderContextVertexShader::Display),
-		_resources->GetPixelShader(isIntegerScale ? RenderContextPixelShader::DisplayIntegerScale : RenderContextPixelShader::DisplayNonintegerScale),
+		_resources->GetPixelShader(pixelShader),
 		_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing) ? _resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected) : _resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
 		nullptr);
 

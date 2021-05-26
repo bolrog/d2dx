@@ -24,6 +24,7 @@
 #include "DisplayVS_cso.h"
 #include "DisplayNonintegerScalePS_cso.h"
 #include "DisplayIntegerScalePS_cso.h"
+#include "DisplayBilinearScalePS_cso.h"
 #include "GamePS_cso.h"
 #include "GameVS_cso.h"
 #include "VideoPS_cso.h"
@@ -100,6 +101,9 @@ void RenderContextResources::CreateShadersAndInputLayout(
 
 	D2DX_CHECK_HR(
 		device->CreatePixelShader(DisplayNonintegerScalePS_cso, ARRAYSIZE(DisplayNonintegerScalePS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::DisplayNonintegerScale]));
+
+	D2DX_CHECK_HR(
+		device->CreatePixelShader(DisplayBilinearScalePS_cso, ARRAYSIZE(DisplayBilinearScalePS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::DisplayBilinearScale]));
 
 	D2DX_CHECK_HR(
 		device->CreatePixelShader(GammaPS_cso, ARRAYSIZE(GammaPS_cso), NULL, &_pixelShaders[(int32_t)RenderContextPixelShader::Gamma]));

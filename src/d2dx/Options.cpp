@@ -98,6 +98,12 @@ void Options::ApplyCfg(
 				SetUserSpecifiedGameSize({ (int32_t)w.u.i, (int32_t)h.u.i });
 			}
 		}
+
+		auto blurrybilinear = toml_bool_in(game, "blurrybilinear");
+		if (blurrybilinear.ok)
+		{
+			SetFlag(OptionsFlag::BlurryBilinear, blurrybilinear.u.b);
+		}
 	}
 
 	auto window = toml_table_in(root, "window");

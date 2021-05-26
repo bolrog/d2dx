@@ -44,8 +44,9 @@ namespace d2dx
 		Video = 2,
 		DisplayIntegerScale = 3,
 		DisplayNonintegerScale = 4,
-		ResolveAA = 5,
-		Count = 6
+		DisplayBilinearScale = 5,
+		ResolveAA = 6,
+		Count = 7
 	};
 
 	enum class RenderContextTexture1D
