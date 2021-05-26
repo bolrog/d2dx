@@ -3,7 +3,7 @@
 D2DX is a Glide-wrapper and mod that makes the classic Diablo II/LoD run well on modern PCs, while honoring the original look and feel of the game.
 Play in a window or in fullscreen, glitch-free, with or without enhancements like widescreen, true high framerate and anti-aliasing.
 
-Version 0.99.521
+Version 0.99.525
 
 ## Features
   - Turns the game into a well behaved DirectX 11 title on Windows 10 (also 7, 8 and 8.1).
@@ -83,6 +83,12 @@ D2DX uses the following third party libraries:
 D2DX is free software, but if you enjoy the project and want to buy me a coffee, [click here](https://commerce.coinbase.com/checkout/13ed8fc7-d7f3-428c-b834-ab7bd6501db7).
 
 ## Recent release history
+
+### 0.99.525
+  - Fix motion prediction of shadows not working for some units.
+  - Fix window size when window is scaled beyond the desktop dimensions.
+  - Fix some black text in old versions of MedianXL.
+  - Remove -dxtestsleepfix, this is now enabled by default (along with the fps fix).
 
 ### 0.99.521
   - Fix low fps in menu for 1.13d with basemod.
