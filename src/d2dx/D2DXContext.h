@@ -205,16 +205,7 @@ namespace d2dx
 
 #pragma endregion ID2InterceptionHandler
 
-	private:
-		struct D2Vertex
-		{
-			float x, y;
-			uint32_t color;
-			uint32_t padding;
-			float s, t;
-			uint32_t padding2;
-		};
-		
+	private:		
 		void CheckMajorGameState();
 
 		void PrepareLogoTextureBatch();

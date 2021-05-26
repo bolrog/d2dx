@@ -571,7 +571,7 @@ void D2DXContext::OnDrawPoint(
 	const uint32_t maskedConstantColor = _readVertexState.maskedConstantColor;
 	const int32_t stShift = _glideState.stShift;
 
-	const D2Vertex* d2Vertex = (const D2Vertex*)pt;
+	const D2::Vertex* d2Vertex = (const D2::Vertex*)pt;
 
 	vertex0.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
 	vertex0.SetTexcoord((int32_t)d2Vertex->s >> stShift, (int32_t)d2Vertex->t >> stShift);
@@ -617,8 +617,8 @@ void D2DXContext::OnDrawLine(
 	const uint32_t iteratedColorMask = _readVertexState.iteratedColorMask;
 	const uint32_t maskedConstantColor = _readVertexState.maskedConstantColor;
 
-	const D2Vertex* d2Vertex0 = (const D2Vertex*)v1;
-	const D2Vertex* d2Vertex1 = (const D2Vertex*)v2;
+	const D2::Vertex* d2Vertex0 = (const D2::Vertex*)v1;
+	const D2::Vertex* d2Vertex1 = (const D2::Vertex*)v2;
 
 	vertex0.SetTexcoord((int32_t)d2Vertex1->s >> _glideState.stShift, (int32_t)d2Vertex1->t >> _glideState.stShift);
 	vertex0.SetColor(maskedConstantColor | (d2Vertex1->color & iteratedColorMask));
@@ -835,7 +835,7 @@ void D2DXContext::OnDrawVertexArray(
 
 	for (int32_t i = 0; i < 3; ++i)
 	{
-		const D2Vertex* d2Vertex = (const D2Vertex*)pointers[i];
+		const D2::Vertex* d2Vertex = (const D2::Vertex*)pointers[i];
 		v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
 		v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
 		v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
@@ -850,7 +850,7 @@ void D2DXContext::OnDrawVertexArray(
 		{
 			*pVertices++ = vertex0;
 			*pVertices++ = pVertices[-2];
-			const D2Vertex* d2Vertex = (const D2Vertex*)pointers[i + 3];
+			const D2::Vertex* d2Vertex = (const D2::Vertex*)pointers[i + 3];
 			v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
 			v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
 			v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
@@ -863,7 +863,7 @@ void D2DXContext::OnDrawVertexArray(
 		{
 			*pVertices++ = pVertices[-2];
 			*pVertices++ = pVertices[-2];
-			const D2Vertex* d2Vertex = (const D2Vertex*)pointers[i + 3];
+			const D2::Vertex* d2Vertex = (const D2::Vertex*)pointers[i + 3];
 			v.SetPosition((int32_t)d2Vertex->x, (int32_t)d2Vertex->y);
 			v.SetTexcoord((int32_t)d2Vertex->s >> _glideState.stShift, (int32_t)d2Vertex->t >> _glideState.stShift);
 			v.SetColor(maskedConstantColor | (d2Vertex->color & iteratedColorMask));
@@ -891,7 +891,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	assert(mode == GR_TRIANGLE_FAN);
 	assert(stride == sizeof(D2Vertex));
 
-	if (mode != GR_TRIANGLE_FAN || count != 4 || stride != sizeof(D2Vertex))
+	if (mode != GR_TRIANGLE_FAN || count != 4 || stride != sizeof(D2::Vertex))
 	{
 		return;
 	}
@@ -908,7 +908,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	const uint32_t iteratedColorMask = _readVertexState.iteratedColorMask;
 	const uint32_t maskedConstantColor = _readVertexState.maskedConstantColor;
 
-	const D2Vertex* d2Vertices = (const D2Vertex*)vertex;
+	const D2::Vertex* d2Vertices = (const D2::Vertex*)vertex;
 
 	Vertex v = _readVertexState.templateVertex;
 

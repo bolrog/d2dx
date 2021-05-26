@@ -232,5 +232,14 @@ namespace d2dx
         #pragma pack(pop)
 
         static_assert(sizeof(Room1) == 0x80, "Room1 size");
+
+        struct Vertex
+        {
+            float x, y;
+            uint32_t color;
+            uint32_t padding;
+            float s, t;
+            uint32_t padding2;
+        };
     }
 }
