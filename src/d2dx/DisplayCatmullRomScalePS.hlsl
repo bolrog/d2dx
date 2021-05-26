@@ -59,22 +59,22 @@ float4 SampleTextureCatmullRom(in Texture2D tex, in SamplerState linearSampler, 
     texPos3 *= texSize_invTexSize.zw;
     texPos12 *= texSize_invTexSize.zw;
 
-    float4 result = 
-        (tex.SampleLevel(linearSampler, float2(texPos0.x, texPos0.y), 0.0f) * w0.x +
-        tex.SampleLevel(linearSampler, float2(texPos12.x, texPos0.y), 0.0f) * w12.x +
-        tex.SampleLevel(linearSampler, float2(texPos3.x, texPos0.y), 0.0f) * w3.x) * w0.y;
+    float3 result = 
+        (tex.SampleLevel(linearSampler, float2(texPos0.x, texPos0.y), 0.0f).rgb * w0.x +
+        tex.SampleLevel(linearSampler, float2(texPos12.x, texPos0.y), 0.0f).rgb * w12.x +
+        tex.SampleLevel(linearSampler, float2(texPos3.x, texPos0.y), 0.0f).rgb * w3.x) * w0.y;
 
     result += 
-        (tex.SampleLevel(linearSampler, float2(texPos0.x, texPos12.y), 0.0f) * w0.x +
-        tex.SampleLevel(linearSampler, float2(texPos12.x, texPos12.y), 0.0f) * w12.x +
-        tex.SampleLevel(linearSampler, float2(texPos3.x, texPos12.y), 0.0f) * w3.x) * w12.y;
+        (tex.SampleLevel(linearSampler, float2(texPos0.x, texPos12.y), 0.0f).rgb * w0.x +
+        tex.SampleLevel(linearSampler, float2(texPos12.x, texPos12.y), 0.0f).rgb * w12.x +
+        tex.SampleLevel(linearSampler, float2(texPos3.x, texPos12.y), 0.0f).rgb * w3.x) * w12.y;
 
     result += 
-        (tex.SampleLevel(linearSampler, float2(texPos0.x, texPos3.y), 0.0f) * w0.x +
-        tex.SampleLevel(linearSampler, float2(texPos12.x, texPos3.y), 0.0f) * w12.x +
-        tex.SampleLevel(linearSampler, float2(texPos3.x, texPos3.y), 0.0f) * w3.x) * w3.y;
+        (tex.SampleLevel(linearSampler, float2(texPos0.x, texPos3.y), 0.0f).rgb * w0.x +
+        tex.SampleLevel(linearSampler, float2(texPos12.x, texPos3.y), 0.0f).rgb * w12.x +
+        tex.SampleLevel(linearSampler, float2(texPos3.x, texPos3.y), 0.0f).rgb * w3.x) * w3.y;
 
-    return result;
+    return float4(result, 1);
 }
 
 float4 main(

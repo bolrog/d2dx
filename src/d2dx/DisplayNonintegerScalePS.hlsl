@@ -24,10 +24,6 @@ Texture2D sceneTexture : register(t0);
 /* Anti-aliased nearest-neighbor sampling, taken from https://www.shadertoy.com/view/WtjyWy by user Amarcoli. */
 float2 nearestSampleUV_AA(float2 uv, float sharpness, float4 textureSize_invTextureSize) {
 	float2 tileUv = uv * textureSize_invTextureSize.xy;
-	//float2 dx = float2(ddx(tileUv.x), ddy(tileUv.x));
-	//float2 dy = float2(ddx(tileUv.y), ddy(tileUv.y));
-
-	//float2 dxdy = float2(max(abs(dx.x), abs(dx.y)), max(abs(dy.x), abs(dy.y)));
 	float2 dxdy = float2(ddx(tileUv.x), ddy(tileUv.y));
 
 	float2 texelDelta = frac(tileUv) - 0.5;
