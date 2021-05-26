@@ -46,7 +46,8 @@ namespace d2dx
 	{
 		HighQuality = 0,
 		Bilinear = 1,
-		Count = 2,
+		CatmullRom = 2,
+		Count = 3
 	};
 
 	class Options final

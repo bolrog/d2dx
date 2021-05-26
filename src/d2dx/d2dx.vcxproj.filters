@@ -28,6 +28,9 @@
     <FxCompile Include="DisplayBilinearScalePS.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
+    <FxCompile Include="DisplayCatmullRomScalePS.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureCache.cpp" />
@@ -229,6 +232,9 @@
       <Filter>shaders</Filter>
     </Text>
     <Text Include="DisplayBilinearScalePS_dxbc.txt">
+      <Filter>shaders</Filter>
+    </Text>
+    <Text Include="DisplayCatmullRomScalePS_dxbc.txt">
       <Filter>shaders</Filter>
     </Text>
   </ItemGroup>

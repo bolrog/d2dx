@@ -412,6 +412,9 @@ void RenderContext::Present()
 	case FilteringOption::Bilinear:
 		pixelShader = RenderContextPixelShader::DisplayBilinearScale;
 		break;
+	case FilteringOption::CatmullRom:
+		pixelShader = RenderContextPixelShader::DisplayCatmullRomScale;
+		break;
 	}
 
 	SetShaderState(
