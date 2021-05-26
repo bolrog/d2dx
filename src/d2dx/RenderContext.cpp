@@ -399,12 +399,20 @@ void RenderContext::Present()
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 	UpdateViewport(_renderRect);
 
-	RenderContextPixelShader pixelShader =
-		_d2dxContext->GetOptions().GetFlag(OptionsFlag::BlurryBilinear) ?
-			RenderContextPixelShader::DisplayBilinearScale :
-			(IsIntegerScale() ?
-				RenderContextPixelShader::DisplayIntegerScale :
-				RenderContextPixelShader::DisplayNonintegerScale);
+	RenderContextPixelShader pixelShader;
+	
+	switch (_d2dxContext->GetOptions().GetFiltering())
+	{
+	default:
+	case FilteringOption::HighQuality:
+		pixelShader = IsIntegerScale() ?
+			RenderContextPixelShader::DisplayIntegerScale :
+			RenderContextPixelShader::DisplayNonintegerScale;
+		break;
+	case FilteringOption::Bilinear:
+		pixelShader = RenderContextPixelShader::DisplayBilinearScale;
+		break;
+	}
 
 	SetShaderState(
 		_resources->GetVertexShader(RenderContextVertexShader::Display),

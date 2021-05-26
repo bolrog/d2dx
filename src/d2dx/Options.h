@@ -38,9 +38,15 @@ namespace d2dx
 		DbgDumpTextures,
 
 		Frameless,
-		BlurryBilinear,
 
 		Count
+	};
+
+	enum class FilteringOption
+	{
+		HighQuality = 0,
+		Bilinear = 1,
+		Count = 2,
 	};
 
 	class Options final
@@ -77,10 +83,13 @@ namespace d2dx
 		void SetUserSpecifiedGameSize(
 			_In_ Size size);
 
+		FilteringOption GetFiltering() const;
+
 	private:
 		uint32_t _flags = 0;
 		int32_t _windowScale = 1;
 		Offset _windowPosition{ -1, -1 };
 		Size _userSpecifiedGameSize{ -1, -1 };
+		FilteringOption _filtering{ FilteringOption::HighQuality };
 	};
 }

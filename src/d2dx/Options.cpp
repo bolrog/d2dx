@@ -99,10 +99,10 @@ void Options::ApplyCfg(
 			}
 		}
 
-		auto blurrybilinear = toml_bool_in(game, "blurrybilinear");
-		if (blurrybilinear.ok)
+		auto filtering = toml_int_in(game, "filtering");
+		if (filtering.ok)
 		{
-			SetFlag(OptionsFlag::BlurryBilinear, blurrybilinear.u.b);
+			_filtering = (FilteringOption)filtering.u.i;
 		}
 	}
 
@@ -221,4 +221,9 @@ void Options::SetUserSpecifiedGameSize(
 	_In_ Size size)
 {
 	_userSpecifiedGameSize = { max(-1, size.width), max(-1, size.height) };
+}
+
+FilteringOption Options::GetFiltering() const
+{
+	return _filtering;
 }
