@@ -1274,7 +1274,8 @@ _Use_decl_annotations_
 Offset D2DXContext::BeginDrawText(
 	wchar_t* str,
 	Offset pos,
-	uint32_t returnAddress)
+	uint32_t returnAddress,
+	D2Function d2Function)
 {
 	_scratchBatch.SetTextureCategory(TextureCategory::UserInterface);
 	_isDrawingText = true;
@@ -1286,7 +1287,7 @@ Offset D2DXContext::BeginDrawText(
 		return offset;
 	}
 
-	if (IsFeatureEnabled(Feature::TextMotionPrediction))
+	if (d2Function != D2Function::D2Win_DrawText && IsFeatureEnabled(Feature::TextMotionPrediction))
 	{
 		auto hash = fnv_32a_buf((void*)str, wcslen(str), FNV1_32A_INIT);
 

@@ -300,33 +300,16 @@ void __stdcall D2Gfx_DrawImage_Hooked(
 	int nDrawMode,
 	BYTE * pPalette)
 {
-	//D2DX_LOG("draw image %i, %i: '%p' nDrawMode %i, class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p", nXpos, nYpos, 
-	//	cellContext->szName, 
-	//	nDrawMode, 
-	//	cellContext->dwClass, 
-	//	cellContext->dwUnit,
-	//	cellContext->dwMode,
-	//	cellContext->_11,
-	//	cellContext->_12,
-	//	cellContext->_14,
-	//	cellContext->_7,
-	//	cellContext->_8,
-	//	cellContext->_9);
-
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
-	Offset offset{ 0,0 };
-
 	if (d2InterceptionHandler)
 	{
-		offset = d2InterceptionHandler->BeginDrawImage(cellContext, nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawImage);
-	}
-
-	D2Gfx_DrawImage_Real(cellContext, nXpos + offset.x, nYpos + offset.y, dwGamma, nDrawMode, pPalette);
-
-	if (d2InterceptionHandler)
-	{
+		auto offset = d2InterceptionHandler->BeginDrawImage(cellContext, nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawImage);
+		D2Gfx_DrawImage_Real(cellContext, nXpos + offset.x, nYpos + offset.y, dwGamma, nDrawMode, pPalette);
 		d2InterceptionHandler->EndDrawImage();
+	}
+	else
+	{
+		D2Gfx_DrawImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, pPalette);
 	}
 }
 
@@ -338,17 +321,15 @@ void __stdcall D2Gfx_DrawClippedImage_Hooked(
 	int nDrawMode)
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
 	if (d2InterceptionHandler)
 	{
 		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawClippedImage);
-	}
-
-	D2Gfx_DrawClippedImage_Real(cellContext, nXpos, nYpos, pCropRect, nDrawMode);
-
-	if (d2InterceptionHandler)
-	{
+		D2Gfx_DrawClippedImage_Real(cellContext, nXpos, nYpos, pCropRect, nDrawMode);
 		d2InterceptionHandler->EndDrawImage();
+	}
+	else
+	{
+		D2Gfx_DrawClippedImage_Real(cellContext, nXpos, nYpos, pCropRect, nDrawMode);
 	}
 }
 
@@ -360,34 +341,16 @@ void __stdcall D2Gfx_DrawShiftedImage_Hooked(
 	int nDrawMode,
 	int nGlobalPaletteShift)
 {
-	/*
-	  D2DX_LOG("draw shifted image %i, %i: '%p' nDrawMode %i, class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p",
-		  nXpos,
-		  nYpos,
-		  cellContext->szName,
-		  nDrawMode,
-		  cellContext->dwClass,
-		  cellContext->dwUnit,
-		  cellContext->dwMode,
-		  cellContext->_11,
-		  cellContext->_12,
-		  cellContext->_14,
-		  cellContext->_7,
-		  cellContext->_8,
-		  cellContext->_9);*/
-
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
 	if (d2InterceptionHandler)
 	{
 		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawShiftedImage);
-	}
-
-	D2Gfx_DrawShiftedImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, nGlobalPaletteShift);
-
-	if (d2InterceptionHandler)
-	{
+		D2Gfx_DrawShiftedImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, nGlobalPaletteShift);
 		d2InterceptionHandler->EndDrawImage();
+	}
+	else
+	{
+		D2Gfx_DrawShiftedImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, nGlobalPaletteShift);
 	}
 }
 
@@ -399,27 +362,16 @@ void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
 	int nDrawLines,
 	int nDrawMode)
 {
-	//D2DX_LOG("draw cropped image %i, %i: '%p' nDrawMode %i, class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p", nXpos, nYpos, pData->szName, nDrawMode, pData->dwClass, pData->dwUnit,
-	//    pData->dwMode,
-	//    pData->_11,
-	//    pData->_12,
-	//    pData->_14,
-	//    pData->_7,
-	//    pData->_8,
-	//    pData->_9);
-
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
 	if (d2InterceptionHandler)
 	{
 		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawVerticalCropImage);
-	}
-
-	D2Gfx_DrawVerticalCropImage_Real(cellContext, nXpos, nYpos, nSkipLines, nDrawLines, nDrawMode);
-
-	if (d2InterceptionHandler)
-	{
+		D2Gfx_DrawVerticalCropImage_Real(cellContext, nXpos, nYpos, nSkipLines, nDrawLines, nDrawMode);
 		d2InterceptionHandler->EndDrawImage();
+	}
+	else
+	{
+		D2Gfx_DrawVerticalCropImage_Real(cellContext, nXpos, nYpos, nSkipLines, nDrawLines, nDrawMode);
 	}
 }
 
@@ -430,17 +382,15 @@ void __stdcall D2Gfx_DrawImageFast_Hooked(
 	BYTE nPaletteIndex)
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
 	if (d2InterceptionHandler)
 	{
 		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos }, D2Function::D2Gfx_DrawImageFast);
-	}
-
-	D2Gfx_DrawImageFast_Real(cellContext, nXpos, nYpos, nPaletteIndex);
-
-	if (d2InterceptionHandler)
-	{
+		D2Gfx_DrawImageFast_Real(cellContext, nXpos, nYpos, nPaletteIndex);
 		d2InterceptionHandler->EndDrawImage();
+	}
+	else
+	{
+		D2Gfx_DrawImageFast_Real(cellContext, nXpos, nYpos, nPaletteIndex);
 	}
 }
 
@@ -449,29 +399,17 @@ void __stdcall D2Gfx_DrawShadow_Hooked(
 	int nXpos,
 	int nYpos)
 {
-	//D2DX_LOG("draw shadow %i, %i: '%p' class %u, unit %u, dwMode %u, %p, %p, %p, %p, %p, %p", nXpos, nYpos, pData->szName, pData->dwClass, pData->dwUnit,
-	//    pData->dwMode,
-	//    pData->_9,
-	//    pData->_12,
-	//    pData->_14,
-	//    pData->_3,
-	//    pData->_4,
-	//    pData->_7);
-
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 
-	Offset offset{ 0,0 };
-
 	if (d2InterceptionHandler)
 	{
-		offset = d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos }, D2Function::D2Gfx_DrawShadow);
-	}
-
-	D2Gfx_DrawShadow_Real(cellContext, nXpos + offset.x, nYpos + offset.y);
-
-	if (d2InterceptionHandler)
-	{
+		auto offset = d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos }, D2Function::D2Gfx_DrawShadow);
+		D2Gfx_DrawShadow_Real(cellContext, nXpos + offset.x, nYpos + offset.y);
 		d2InterceptionHandler->EndDrawImage();
+	}
+	else
+	{
+		D2Gfx_DrawShadow_Real(cellContext, nXpos, nYpos);
 	}
 }
 
@@ -483,19 +421,15 @@ void __fastcall D2Win_DrawText_Hooked(
 	DWORD centered)
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
-	Offset pos{ xPos, yPos };
-
 	if (d2InterceptionHandler)
 	{
-		pos += d2InterceptionHandler->BeginDrawText(wStr, pos, (uint32_t)(uintptr_t)_ReturnAddress());
-	}
-
-	D2Win_DrawText_Real(wStr, pos.x, pos.y, dwColor, centered);
-
-	if (d2InterceptionHandler)
-	{
+		d2InterceptionHandler->BeginDrawText(wStr, { 0,0 }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawText);
+		D2Win_DrawText_Real(wStr, xPos, yPos, dwColor, centered);
 		d2InterceptionHandler->EndDrawText();
+	}
+	else
+	{
+		D2Win_DrawText_Real(wStr, xPos, yPos, dwColor, centered);
 	}
 }
 
@@ -530,19 +464,15 @@ void __fastcall D2Win_DrawFramedText_Hooked(
 	DWORD centered)
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
-	Offset pos{ xPos, yPos };
-
 	if (d2InterceptionHandler)
 	{
-		pos += d2InterceptionHandler->BeginDrawText(wStr, pos, (uint32_t)(uintptr_t)_ReturnAddress());
-	}
-
-	D2Win_DrawFramedText_Real(wStr, pos.x, pos.y, dwColor, centered);
-
-	if (d2InterceptionHandler)
-	{
+		auto offset = d2InterceptionHandler->BeginDrawText(wStr, { xPos, yPos }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawFramedText);
+		D2Win_DrawFramedText_Real(wStr, xPos + offset.x, yPos + offset.y, dwColor, centered);
 		d2InterceptionHandler->EndDrawText();
+	}
+	else
+	{
+		D2Win_DrawFramedText_Real(wStr, xPos, yPos, dwColor, centered);
 	}
 }
 
@@ -555,19 +485,15 @@ void __fastcall D2Win_DrawRectangledText_Hooked(
 	DWORD color)
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
-	Offset pos{ xPos, yPos };
-
 	if (d2InterceptionHandler)
 	{
-		pos += d2InterceptionHandler->BeginDrawText(wStr, pos, (uint32_t)(uintptr_t)_ReturnAddress());
-	}
-
-	D2Win_DrawRectangledText_Real(wStr, pos.x, pos.y, rectColor, rectTransparency, color);
-
-	if (d2InterceptionHandler)
-	{
+		auto offset = d2InterceptionHandler->BeginDrawText(wStr, { xPos, yPos }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawRectangledText);
+		D2Win_DrawRectangledText_Real(wStr, xPos + offset.x, yPos + offset.y, rectColor, rectTransparency, color);
 		d2InterceptionHandler->EndDrawText();
+	}
+	else
+	{
+		D2Win_DrawRectangledText_Real(wStr, xPos, yPos, rectColor, rectTransparency, color);
 	}
 }
 

@@ -31,7 +31,8 @@ namespace d2dx
 		virtual Offset BeginDrawText(
 			_Inout_z_ wchar_t* str,
 			_In_ Offset pos,
-			_In_ uint32_t returnAddress) = 0;
+			_In_ uint32_t returnAddress,
+			_In_ D2Function d2Function) = 0;
 
 		virtual void EndDrawText() = 0;
 
