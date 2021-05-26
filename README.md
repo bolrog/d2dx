@@ -86,7 +86,7 @@ D2DX is free software, but if you enjoy the project and want to buy me a coffee,
 
 ### 0.99.526c
   - Fix motion-predicted texts looking corrupted/being positioned wrong.
-  - Add 'filtering' option in cfg file, which allows using regular bilinear filtering for those who prefer the look.
+  - Add 'filtering' option in cfg file, which allows using regular bilinear filtering or Catmull-Rom for those who prefer the look.
 
 ### 0.99.525
   - Fix motion prediction of shadows not working for some units.
