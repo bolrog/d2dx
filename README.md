@@ -77,6 +77,7 @@ D2DX uses the following third party libraries:
 - FXAA implementation by Timothy Lottes. (This software contains source code provided by NVIDIA Corporation.)
 - stb_image by Sean Barrett
 - pocketlzma by Robin Berg Pettersen
+- 9-tap Catmull-Rom texture filtering by TheRealMJP.
 
 ## Donations
 
