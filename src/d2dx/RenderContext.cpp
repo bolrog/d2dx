@@ -465,17 +465,12 @@ void RenderContext::Present()
 		break;
 	case RenderContextSyncStrategy::Interval1:
 		D2DX_CHECK_HR(_swapChain1->Present(1, 0));
-		/*
-		ComPtr<IDXGIOutput> output;
-		_swapChain1->GetContainingOutput(&output);
-
-		output->WaitForVBlank();*/
-
-		double curTime = TimeEndMs(_timeStart);
-		_frameTimeMs = curTime - _prevTime;
-		_prevTime = curTime;
 		break;
 	}
+
+	double curTime = TimeEndMs(_timeStart);
+	_frameTimeMs = curTime - _prevTime;
+	_prevTime = curTime;
 
 	if (_deviceContext1)
 	{
