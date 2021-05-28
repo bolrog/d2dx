@@ -511,6 +511,10 @@ bool GameHelper::TryApplyMenuFpsFix()
 	switch (_version) 
 	{
 	case GameVersion::Lod109d:
+		if (ProbeUInt32(_hD2WinDll, 0xEC0C, 0x5051196A))
+		{
+			PatchUInt32(_hD2WinDll, 0xEC0C, 0x50517F6A);
+		}
 		break;
 	case GameVersion::Lod110:
 		if (ProbeUInt32(_hD2WinDll, 0xD029, 0x8128C783))
