@@ -889,7 +889,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 {
 	assert(count == 4);
 	assert(mode == GR_TRIANGLE_FAN);
-	assert(stride == sizeof(D2Vertex));
+	assert(stride == sizeof(D2::Vertex));
 
 	if (mode != GR_TRIANGLE_FAN || count != 4 || stride != sizeof(D2::Vertex))
 	{
