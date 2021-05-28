@@ -1108,21 +1108,12 @@ _Use_decl_annotations_
 DrawParameters GameHelper::GetDrawParameters(
 	const D2::CellContext* cellContext) const
 {
-	DrawParameters drawParameters;
-
-	drawParameters.unitId =
-		GetVersion() == GameVersion::Lod109d ||
-		GetVersion() == GameVersion::Lod110 ? cellContext->_8 : cellContext->dwClass;
-
-	drawParameters.unitType =
-		GetVersion() == GameVersion::Lod109d ||
-		GetVersion() == GameVersion::Lod110 ? cellContext->_9 : cellContext->dwUnit;
-
-	drawParameters.unitToken =
-		GetVersion() == GameVersion::Lod109d ||
-		GetVersion() == GameVersion::Lod110 ? cellContext->_11 : cellContext->dwPlayerType;
-
-	return drawParameters;
+	return
+	{
+		.unitId = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110 ? cellContext->_8 : cellContext->dwClass,
+		.unitType = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110 ? cellContext->_9 : cellContext->dwUnit,
+		.unitToken = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110 ? cellContext->_11 : cellContext->dwPlayerType
+	};
 }
 
 int32_t GameHelper::GetCurrentAct() const
