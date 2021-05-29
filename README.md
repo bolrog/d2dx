@@ -5,6 +5,8 @@ Play in a window or in fullscreen, glitch-free, with or without enhancements lik
 
 Version 0.99.527b
 
+**WANT TO HELP OUT?** Take the one-question game version poll: https://strawpoll.com/w4y72p4f6
+
 ## Features
   - Turns the game into a well behaved DirectX 11 title on Windows 10 (also 7, 8 and 8.1).
   - High quality scaling to fit modern screen sizes, including widescreen aspect ratios.
