@@ -878,7 +878,7 @@ void* GameHelper::GetFunction(
 		case D2Function::D2Client_FindClientSideUnit:
 			return (void*)FindClientSideUnit109d;
 		case D2Function::D2Client_DrawWeatherParticles:
-			return (void*)((uintptr_t)_hD2ClientDll + 0x07FA0);
+			return (void*)((uintptr_t)_hD2ClientDll + 0x07BC0);
 		case D2Function::D2Client_FindServerSideUnit:
 			return (void*)FindServerSideUnit109d;
 		default:
