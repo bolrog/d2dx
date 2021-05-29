@@ -1404,7 +1404,13 @@ bool D2DXContext::IsFeatureEnabled(
 
 		if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
 		{
-			if (gameVersion == GameVersion::Lod112 ||
+			if (gameVersion == GameVersion::Lod109d)
+			{
+				_featureFlags |= (uint32_t)Feature::UnitMotionPrediction;
+				D2DX_LOG("  UnitMotionPrediction");
+			}
+			else if (
+				gameVersion == GameVersion::Lod112 ||
 				gameVersion == GameVersion::Lod113c ||
 				gameVersion == GameVersion::Lod113d ||
 				gameVersion == GameVersion::Lod114d)

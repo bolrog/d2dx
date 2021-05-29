@@ -797,8 +797,11 @@ void d2dx::AttachLateDetours(
 			 gameHelper->GetVersion() == GameVersion::Lod110 ||
 			 gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
 	
-		assert(D2Client_DrawMissile_Real);
-		DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
+		if (gameHelper->GetVersion() != GameVersion::Lod109d)
+		{
+			assert(D2Client_DrawMissile_Real);
+			DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
+		}
 	}
 
 	if (d2dxContext->IsFeatureEnabled(Feature::WeatherMotionPrediction))

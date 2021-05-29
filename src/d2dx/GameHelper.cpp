@@ -776,6 +776,42 @@ Offset GameHelper::GetUnitPos(
 
 typedef D2::UnitAny* (__fastcall* FindUnitFunc)(DWORD dwId, DWORD dwType);
 
+static D2::UnitAny* __fastcall FindClientSideUnit109d(DWORD unitId, DWORD unitType)
+{
+	uint32_t** unitPtrTable = (uint32_t**)0x6FBC4BF8;
+	uint32_t* unit = unitPtrTable[unitType * 128 + (unitId & 127)];
+
+	while (unit)
+	{
+		if (unit[0] == unitType && unit[2] == unitId)
+		{
+			return (D2::UnitAny*)unit;
+		}
+
+		unit = (uint32_t*)unit[66];
+	}
+
+	return nullptr;
+}
+
+static D2::UnitAny* __fastcall FindServerSideUnit109d(DWORD unitId, DWORD unitType)
+{
+	uint32_t** unitPtrTable = (uint32_t**)0x6FBC57F8;
+	uint32_t* unit = unitPtrTable[unitType * 128 + (unitId & 127)];
+
+	while (unit)
+	{
+		if (unit[0] == unitType && unit[2] == unitId)
+		{
+			return (D2::UnitAny*)unit;
+		}
+
+		unit = (uint32_t*)unit[66];
+	}
+
+	return nullptr;
+}
+
 _Use_decl_annotations_
 D2::UnitAny* GameHelper::FindUnit(
 	uint32_t unitId,
@@ -840,11 +876,11 @@ void* GameHelper::GetFunction(
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0xB8350);
 		case D2Function::D2Client_FindClientSideUnit:
-			return (void*)((uintptr_t)_hD2ClientDll + 0x8B740);
+			return (void*)FindClientSideUnit109d;
 		case D2Function::D2Client_DrawWeatherParticles:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x07FA0);
 		case D2Function::D2Client_FindServerSideUnit:
-			return (void*)((uintptr_t)_hD2ClientDll + 0x8B7B0);
+			return (void*)FindServerSideUnit109d;
 		default:
 			break;
 		}

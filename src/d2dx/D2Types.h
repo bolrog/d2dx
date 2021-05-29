@@ -113,8 +113,8 @@ namespace d2dx
                 {
                     D2::UnitType dwType;		// 0x00
                     DWORD dwClassId;			// 0x04
-                    void* pMemPool;				// 0x08
                     DWORD dwUnitId;				// 0x0C
+                    void* pMemPool;				// 0x08
                     DWORD dwMode;				// 0x10
                     union {
                         void* pPlayerData;
