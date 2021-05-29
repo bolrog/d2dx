@@ -10,7 +10,7 @@ Version 0.99.527b
 ## Features
   - Turns the game into a well behaved DirectX 11 title on Windows 10 (also 7, 8 and 8.1).
   - High quality scaling to fit modern screen sizes, including widescreen aspect ratios.
-  - High FPS mod using motion prediction, bypassing the internal 25 fps limit. Play at 60 fps and higher! (See the [video](https://imgur.com/a/J1F8Ctb) below)
+  - High FPS mod using motion prediction, bypassing the internal 25 fps limit. Play at 60 fps and higher! ([video](https://imgur.com/a/J1F8Ctb))
   - Anti-aliasing of specific jagged edges in the game (sprites, walls, some floors).
   - Seamless windowed/fullscreen switching with (ALT-Enter).
   - Improved fullscreen: instant ALT-TAB and low latency.
@@ -18,7 +18,7 @@ Version 0.99.527b
   - Proper gamma/contrast.
   - Fixes a few window-related glitches in Diablo II itself.
 
-### Video Showing off Motion Prediction
+### Video Showcasing Motion Prediction
   [FPS increase in menus, FPS increase for projectiles, monsters, +more](https://imgur.com/a/J1F8Ctb)
 
 ## Upcoming
