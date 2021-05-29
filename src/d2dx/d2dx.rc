@@ -69,12 +69,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Bolrog"
             VALUE "FileDescription", "Glide wrapper for D2"
-            VALUE "FileVersion", "0.99.330.0"
+            VALUE "FileVersion", "0.99.529.0"
             VALUE "InternalName", "d2dx.dll"
             VALUE "LegalCopyright", "Copyright (C) 2021"
             VALUE "OriginalFilename", "d2dx.dll"
             VALUE "ProductName", "D2DX"
-            VALUE "ProductVersion", "0.99.511.0"
+            VALUE "ProductVersion", "0.99.529.0"
         END
     END
     BLOCK "VarFileInfo"
