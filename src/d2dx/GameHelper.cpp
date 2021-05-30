@@ -30,9 +30,15 @@ GameHelper::GameHelper() :
 	_hD2ClientDll(LoadLibraryA("D2Client.dll")),
 	_hD2CommonDll(LoadLibraryA("D2Common.dll")),
 	_hD2GfxDll(LoadLibraryA("D2Gfx.dll")),
-	_hD2WinDll(LoadLibraryA("D2Win.dll"))
+	_hD2WinDll(LoadLibraryA("D2Win.dll")),
+	_isProjectDiablo2(GetModuleHandleA("PD2_EXT.dll") != nullptr)
 {
 	InitializeTextureHashPrefixTable();
+
+	if (_isProjectDiablo2)
+	{
+		D2DX_LOG("Detected Project Diablo 2.");
+	}
 }
 
 GameVersion GameHelper::GetVersion() const
@@ -1204,4 +1210,9 @@ bool GameHelper::IsInGame() const
 	default:
 		return false;
 	}
+}
+
+bool GameHelper::IsProjectDiablo2() const
+{
+	return _isProjectDiablo2;
 }

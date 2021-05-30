@@ -1222,15 +1222,22 @@ Size D2DXContext::GetSuggestedCustomResolution()
 {
 	if (_suggestedGameSize.width == 0)
 	{
-		Size desktopSize{ GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
-
-		_suggestedGameSize = _options.GetUserSpecifiedGameSize();
-		_suggestedGameSize.width = min(_suggestedGameSize.width, desktopSize.width);
-		_suggestedGameSize.height = min(_suggestedGameSize.height, desktopSize.height);
-
-		if (_suggestedGameSize.width < 0 || _suggestedGameSize.height < 0)
+		if (_gameHelper->IsProjectDiablo2())
 		{
-			_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, !_options.GetFlag(OptionsFlag::NoWide));
+			_suggestedGameSize = { 1068, 600 };
+		}
+		else
+		{
+			Size desktopSize{ GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN) };
+
+			_suggestedGameSize = _options.GetUserSpecifiedGameSize();
+			_suggestedGameSize.width = min(_suggestedGameSize.width, desktopSize.width);
+			_suggestedGameSize.height = min(_suggestedGameSize.height, desktopSize.height);
+
+			if (_suggestedGameSize.width < 0 || _suggestedGameSize.height < 0)
+			{
+				_suggestedGameSize = Metrics::GetSuggestedGameSize(desktopSize, !_options.GetFlag(OptionsFlag::NoWide));
+			}
 		}
 
 		D2DX_LOG("Suggesting game size %ix%i.", _suggestedGameSize.width, _suggestedGameSize.height);

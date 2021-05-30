@@ -103,5 +103,7 @@ namespace d2dx
 		virtual bool IsGameMenuOpen() const = 0;
 
 		virtual bool IsInGame() const = 0;
+
+		virtual bool IsProjectDiablo2() const = 0;
 	};
 }

@@ -80,6 +80,8 @@ namespace d2dx
 		
 		virtual bool IsInGame() const override;
 
+		virtual bool IsProjectDiablo2() const override;
+
 	private:
 		GameVersion GetGameVersion();
 		
@@ -102,5 +104,6 @@ namespace d2dx
 		HANDLE _hD2GfxDll;
 		HANDLE _hD2WinDll;
 		GameVersion _version;
+		bool _isProjectDiablo2;
 	};
 }
