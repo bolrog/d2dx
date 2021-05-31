@@ -9,9 +9,9 @@ Version 0.99.527b
 
 ## Features
   - Turns the game into a well behaved DirectX 11 title on Windows 10 (also 7, 8 and 8.1).
-  - High quality scaling to fit modern screen sizes, including widescreen aspect ratios.
+  - High quality scaling to fit modern screen sizes, including [widescreen aspect ratios](https://raw.githubusercontent.com/bolrog/d2dx/main/screenshots/d2dx2.png).
   - High FPS mod using motion prediction, bypassing the internal 25 fps limit. Play at 60 fps and higher! ([video](https://imgur.com/a/J1F8Ctb))
-  - Anti-aliasing of specific jagged edges in the game (sprites, walls, some floors).
+  - [Anti-aliasing](https://github.com/bolrog/d2dx/wiki/Screenshots#anti-aliasing) of specific jagged edges in the game (sprites, walls, some floors).
   - Seamless windowed/fullscreen switching with (ALT-Enter).
   - Improved fullscreen: instant ALT-TAB and low latency.
   - Improved windowed mode.
