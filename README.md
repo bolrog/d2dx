@@ -36,10 +36,7 @@ Game versions supported:
   - Without resolution switching: 1.10f, 1.12.
   - Other versions are unsupported, will display a warning at startup and exhibit glitches.
 
-D2DX has been tested working with the following mods:
-  - MedianXL (1024x768)
-  - PlugY
-  - D2ModMaker
+For compatibility with mods, see the [wiki](https://github.com/bolrog/d2dx/wiki/Compatibility-with-other-mods).
 
 ## Documentation
   This readme contains basic information to get you started. See the [D2DX wiki](https://github.com/bolrog/d2dx/wiki/) for more documentation.
