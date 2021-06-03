@@ -565,6 +565,21 @@ bool GameHelper::TryApplyInGameSleepFixes()
 {
 	switch (_version)
 	{
+	case GameVersion::Lod110: 
+		if (ProbeUInt32(_hD2ClientDll, 0x2684, 0x15FF0A6A))
+		{
+			PatchUInt32(_hD2ClientDll, 0x2684, 0x90909090);
+			PatchUInt32(_hD2ClientDll, 0x2688, 0x90909090);
+		}
+		if (ProbeUInt32(_hD2ClientDll, 0x9E68, 0x83D7FF53))
+		{
+			PatchUInt32(_hD2ClientDll, 0x9E68, 0x83909090);
+		}
+		if (ProbeUInt32(_hD2ClientDll, 0x9E8C, 0x83D7FF53))
+		{
+			PatchUInt32(_hD2ClientDll, 0x9E8C, 0x83909090);
+		}
+		break;
 	case GameVersion::Lod112:
 		if (ProbeUInt32(_hD2ClientDll, 0x6CFD4, 0x15FF0A6A))
 		{
