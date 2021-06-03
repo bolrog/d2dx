@@ -53,7 +53,7 @@ const char* GameHelper::GetVersionString() const
 	{
 	case GameVersion::Lod109d:
 		return "Lod109d";
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		return "Lod110";
 	case GameVersion::Lod112:
 		return "Lod112";
@@ -74,7 +74,7 @@ uint32_t GameHelper::ScreenOpenMode() const
 	{
 	case GameVersion::Lod109d:
 		return *(const uint32_t*)((uint32_t)_hD2ClientDll + 0x115C10);
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		return *(const uint32_t*)((uint32_t)_hD2ClientDll + 0x10B9C4);
 	case GameVersion::Lod112:
 		return *(const uint32_t*)((uint32_t)_hD2ClientDll + 0x11C1D0);
@@ -202,7 +202,7 @@ GameAddress GameHelper::IdentifyGameAddress(
 		gameAddresses = gameAddresses_109d;
 		gameAddressCount = ARRAYSIZE(gameAddresses_109d);
 		break;
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		gameAddresses = gameAddresses_110;
 		gameAddressCount = ARRAYSIZE(gameAddresses_110);
 		break;
@@ -421,7 +421,7 @@ GameVersion GameHelper::GetGameVersion()
 	}
 	else if (a == 1 && b == 0 && c == 10 && d == 9)
 	{
-		version = GameVersion::Lod110;
+		version = GameVersion::Lod110f;
 	}
 	else if (a == 1 && b == 0 && c == 12 && d == 49)
 	{
@@ -467,7 +467,7 @@ bool GameHelper::TryApplyInGameFpsFix()
 			PatchUInt32(_hD2ClientDll, 0x9B63, 0x90909090);
 		}
 		break;
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		if (ProbeUInt32(_hD2ClientDll, 0xA2C9, 0x2B75C085))
 		{
 			PatchUInt32(_hD2ClientDll, 0xA2C9, 0x90909090);
@@ -522,7 +522,7 @@ bool GameHelper::TryApplyMenuFpsFix()
 			PatchUInt32(_hD2WinDll, 0xEC0C, 0x50517F6A);
 		}
 		break;
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		if (ProbeUInt32(_hD2WinDll, 0xD029, 0x8128C783))
 		{
 			PatchUInt32(_hD2WinDll, 0xD029, 0x81909090);
@@ -565,7 +565,7 @@ bool GameHelper::TryApplyInGameSleepFixes()
 {
 	switch (_version)
 	{
-	case GameVersion::Lod110: 
+	case GameVersion::Lod110f: 
 		if (ProbeUInt32(_hD2ClientDll, 0x2684, 0x15FF0A6A))
 		{
 			PatchUInt32(_hD2ClientDll, 0x2684, 0x90909090);
@@ -698,7 +698,7 @@ D2::UnitAny* GameHelper::GetPlayerUnit() const
 	case GameVersion::Lod109d:
 		getClientPlayerFunc = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x8CFC0);
 		return getClientPlayerFunc();
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		getClientPlayerFunc = (GetClientPlayerFunc)((uintptr_t)_hD2ClientDll + 0x883D0);
 		return getClientPlayerFunc();
 	case GameVersion::Lod112:
@@ -906,7 +906,7 @@ void* GameHelper::GetFunction(
 			break;
 		}
 		break;
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		switch (function)
 		{
 		case D2Function::D2Gfx_DrawImage:
@@ -1167,9 +1167,9 @@ DrawParameters GameHelper::GetDrawParameters(
 {
 	return
 	{
-		.unitId = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110 ? cellContext->_8 : cellContext->dwClass,
-		.unitType = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110 ? cellContext->_9 : cellContext->dwUnit,
-		.unitToken = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110 ? cellContext->_11 : cellContext->dwPlayerType
+		.unitId = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110f ? cellContext->_8 : cellContext->dwClass,
+		.unitType = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110f ? cellContext->_9 : cellContext->dwUnit,
+		.unitToken = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110f ? cellContext->_11 : cellContext->dwPlayerType
 	};
 }
 
@@ -1191,7 +1191,7 @@ bool GameHelper::IsGameMenuOpen() const
 	{
 	case GameVersion::Lod109d:
 		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x1248D8)) != 0;
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x11A6CC)) != 0;
 	case GameVersion::Lod112:
 		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x102B7C)) != 0;
@@ -1214,7 +1214,7 @@ bool GameHelper::IsInGame() const
 	{
 	case GameVersion::Lod109d:
 		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x1109FC)) != 0 && playerUnit != 0 && playerUnit->u.v109.path != 0;
-	case GameVersion::Lod110:
+	case GameVersion::Lod110f:
 		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x1077C4)) != 0 && playerUnit != 0 && playerUnit->u.v109.path != 0;
 	case GameVersion::Lod112:
 		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x11BCC4)) != 0 && playerUnit != 0 && playerUnit->u.v112.path != 0;

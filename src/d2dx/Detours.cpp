@@ -794,7 +794,7 @@ void d2dx::AttachLateDetours(
 		assert(D2Client_DrawUnit_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawUnit_Real,
 			(gameHelper->GetVersion() == GameVersion::Lod109d ||
-			 gameHelper->GetVersion() == GameVersion::Lod110 ||
+			 gameHelper->GetVersion() == GameVersion::Lod110f ||
 			 gameHelper->GetVersion() == GameVersion::Lod114d) ? D2Client_DrawUnit_ESI_Hooked : D2Client_DrawUnit_Stack_Hooked);
 	
 		if (gameHelper->GetVersion() != GameVersion::Lod109d)

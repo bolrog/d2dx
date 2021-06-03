@@ -98,7 +98,7 @@ namespace d2dx
 	{
 		Unsupported = 0,
 		Lod109d = 1,
-		Lod110 = 2,
+		Lod110f = 2,
 		Lod112 = 3,
 		Lod113c = 4,
 		Lod113d = 5,
