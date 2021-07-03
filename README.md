@@ -7,6 +7,8 @@ Version 0.99.529
 
 **WANT TO HELP OUT?** Take the one-question game version poll: https://strawpoll.com/w4y72p4f6
 
+Update July 2021: I have been too busy to work on D2DX for a while, but hope to resume shortly.
+
 ## Features
   - Turns the game into a well behaved DirectX 11 title on Windows 10 (also 7, 8 and 8.1).
   - High quality scaling to fit modern screen sizes, including [widescreen aspect ratios](https://raw.githubusercontent.com/bolrog/d2dx/main/screenshots/d2dx2.png).
