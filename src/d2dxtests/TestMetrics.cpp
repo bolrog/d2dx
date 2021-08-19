@@ -65,18 +65,15 @@ namespace d2dxtests
 		void AssertThatGameSizeIsIntegerScale(Size desktopSize, bool wide, bool lenient)
 		{
 			auto suggestedGameSize = d2dx::Metrics::GetSuggestedGameSize(desktopSize, wide);
-			auto renderRect = d2dx::Metrics::GetRenderRect(suggestedGameSize, desktopSize, wide);
+
+			// The gameScale parameter is not fully covered by tests. This should be fixed.
+			auto renderRect = d2dx::Metrics::GetRenderRect(suggestedGameSize, desktopSize, wide, 999999999.0);
 			Assert::IsTrue(renderRect.offset.x >= 0);
 			Assert::IsTrue(renderRect.offset.y >= 0);
 			Assert::IsTrue(renderRect.size.width > 0);
 			Assert::IsTrue(renderRect.size.height > 0);
 			Assert::IsTrue((renderRect.offset.x + renderRect.size.width) <= desktopSize.width);
 			Assert::IsTrue((renderRect.offset.y + renderRect.size.height) <= desktopSize.height);
-
-			if (renderRect.offset.x > 0 && renderRect.offset.y > 0)
-			{
-				Assert::IsTrue(renderRect.offset.x < 16 || renderRect.offset.y < 16);
-			}
 
 			int32_t reconstructedDesktopWidth = renderRect.size.width + renderRect.offset.x * 2;
 			int32_t reconstructedDesktopHeight = renderRect.size.height + renderRect.offset.y * 2;

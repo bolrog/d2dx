@@ -14,7 +14,8 @@ namespace d2dx
 		Rect GetRenderRect(
 			_In_ Size gameSize,
 			_In_ Size desktopSize,
-			_In_ bool wide) noexcept;
+			_In_ bool wide,
+			_In_ double gameScale) noexcept;
 		
 		Buffer<Size> GetStandardDesktopSizes() noexcept;
 	}

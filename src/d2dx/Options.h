@@ -86,11 +86,17 @@ namespace d2dx
 
 		FilteringOption GetFiltering() const;
 
+		double GetGameScale() const;
+
+		void SetGameScale(
+			_In_ double gameScale);
+
 	private:
 		uint32_t _flags = 0;
 		int32_t _windowScale = 1;
 		Offset _windowPosition{ -1, -1 };
 		Size _userSpecifiedGameSize{ -1, -1 };
 		FilteringOption _filtering{ FilteringOption::HighQuality };
+		double _gameScale = 3.0;
 	};
 }
