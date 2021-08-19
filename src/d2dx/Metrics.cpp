@@ -184,28 +184,27 @@ _Use_decl_annotations_
 Rect d2dx::Metrics::GetRenderRect(
 	Size gameSize,
 	Size desktopSize,
-	bool wide) noexcept
+	bool wide,
+	double gameScale) noexcept
 {
-	int32_t scaleFactor = 1;
 
-	while (
-		gameSize.width * (scaleFactor + 1) <= desktopSize.width &&
-		gameSize.height * (scaleFactor + 1) <= desktopSize.height)
+	bool fitToScreen = false;
+
+	if (gameScale * gameSize.width > desktopSize.width || gameScale * gameSize.height > desktopSize.height)
 	{
-		++scaleFactor;
+		gameScale = 1.0;
+		fitToScreen = true;
 	}
 
 	Rect rect
 	{
-		(desktopSize.width - gameSize.width * scaleFactor) / 2,
-		(desktopSize.height - gameSize.height * scaleFactor) / 2,
-		gameSize.width * scaleFactor,
-		gameSize.height * scaleFactor
+		(int32_t)((desktopSize.width - gameSize.width * gameScale) / 2),
+		(int32_t)((desktopSize.height - gameSize.height * gameScale) / 2),
+		(int32_t)(gameSize.width * gameScale),
+		(int32_t)(gameSize.height * gameScale)
 	};
 
-	/* Allow for a small amount of black margin on all sides. When more than that,
-	   rescale the image with a non-integer factor. */
-	if (rect.offset.x < 0 || rect.offset.y < 0 || (rect.offset.x >= 16 && rect.offset.y >= 16))
+	if (fitToScreen || rect.offset.x < 0 || rect.offset.y < 0)
 	{
 		float scaleFactorF = (float)desktopSize.width / rect.size.width;
 		int32_t scaledHeight = (int32_t)(rect.size.height * scaleFactorF);

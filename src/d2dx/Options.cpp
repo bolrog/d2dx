@@ -104,6 +104,12 @@ void Options::ApplyCfg(
 		{
 			_filtering = (FilteringOption)filtering.u.i;
 		}
+
+		auto gameScale = toml_double_in(game, "scale");
+		if (gameScale.ok)
+		{
+			SetGameScale(gameScale.u.d);
+		}
 	}
 
 	auto window = toml_table_in(root, "window");
@@ -226,4 +232,22 @@ void Options::SetUserSpecifiedGameSize(
 FilteringOption Options::GetFiltering() const
 {
 	return _filtering;
+}
+
+double Options::GetGameScale() const
+{
+	return _gameScale;
+}
+
+void Options::SetGameScale(
+	_In_ double gameScale)
+{
+	if (gameScale < 1.0)
+	{
+		_gameScale = 1.0;
+	}
+	else
+	{
+		_gameScale = gameScale;
+	}
 }

@@ -75,7 +75,8 @@ RenderContext::RenderContext(
 	_renderRect = Metrics::GetRenderRect(
 		gameSize,
 		_screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize,
-		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide),
+		_d2dxContext->GetOptions().GetGameScale());
 
 #ifndef NDEBUG
 	ShowCursor_Real(TRUE);
@@ -849,7 +850,8 @@ void RenderContext::SetSizes(
 	_renderRect = Metrics::GetRenderRect(
 		_gameSize,
 		displaySize,
-		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide),
+		_d2dxContext->GetOptions().GetGameScale());
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
@@ -892,7 +894,8 @@ void RenderContext::SetSizes(
 			_renderRect = Metrics::GetRenderRect(
 				_gameSize,
 				_windowSize,
-				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide),
+				_d2dxContext->GetOptions().GetGameScale());
 
 			windowRect = { 0, 0, _windowSize.width, _windowSize.height };
 			AdjustWindowRect(&windowRect, windowStyle, FALSE);
@@ -1021,13 +1024,22 @@ void RenderContext::GetCurrentMetrics(
 
 void RenderContext::ClipCursor()
 {
-	if (_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoClipCursor))
+	if (_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoClipCursor) && _screenMode == ScreenMode::Windowed)
 	{
+		UnclipCursor();
 		return;
 	}
 
 	RECT clipRect;
 	::GetClientRect(_hWnd, &clipRect);
+
+	clipRect.left += _renderRect.offset.x;
+	clipRect.right -= _renderRect.offset.x;
+
+	// Not 100% sure why this works.
+	clipRect.bottom -= _renderRect.offset.y * 2;
+
+	// Casting a scalar to a point is confusing.
 	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.left);
 	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
 	::ClipCursor(&clipRect);
