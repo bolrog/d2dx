@@ -69,10 +69,10 @@ namespace d2dx
 			_In_ OptionsFlag flag,
 			_In_ bool value);
 
-		int32_t GetWindowScale() const;
+		double GetWindowScale() const;
 
 		void SetWindowScale(
-			_In_ int32_t zoomLevel);
+			_In_ double zoomLevel);
 
 		Offset GetWindowPosition() const;
 
@@ -88,7 +88,7 @@ namespace d2dx
 
 	private:
 		uint32_t _flags = 0;
-		int32_t _windowScale = 1;
+		double _windowScale = 1.0;
 		Offset _windowPosition{ -1, -1 };
 		Size _userSpecifiedGameSize{ -1, -1 };
 		FilteringOption _filtering{ FilteringOption::HighQuality };
