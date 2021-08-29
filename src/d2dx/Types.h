@@ -322,6 +322,11 @@ namespace d2dx
 		int32_t width = 0;
 		int32_t height = 0;
 
+		Size operator*(double value) noexcept
+		{
+			return { (int32_t)(width * value), (int32_t)(height * value) };
+		}
+
 		Size operator*(int32_t value) noexcept
 		{
 			return { width * value, height * value };
