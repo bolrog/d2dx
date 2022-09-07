@@ -1298,7 +1298,7 @@ Offset D2DXContext::BeginDrawText(
 	{
 		auto hash = fnv_32a_buf((void*)str, wcslen(str), FNV1_32A_INIT);
 
-		const uint64_t textId = 
+		const uint64_t textId =
 			(((uint64_t)(returnAddress & 0xFFFFFF) << 40ULL) |
 			((uint64_t)((uintptr_t)str & 0xFFFFFF) << 16ULL)) ^
 			(uint64_t)hash;
@@ -1311,7 +1311,7 @@ Offset D2DXContext::BeginDrawText(
 		// In 1.14d, some color codes are black. Remap them.
 
 		// Bright white -> white
-		while (wchar_t* subStr = wcsstr(str, L"ÿc/"))
+		while (wchar_t* subStr = wcsstr(str, L"Ã¿c/"))
 		{
 			subStr[2] = L'0';
 		}
@@ -1413,6 +1413,7 @@ bool D2DXContext::IsFeatureEnabled(
 		{
 			if (
 				gameVersion == GameVersion::Lod109d ||
+				gameVersion == GameVersion::Lod110f ||
 				gameVersion == GameVersion::Lod112 ||
 				gameVersion == GameVersion::Lod113c ||
 				gameVersion == GameVersion::Lod113d ||
