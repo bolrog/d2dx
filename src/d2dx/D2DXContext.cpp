@@ -1423,12 +1423,6 @@ bool D2DXContext::IsFeatureEnabled(
 				D2DX_LOG("  UnitMotionPrediction");
 				_featureFlags |= (uint32_t)Feature::WeatherMotionPrediction;
 				D2DX_LOG("  WeatherMotionPrediction");
-			}
-
-			if (gameVersion == GameVersion::Lod113c ||
-				gameVersion == GameVersion::Lod113d ||
-				gameVersion == GameVersion::Lod114d)
-			{
 				_featureFlags |= (uint32_t)Feature::TextMotionPrediction;
 				D2DX_LOG("  TextMotionPrediction");
 			}

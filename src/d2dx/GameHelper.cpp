@@ -952,6 +952,14 @@ void* GameHelper::GetFunction(
 			hModule = _hD2WinDll;
 			ordinal = 10117;
 			break;
+		case D2Function::D2Win_DrawFramedText:
+			hModule = _hD2WinDll;
+			ordinal = 10129;
+			break;
+		case D2Function::D2Win_DrawRectangledText:
+			hModule = _hD2WinDll;
+			ordinal = 10132;
+			break;
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0xB8350);
 		case D2Function::D2Client_FindClientSideUnit:
@@ -994,6 +1002,14 @@ void* GameHelper::GetFunction(
 		case D2Function::D2Win_DrawText:
 			hModule = _hD2WinDll;
 			ordinal = 10117;
+			break;
+		case D2Function::D2Win_DrawFramedText:
+			hModule = _hD2WinDll;
+			ordinal = 10129;
+			break;
+		case D2Function::D2Win_DrawRectangledText:
+			hModule = _hD2WinDll;
+			ordinal = 10132;
 			break;
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0xBA720);
@@ -1038,14 +1054,14 @@ void* GameHelper::GetFunction(
 			hModule = _hD2WinDll;
 			ordinal = 10001;
 			break;
-		//case D2Function::D2Win_DrawFramedText:
-		//	hModule = _hD2WinDll;
-		//	ordinal = 10137;
-		//	break;
-		//case D2Function::D2Win_DrawRectangledText:
-		//	hModule = _hD2WinDll;
-		//	ordinal = 10078;
-		//	break;
+		case D2Function::D2Win_DrawFramedText:
+			hModule = _hD2WinDll;
+			ordinal = 10031;
+			break;
+		case D2Function::D2Win_DrawRectangledText:
+			hModule = _hD2WinDll;
+			ordinal = 10082;
+			break;
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0x94250);
 		case D2Function::D2Client_DrawMissile:

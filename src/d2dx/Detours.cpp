@@ -761,6 +761,7 @@ void d2dx::AttachLateDetours(
 		!D2Gfx_DrawImageFast_Real ||
 		!D2Gfx_DrawShadow_Real ||
 		!D2Win_DrawText_Real ||
+		!D2Win_DrawFramedText_Real ||
 		!D2Client_DrawUnit_Real)
 	{
 		return;
@@ -777,12 +778,8 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
+	DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
 	//DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
-
-	if (D2Win_DrawFramedText_Real)
-	{
-		DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
-	}
 
 	if (D2Win_DrawRectangledText_Real)
 	{
