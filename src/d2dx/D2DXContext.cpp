@@ -1413,6 +1413,7 @@ bool D2DXContext::IsFeatureEnabled(
 		{
 			if (
 				gameVersion == GameVersion::Lod109d ||
+				gameVersion == GameVersion::Lod110f ||
 				gameVersion == GameVersion::Lod112 ||
 				gameVersion == GameVersion::Lod113c ||
 				gameVersion == GameVersion::Lod113d ||

@@ -751,12 +751,12 @@ _Use_decl_annotations_
 D2::UnitType GameHelper::GetUnitType(
 	const D2::UnitAny* unit) const
 {
-	if (_version == GameVersion::Lod109d)
-	{
+	switch (_version) {
+	case GameVersion::Lod109d:
 		return unit->u.v109.dwType;
-	}
-	else
-	{
+	case GameVersion::Lod110f:
+		return unit->u.v110.dwType;
+	default:
 		return unit->u.v112.dwType;
 	}
 }
@@ -765,12 +765,12 @@ _Use_decl_annotations_
 uint32_t GameHelper::GetUnitId(
 	const D2::UnitAny* unit) const
 {
-	if (_version == GameVersion::Lod109d)
-	{
+	switch (_version) {
+	case GameVersion::Lod109d:
 		return unit->u.v109.dwUnitId;
-	}
-	else
-	{
+	case GameVersion::Lod110f:
+		return unit->u.v110.dwUnitId;
+	default:
 		return unit->u.v112.dwUnitId;
 	}
 }
@@ -785,12 +785,34 @@ Offset GameHelper::GetUnitPos(
 		unitType == D2::UnitType::Monster ||
 		unitType == D2::UnitType::Missile)
 	{
-		D2::Path* path = _version == GameVersion::Lod109d ? unit->u.v109.path2 : unit->u.v112.path;
+		D2::Path* path;
+		switch (_version) {
+		case GameVersion::Lod109d:
+			path = unit->u.v109.path;
+			break;
+		case GameVersion::Lod110f:
+			path = unit->u.v110.path;
+			break;
+		default:
+			path = unit->u.v112.path;
+			break;
+		}
 		return { (int32_t)path->x, (int32_t)path->y };
 	}
 	else
 	{
-		D2::StaticPath* path = _version == GameVersion::Lod109d ? unit->u.v109.staticPath2 : unit->u.v112.staticPath;
+		D2::StaticPath* path;
+		switch (_version) {
+		case GameVersion::Lod109d:
+			path = unit->u.v109.staticPath;
+			break;
+		case GameVersion::Lod110f:
+			path = unit->u.v110.staticPath;
+			break;
+		default:
+			path = unit->u.v112.staticPath;
+			break;
+		}
 		return { (int32_t)path->xPos * 65536 + (int32_t)path->xOffset, (int32_t)path->yPos * 65536 + (int32_t)path->yOffset };
 	}
 }
@@ -800,16 +822,16 @@ typedef D2::UnitAny* (__fastcall* FindUnitFunc)(DWORD dwId, DWORD dwType);
 static D2::UnitAny* __fastcall FindClientSideUnit109d(DWORD unitId, DWORD unitType)
 {
 	uint32_t** unitPtrTable = (uint32_t**)0x6FBC4BF8;
-	uint32_t* unit = unitPtrTable[unitType * 128 + (unitId & 127)];
+	D2::Unit109* unit = (D2::Unit109*)unitPtrTable[unitType * 128 + (unitId & 127)];
 
 	while (unit)
 	{
-		if (unit[0] == unitType && unit[2] == unitId)
+		if ((uint32_t)unit->dwType == unitType && unit->dwUnitId == unitId)
 		{
 			return (D2::UnitAny*)unit;
 		}
 
-		unit = (uint32_t*)unit[66];
+		unit = unit->pPrevUnit;
 	}
 
 	return nullptr;
@@ -818,16 +840,52 @@ static D2::UnitAny* __fastcall FindClientSideUnit109d(DWORD unitId, DWORD unitTy
 static D2::UnitAny* __fastcall FindServerSideUnit109d(DWORD unitId, DWORD unitType)
 {
 	uint32_t** unitPtrTable = (uint32_t**)0x6FBC57F8;
-	uint32_t* unit = unitPtrTable[unitType * 128 + (unitId & 127)];
+	D2::Unit109* unit = (D2::Unit109*)unitPtrTable[unitType * 128 + (unitId & 127)];
 
 	while (unit)
 	{
-		if (unit[0] == unitType && unit[2] == unitId)
+		if ((uint32_t)unit->dwType == unitType && unit->dwUnitId == unitId)
 		{
 			return (D2::UnitAny*)unit;
 		}
 
-		unit = (uint32_t*)unit[66];
+		unit = unit->pPrevUnit;
+	}
+
+	return nullptr;
+}
+
+static D2::UnitAny* __fastcall FindClientSideUnit110f(DWORD unitId, DWORD unitType)
+{
+	uint32_t** unitPtrTable = (uint32_t**)0x6FBBAA00;
+	D2::Unit110* unit = (D2::Unit110*)unitPtrTable[unitType * 128 + (unitId & 127)];
+
+	while (unit)
+	{
+		if ((uint32_t)unit->dwType == unitType && unit->dwUnitId == unitId)
+		{
+			return (D2::UnitAny*)unit;
+		}
+
+		unit = unit->pPrevUnit;
+	}
+
+	return nullptr;
+}
+
+static D2::UnitAny* __fastcall FindServerSideUnit110f(DWORD unitId, DWORD unitType)
+{
+	uint32_t** unitPtrTable = (uint32_t**)0x6FBBB600;
+	D2::Unit110* unit = (D2::Unit110*)unitPtrTable[unitType * 128 + (unitId & 127)];
+
+	while (unit)
+	{
+		if ((uint32_t)unit->dwType == unitType && unit->dwUnitId == unitId)
+		{
+			return (D2::UnitAny*)unit;
+		}
+
+		unit = unit->pPrevUnit;
 	}
 
 	return nullptr;
@@ -940,11 +998,11 @@ void* GameHelper::GetFunction(
 		case D2Function::D2Client_DrawUnit:
 			return (void*)((uintptr_t)_hD2ClientDll + 0xBA720);
 		case D2Function::D2Client_FindClientSideUnit:
-			return (void*)((uintptr_t)_hD2ClientDll + 0x86BE0);
+			return (void*)FindClientSideUnit110f;
 		case D2Function::D2Client_DrawWeatherParticles:
-			return (void*)((uintptr_t)_hD2ClientDll + 0x08690);
+			return (void*)((uintptr_t)_hD2ClientDll + 0x08240);
 		case D2Function::D2Client_FindServerSideUnit:
-			return (void*)((uintptr_t)_hD2ClientDll + 0x86C70);
+			return (void*)FindServerSideUnit110f;
 		default:
 			break;
 		}
@@ -1182,7 +1240,14 @@ int32_t GameHelper::GetCurrentAct() const
 		return -1;
 	}
 
-	return (int32_t)unit->u.v112.dwAct;
+	switch (_version) {
+	case GameVersion::Lod109d:
+		return (int32_t)unit->u.v109.dwAct;
+	case GameVersion::Lod110f:
+		return (int32_t)unit->u.v110.dwAct;
+	default:
+		return (int32_t)unit->u.v112.dwAct;
+	}
 }
 
 bool GameHelper::IsGameMenuOpen() const
@@ -1215,7 +1280,7 @@ bool GameHelper::IsInGame() const
 	case GameVersion::Lod109d:
 		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x1109FC)) != 0 && playerUnit != 0 && playerUnit->u.v109.path != 0;
 	case GameVersion::Lod110f:
-		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x1077C4)) != 0 && playerUnit != 0 && playerUnit->u.v109.path != 0;
+		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x1077C4)) != 0 && playerUnit != 0 && playerUnit->u.v110.path != 0;
 	case GameVersion::Lod112:
 		return *((uint32_t*)((uint32_t)_hD2ClientDll + 0x11BCC4)) != 0 && playerUnit != 0 && playerUnit->u.v112.path != 0;
 	case GameVersion::Lod113c:
