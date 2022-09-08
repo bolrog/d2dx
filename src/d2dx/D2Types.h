@@ -33,12 +33,64 @@ namespace d2dx
             Count = 6,
         };
 
-		struct CellContext			//size 0x48
+        struct CellContext109		//size 0x48
+        {
+            void* pCellFile;		//0x00
+            void* pGfxCells;		//0x04
+            DWORD direction;		//0x08
+            DWORD _1;				//0x0C
+            DWORD _2;				//0x10
+            DWORD _3;				//0x14
+            DWORD _4;				//0x18
+            BYTE _5;				//0x1C
+            BYTE nComponents;		//0x1D
+            WORD _6;				//0x1E
+            DWORD dwClass;			//0x20
+            DWORD dwUnit;			//0x24
+            DWORD dwMode;			//0x28
+            DWORD _8;				//0x2C
+            DWORD dwUnitToken;		//0x30
+            DWORD dwCompToken;		//0x34
+            DWORD dwSomeToken;		//0x38
+            DWORD _9;				//0x3C
+            DWORD dwWClassToken;	//0x40
+            char* szName;			//0x44
+        };
+
+        static_assert(sizeof(CellContext109) == 0x48, "CellContext109 size");
+
+        struct CellContext112		//size 0x48
+        {
+            uint32_t _0a;			//0x00
+            uint32_t dwClass;		//0x04
+            uint32_t dwUnit;		//0x08
+            uint32_t dwMode;		//0x0C
+            uint32_t _3;			//0x10
+            uint32_t dwPlayerType;	//0x14
+            BYTE _5;				//0x18
+            BYTE _5a;				//0x19
+            WORD _6;				//0x1A
+            uint32_t _7;			//0x1C
+            uint32_t _8;			//0x20
+            uint32_t _9;			//0x24
+            char* szName;			//0x28
+            uint32_t _10;			//0x2C
+            uint32_t _11;			//0x30
+            void* pCellFile;		//0x34 also pCellInit
+            uint32_t _12;			//0x38
+            void* pGfxCells;		//0x3C
+            uint32_t direction;		//0x40
+            uint32_t _14;			//0x44
+        };
+
+        static_assert(sizeof(CellContext112) == 0x48, "CellContext112 size");
+
+		struct CellContext113		//size 0x48
 		{
 			uint32_t nCellNo;		//0x00
 			uint32_t _0a;			//0x04
-			uint32_t dwUnit;		//0x08
-			uint32_t dwClass;		//0x0C
+			uint32_t dwClass;		//0x08
+			uint32_t dwUnit;		//0x0C
 			uint32_t dwMode;		//0x10
 			uint32_t _3;			//0x14
 			uint32_t dwPlayerType;	//0x18
@@ -57,7 +109,15 @@ namespace d2dx
 			uint32_t _14;			//0x44
 		};
 
-		static_assert(sizeof(CellContext) == 0x48, "CellContext size");
+		static_assert(sizeof(CellContext113) == 0x48, "CellContext113 size");
+
+        struct CellContextAny {
+            union {
+                CellContext109 v109;
+                CellContext112 v112;
+                CellContext113 v113;
+            } u;
+        };
 
         struct UnitAny;
         struct Room1;

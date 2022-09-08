@@ -1237,14 +1237,36 @@ void* GameHelper::GetFunction(
 
 _Use_decl_annotations_
 DrawParameters GameHelper::GetDrawParameters(
-	const D2::CellContext* cellContext) const
+	const D2::CellContextAny* cellContext) const
 {
-	return
-	{
-		.unitId = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110f ? cellContext->_8 : cellContext->dwClass,
-		.unitType = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110f ? cellContext->_9 : cellContext->dwUnit,
-		.unitToken = GetVersion() == GameVersion::Lod109d || GetVersion() == GameVersion::Lod110f ? cellContext->_11 : cellContext->dwPlayerType
-	};
+	switch (GetVersion()) {
+	case GameVersion::Lod109d:
+	case GameVersion::Lod110f:
+		return {
+			.unitId = cellContext->u.v109.dwUnit,
+			.unitType = cellContext->u.v109.dwClass,
+			.unitToken = cellContext->u.v109.dwUnitToken,
+			.unitMode = cellContext->u.v109.dwMode
+
+		};
+	case GameVersion::Lod112:
+		return {
+			.unitId = cellContext->u.v112.dwUnit,
+			.unitType = cellContext->u.v112.dwClass,
+			.unitToken = cellContext->u.v112.dwPlayerType,
+			.unitMode = cellContext->u.v112.dwMode
+		};
+	case GameVersion::Lod113c:
+	case GameVersion::Lod113d:
+	case GameVersion::Lod114d:
+	default:
+		return {
+			.unitId = cellContext->u.v113.dwUnit,
+			.unitType = cellContext->u.v113.dwClass,
+			.unitToken = cellContext->u.v113.dwPlayerType,
+			.unitMode = cellContext->u.v113.dwMode
+		};
+	}
 }
 
 int32_t GameHelper::GetCurrentAct() const

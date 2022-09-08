@@ -1328,7 +1328,7 @@ void D2DXContext::EndDrawText()
 
 _Use_decl_annotations_
 Offset D2DXContext::BeginDrawImage(
-	const D2::CellContext* cellContext,
+	const D2::CellContextAny* cellContext,
 	uint32_t drawMode,
 	Offset pos,
 	D2Function d2Function)
@@ -1375,8 +1375,8 @@ Offset D2DXContext::BeginDrawImage(
 		else
 		{
 			DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
-			const bool isMiscUi = drawParameters.unitType == 0 && cellContext->dwMode == 0 && drawMode != 3;
-			const bool isBeltItem = drawParameters.unitType == 4 && cellContext->dwMode == 4;
+			const bool isMiscUi = drawParameters.unitType == 0 && drawParameters.unitMode == 0 && drawMode != 3;
+			const bool isBeltItem = drawParameters.unitType == 4 && drawParameters.unitMode == 4;
 
 			if (isMiscUi || isBeltItem)
 			{
