@@ -265,12 +265,12 @@ int(
 		_In_ UINT format) = DrawTextA;
 
 
-typedef void(__stdcall* D2Gfx_DrawImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE* pPalette);
-typedef void(__stdcall* D2Gfx_DrawShiftedImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, int nGlobalPaletteShift);
-typedef void(__stdcall* D2Gfx_DrawVerticalCropImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, int nSkipLines, int nDrawLines, int nDrawMode);
-typedef void(__stdcall* D2Gfx_DrawClippedImageFunc)(D2::CellContext* pData, int nXpos, int nYpos, void* pCropRect, int nDrawMode);
-typedef void(__stdcall* D2Gfx_DrawImageFastFunc)(D2::CellContext* pData, int nXpos, int nYpos, BYTE nPaletteIndex);
-typedef void(__stdcall* D2Gfx_DrawShadowFunc)(D2::CellContext* pData, int nXpos, int nYpos);
+typedef void(__stdcall* D2Gfx_DrawImageFunc)(D2::CellContextAny* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, BYTE* pPalette);
+typedef void(__stdcall* D2Gfx_DrawShiftedImageFunc)(D2::CellContextAny* pData, int nXpos, int nYpos, DWORD dwGamma, int nDrawMode, int nGlobalPaletteShift);
+typedef void(__stdcall* D2Gfx_DrawVerticalCropImageFunc)(D2::CellContextAny* pData, int nXpos, int nYpos, int nSkipLines, int nDrawLines, int nDrawMode);
+typedef void(__stdcall* D2Gfx_DrawClippedImageFunc)(D2::CellContextAny* pData, int nXpos, int nYpos, void* pCropRect, int nDrawMode);
+typedef void(__stdcall* D2Gfx_DrawImageFastFunc)(D2::CellContextAny* pData, int nXpos, int nYpos, BYTE nPaletteIndex);
+typedef void(__stdcall* D2Gfx_DrawShadowFunc)(D2::CellContextAny* pData, int nXpos, int nYpos);
 typedef void(__fastcall* D2Win_DrawTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered);
 typedef void(__fastcall* D2Win_DrawTextExFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered, DWORD transparencyLevel);
 typedef void(__fastcall* D2Win_DrawFramedTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered);
@@ -293,7 +293,7 @@ D2Client_DrawUnitFunc D2Client_DrawMissile_Real = nullptr;
 NakedFunc D2Client_DrawWeatherParticles_Real = nullptr;
 
 void __stdcall D2Gfx_DrawImage_Hooked(
-	D2::CellContext * cellContext,
+	D2::CellContextAny* cellContext,
 	int nXpos,
 	int nYpos,
 	DWORD dwGamma,
@@ -314,7 +314,7 @@ void __stdcall D2Gfx_DrawImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawClippedImage_Hooked(
-	D2::CellContext * cellContext,
+	D2::CellContextAny* cellContext,
 	int nXpos,
 	int nYpos,
 	void* pCropRect,
@@ -334,7 +334,7 @@ void __stdcall D2Gfx_DrawClippedImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawShiftedImage_Hooked(
-	D2::CellContext * cellContext,
+	D2::CellContextAny* cellContext,
 	int nXpos,
 	int nYpos,
 	DWORD dwGamma,
@@ -355,7 +355,7 @@ void __stdcall D2Gfx_DrawShiftedImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
-	D2::CellContext * cellContext,
+	D2::CellContextAny* cellContext,
 	int nXpos,
 	int nYpos,
 	int nSkipLines,
@@ -376,7 +376,7 @@ void __stdcall D2Gfx_DrawVerticalCropImage_Hooked(
 }
 
 void __stdcall D2Gfx_DrawImageFast_Hooked(
-	D2::CellContext * cellContext,
+	D2::CellContextAny* cellContext,
 	int nXpos,
 	int nYpos,
 	BYTE nPaletteIndex)
@@ -395,7 +395,7 @@ void __stdcall D2Gfx_DrawImageFast_Hooked(
 }
 
 void __stdcall D2Gfx_DrawShadow_Hooked(
-	D2::CellContext * cellContext,
+	D2::CellContextAny* cellContext,
 	int nXpos,
 	int nYpos)
 {

@@ -37,7 +37,7 @@ namespace d2dx
 		virtual void EndDrawText() = 0;
 
 		virtual Offset BeginDrawImage(
-			_In_ const D2::CellContext* cellContext,
+			_In_ const D2::CellContextAny* cellContext,
 			_In_ uint32_t drawMode,
 			_In_ Offset pos,
 			_In_ D2Function d2Function) = 0;
