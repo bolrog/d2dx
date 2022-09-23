@@ -44,11 +44,16 @@ namespace d2dx
 			_In_ int32_t x,
 			_In_ int32_t y);
 
+		void AddUnit(
+			D2::UnitAny* unit);
+
+		void OnBufferClear();
+
 	private:
 		struct UnitIdAndType final
 		{
-			uint16_t unitType = 0;
-			uint16_t unitId = 0;
+			uint32_t unitType = 0;
+			uint32_t unitId = 0;
 		};
 
 		struct UnitMotion final
@@ -69,5 +74,10 @@ namespace d2dx
 		Buffer<UnitMotion> _unitMotions;
 		Buffer<Offset> _unitScreenPositions;
 		int32_t _unitsCount = 0;
+
+		Buffer<D2::UnitAny*> _units;
+		Buffer<D2::UnitAny*> _prevUnits;
+		uint32_t _unitsCount2 = 0;
+		uint32_t _prevUnitsCount;
 	};
 }

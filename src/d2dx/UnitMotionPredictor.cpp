@@ -28,7 +28,9 @@ UnitMotionPredictor::UnitMotionPredictor(
 	_gameHelper{ gameHelper },
 	_unitIdAndTypes{ 1024, true },
 	_unitMotions{ 1024, true },
-	_unitScreenPositions{ 1024, true }
+	_unitScreenPositions{ 1024, true },
+	_units{ 1024, true },
+	_prevUnits{ 1024, true }
 {
 }
 
@@ -168,8 +170,8 @@ Offset UnitMotionPredictor::GetOffset(
 
 	for (int32_t i = 0; i < _unitsCount; ++i)
 	{
-		if (_unitIdAndTypes.items[i].unitId == (uint16_t)unitId &&
-			_unitIdAndTypes.items[i].unitType == (uint16_t)unitType)
+		if (_unitIdAndTypes.items[i].unitId == unitId &&
+			_unitIdAndTypes.items[i].unitType == (uint32_t)unitType)
 		{
 			_unitMotions.items[i].lastUsedFrame = _frame;
 			unitIndex = i;
@@ -182,8 +184,8 @@ Offset UnitMotionPredictor::GetOffset(
 		if (_unitsCount < (int32_t)_unitIdAndTypes.capacity)
 		{
 			unitIndex = _unitsCount++;
-			_unitIdAndTypes.items[unitIndex].unitId = (uint16_t)unitId;
-			_unitIdAndTypes.items[unitIndex].unitType = (uint16_t)unitType;
+			_unitIdAndTypes.items[unitIndex].unitId = unitId;
+			_unitIdAndTypes.items[unitIndex].unitType = (uint32_t)unitType;
 			_unitMotions.items[unitIndex] = { };
 			_unitMotions.items[unitIndex].lastUsedFrame = _frame;
 		}
@@ -212,8 +214,8 @@ void UnitMotionPredictor::SetUnitScreenPos(
 
 	for (int32_t unitIndex = 0; unitIndex < _unitsCount; ++unitIndex)
 	{
-		if (_unitIdAndTypes.items[unitIndex].unitId == (uint16_t)unitId &&
-			_unitIdAndTypes.items[unitIndex].unitType == (uint16_t)unitType)
+		if (_unitIdAndTypes.items[unitIndex].unitId == unitId &&
+			_unitIdAndTypes.items[unitIndex].unitType == (uint32_t)unitType)
 		{
 			_unitScreenPositions.items[unitIndex] = { x, y };
 			break;
@@ -250,4 +252,55 @@ Offset UnitMotionPredictor::UnitMotion::GetOffset() const
 	const OffsetF scaleFactors{ 32.0f / sqrtf(2.0f), 16.0f / sqrtf(2.0f) };
 	const OffsetF screenOffset = scaleFactors * OffsetF{ offset.x - offset.y, offset.x + offset.y } + 0.5f;
 	return { (int32_t)screenOffset.x, (int32_t)screenOffset.y };
+}
+
+void UnitMotionPredictor::AddUnit(
+	D2::UnitAny* unit)
+{
+	if (_unitsCount2 <= 1024) {
+		_units.items[_unitsCount2++] = unit;
+	}
+}
+
+bool isSameUnit(
+	IGameHelper* gameHelper,
+	D2::UnitAny* a,
+	D2::UnitAny* b)
+{
+	return a == b
+		&& gameHelper->GetUnitId(a) == gameHelper->GetUnitId(b)
+		&& gameHelper->GetUnitType(a) == gameHelper->GetUnitType(b);
+}
+
+void UnitMotionPredictor::OnBufferClear()
+{
+	D2::UnitAny* removedItems[1024];
+	uint32_t removedItemsCount = 0;
+	uint32_t i = 0;
+
+	for (
+		uint32_t end = min(_unitsCount2, _prevUnitsCount);
+		i != end;
+		++i)
+	{
+		D2::UnitAny* unit = _units.items[i];
+		D2::UnitAny* prevUnit = _prevUnits.items[i];
+
+		if (!isSameUnit(_gameHelper.get(), unit, prevUnit)) {
+			removedItems[removedItemsCount++] = prevUnit;
+		}
+		_prevUnits.items[i] = unit;
+	}
+
+	if (i < _prevUnitsCount) {
+		uint32_t count = _prevUnitsCount - i;
+		memcpy(&removedItems[removedItemsCount], &_prevUnits.items[i], count * sizeof(_units.items[0]));
+		removedItemsCount += count;
+	}
+	else if (i < _unitsCount2) {
+		uint32_t count = _unitsCount2 - i;
+		memcpy(&_prevUnits.items[i], &_units.items[i], count * sizeof(_units.items[0]));
+	}
+	_prevUnitsCount = _unitsCount2;
+	_unitsCount2 = 0;
 }
