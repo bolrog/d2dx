@@ -78,6 +78,8 @@ bool BuiltinResMod::IsCompatible(
     auto gameVersion = gameHelper->GetVersion();
 
     if (gameVersion != d2dx::GameVersion::Lod109d &&
+        gameVersion != d2dx::GameVersion::Lod110f &&
+        gameVersion != d2dx::GameVersion::Lod112 &&
         gameVersion != d2dx::GameVersion::Lod113c &&
         gameVersion != d2dx::GameVersion::Lod113d &&
         gameVersion != d2dx::GameVersion::Lod114d)
