@@ -81,6 +81,22 @@ ITextureCache* RenderContextResources::GetTextureCache(
 	return _textureCaches[log2Longest].get();
 }
 
+void RenderContextResources::SetFramebufferSize(
+	Size framebufferSize,
+	ID3D11Device* device)
+{
+	_framebuffers[0].texture = nullptr;
+	_framebuffers[0].rtv= nullptr;
+	_framebuffers[0].srv= nullptr;
+	_framebuffers[1].texture = nullptr;
+	_framebuffers[1].rtv = nullptr;
+	_framebuffers[1].srv = nullptr;
+	_framebuffers[2].texture = nullptr;
+	_framebuffers[2].rtv = nullptr;
+	_framebuffers[2].srv = nullptr;
+	CreateFramebuffers(framebufferSize, device);
+}
+
 _Use_decl_annotations_
 void RenderContextResources::CreateShadersAndInputLayout(
 	ID3D11Device* device)

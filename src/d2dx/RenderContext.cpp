@@ -262,10 +262,6 @@ RenderContext::RenderContext(
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 
-	Size renderTargetSize = _d2dxContext->GetSuggestedCustomResolution();
-	renderTargetSize.width = max(1024, renderTargetSize.width);
-	renderTargetSize.height = max(768, renderTargetSize.height);
-
 	_vbCapacity = 4 * 1024 * 1024;
 
 	SetSizes(_gameSize, _windowSize);
@@ -273,7 +269,7 @@ RenderContext::RenderContext(
 	_resources = std::make_unique<RenderContextResources>(
 			_vbCapacity * sizeof(Vertex),
 			16 * sizeof(Constants),
-			renderTargetSize,
+			gameSize,
 			_device.Get(),
 			simd);
 
@@ -850,6 +846,13 @@ void RenderContext::SetSizes(
 		_gameSize,
 		displaySize,
 		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+
+	if (_resources) {
+		_resources->SetFramebufferSize(gameSize, _device.Get());
+		SetRenderTargets(
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+	}
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
