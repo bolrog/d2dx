@@ -262,18 +262,15 @@ RenderContext::RenderContext(
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 
-	Size renderTargetSize = _d2dxContext->GetSuggestedCustomResolution();
-	renderTargetSize.width = max(1024, renderTargetSize.width);
-	renderTargetSize.height = max(768, renderTargetSize.height);
-
 	_vbCapacity = 4 * 1024 * 1024;
 
-	SetSizes(_gameSize, _windowSize);
+	_gameSize = { 0, 0 };
+	SetSizes(_gameSize, _windowSize, _screenMode);
 
 	_resources = std::make_unique<RenderContextResources>(
 			_vbCapacity * sizeof(Vertex),
 			16 * sizeof(Constants),
-			renderTargetSize,
+			gameSize,
 			_device.Get(),
 			simd);
 
@@ -400,7 +397,7 @@ void RenderContext::Present()
 	UpdateViewport(_renderRect);
 
 	RenderContextPixelShader pixelShader;
-	
+
 	switch (_d2dxContext->GetOptions().GetFiltering())
 	{
 	default:
@@ -839,10 +836,23 @@ void RenderContext::ResizeBackbuffer()
 _Use_decl_annotations_
 void RenderContext::SetSizes(
 	Size gameSize,
-	Size windowSize)
+	Size windowSize,
+	ScreenMode screenMode)
 {
+	if (_gameSize == gameSize && _windowSize == windowSize && _screenMode == screenMode) {
+		return;
+	}
+
+	if (_resources && gameSize != _gameSize) {
+		_resources->SetFramebufferSize(gameSize, _device.Get());
+		SetRenderTargets(
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+	}
+
 	_gameSize = gameSize;
 	_windowSize = windowSize;
+	_screenMode = screenMode;
 
 	auto displaySize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
 
@@ -987,13 +997,11 @@ void RenderContext::ToggleFullscreen()
 {
 	if (_screenMode == ScreenMode::FullscreenDefault)
 	{
-		_screenMode = ScreenMode::Windowed;
-		SetSizes(_gameSize, _windowSize);
+		SetSizes(_gameSize, _windowSize, ScreenMode::Windowed);
 	}
 	else
 	{
-		_screenMode = ScreenMode::FullscreenDefault;
-		SetSizes(_gameSize, _windowSize);
+		SetSizes(_gameSize, _windowSize, ScreenMode::FullscreenDefault);
 	}
 }
 

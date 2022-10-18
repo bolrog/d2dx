@@ -79,6 +79,8 @@ namespace d2dx
 
 		void OnNewFrame();
 
+		void SetFramebufferSize(Size framebufferSize, ID3D11Device* device);
+
 		ID3D11InputLayout* GetInputLayout() const { return _inputLayout.Get(); }
 
 		ID3D11VertexShader* GetVertexShader(RenderContextVertexShader vertexShader) const
