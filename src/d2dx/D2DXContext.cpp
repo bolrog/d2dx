@@ -222,7 +222,7 @@ void D2DXContext::OnSstWinOpen(
 			windowSize.width = width;
 			windowSize.height = height;
 		}
-		_renderContext->SetSizes(gameSize, windowSize * _options.GetWindowScale());
+		_renderContext->SetSizes(gameSize, windowSize * _options.GetWindowScale(), _renderContext->GetScreenMode());
 	}
 
 	_batchCount = 0;

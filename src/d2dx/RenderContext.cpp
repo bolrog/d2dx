@@ -264,7 +264,8 @@ RenderContext::RenderContext(
 
 	_vbCapacity = 4 * 1024 * 1024;
 
-	SetSizes(_gameSize, _windowSize);
+	_gameSize = { 0, 0 };
+	SetSizes(_gameSize, _windowSize, _screenMode);
 
 	_resources = std::make_unique<RenderContextResources>(
 			_vbCapacity * sizeof(Vertex),
@@ -519,7 +520,7 @@ void RenderContext::WriteToScreen(
 	uint32_t vertexCount = 0;
 
 	if (forCinematic) {
-		SetSizes({ width, 292 }, _windowSize);
+		SetSizes({ width, 292 }, _windowSize, _screenMode);
 		int32_t offset = width * ((height - 292) / 2);
 		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetCinematicTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
 		memcpy(ms.pData, offset + pixels, width * 292 * 4);
@@ -852,14 +853,23 @@ void RenderContext::ResizeBackbuffer()
 _Use_decl_annotations_
 void RenderContext::SetSizes(
 	Size gameSize,
-	Size windowSize)
+	Size windowSize,
+	ScreenMode screenMode)
 {
-	if (_gameSize == gameSize && _windowSize == windowSize) {
+	if (_gameSize == gameSize && _windowSize == windowSize && _screenMode == screenMode) {
 		return;
+	}
+
+	if (_resources && gameSize != _gameSize) {
+		_resources->SetFramebufferSize(gameSize, _device.Get());
+		SetRenderTargets(
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
 	}
 
 	_gameSize = gameSize;
 	_windowSize = windowSize;
+	_screenMode = screenMode;
 
 	auto displaySize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
 
@@ -867,13 +877,6 @@ void RenderContext::SetSizes(
 		_gameSize,
 		displaySize,
 		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
-
-	if (_resources) {
-		_resources->SetFramebufferSize(gameSize, _device.Get());
-		SetRenderTargets(
-			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
-			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
-	}
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
@@ -1011,13 +1014,11 @@ void RenderContext::ToggleFullscreen()
 {
 	if (_screenMode == ScreenMode::FullscreenDefault)
 	{
-		_screenMode = ScreenMode::Windowed;
-		SetSizes(_gameSize, _windowSize);
+		SetSizes(_gameSize, _windowSize, ScreenMode::Windowed);
 	}
 	else
 	{
-		_screenMode = ScreenMode::FullscreenDefault;
-		SetSizes(_gameSize, _windowSize);
+		SetSizes(_gameSize, _windowSize, ScreenMode::FullscreenDefault);
 	}
 }
 

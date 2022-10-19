@@ -100,7 +100,8 @@ namespace d2dx
 
 		virtual void SetSizes(
 			_In_ Size gameSize,
-			_In_ Size windowSize) override;
+			_In_ Size windowSize,
+			_In_ ScreenMode screenMode) override;
 
 		virtual void GetCurrentMetrics(
 			_Out_opt_ Size* gameSize,
