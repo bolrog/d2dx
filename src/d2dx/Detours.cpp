@@ -273,8 +273,7 @@ typedef void(__stdcall* D2Gfx_DrawImageFastFunc)(D2::CellContextAny* pData, int 
 typedef void(__stdcall* D2Gfx_DrawShadowFunc)(D2::CellContextAny* pData, int nXpos, int nYpos);
 typedef void(__fastcall* D2Win_DrawTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered);
 typedef void(__fastcall* D2Win_DrawTextExFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered, DWORD transparencyLevel);
-typedef void(__fastcall* D2Win_DrawFramedTextFunc_109)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered, DWORD);
-typedef void(__fastcall* D2Win_DrawFramedTextFunc_112)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered);
+typedef void(__fastcall* D2Win_DrawFramedTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD dwColor, DWORD centered);
 typedef void(__fastcall* D2Win_DrawRectangledTextFunc)(const wchar_t* wStr, int xPos, int yPos, DWORD rectColor, DWORD rectTransparency, DWORD color);
 typedef uint32_t(__stdcall* D2Client_DrawUnitFunc)(D2::UnitAny* unit, uint32_t b, uint32_t c, uint32_t d, uint32_t e);
 typedef void* NakedFunc;
@@ -287,8 +286,7 @@ D2Gfx_DrawImageFastFunc D2Gfx_DrawImageFast_Real = nullptr;
 D2Gfx_DrawShadowFunc D2Gfx_DrawShadow_Real = nullptr;
 D2Win_DrawTextFunc D2Win_DrawText_Real = nullptr;
 //D2Win_DrawTextExFunc D2Win_DrawTextEx_Real = nullptr;
-D2Win_DrawFramedTextFunc_109 D2Win_DrawFramedText_109_Real = nullptr;
-D2Win_DrawFramedTextFunc_112 D2Win_DrawFramedText_112_Real = nullptr;
+D2Win_DrawFramedTextFunc D2Win_DrawFramedText_Real = nullptr;
 D2Win_DrawRectangledTextFunc D2Win_DrawRectangledText_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawUnit_Real = nullptr;
 D2Client_DrawUnitFunc D2Client_DrawMissile_Real = nullptr;
@@ -458,28 +456,7 @@ void __fastcall D2Win_DrawText_Hooked(
 //	}
 //}
 
-void __fastcall D2Win_DrawFramedText_109_Hooked(
-	wchar_t* wStr,
-	int xPos,
-	int yPos,
-	DWORD dwColor,
-	DWORD centered,
-	DWORD arg)
-{
-	auto d2InterceptionHandler = GetD2InterceptionHandler();
-	if (d2InterceptionHandler)
-	{
-		auto offset = d2InterceptionHandler->BeginDrawText(wStr, { xPos, yPos }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawFramedText);
-		D2Win_DrawFramedText_109_Real(wStr, xPos + offset.x, yPos + offset.y, dwColor, centered, arg);
-		d2InterceptionHandler->EndDrawText();
-	}
-	else
-	{
-		D2Win_DrawFramedText_109_Real(wStr, xPos, yPos, dwColor, centered, arg);
-	}
-}
-
-void __fastcall D2Win_DrawFramedText_112_Hooked(
+void __fastcall D2Win_DrawFramedText_Hooked(
 	wchar_t* wStr,
 	int xPos,
 	int yPos,
@@ -490,12 +467,12 @@ void __fastcall D2Win_DrawFramedText_112_Hooked(
 	if (d2InterceptionHandler)
 	{
 		auto offset = d2InterceptionHandler->BeginDrawText(wStr, { xPos, yPos }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawFramedText);
-		D2Win_DrawFramedText_112_Real(wStr, xPos + offset.x, yPos + offset.y, dwColor, centered);
+		D2Win_DrawFramedText_Real(wStr, xPos + offset.x, yPos + offset.y, dwColor, centered);
 		d2InterceptionHandler->EndDrawText();
 	}
 	else
 	{
-		D2Win_DrawFramedText_112_Real(wStr, xPos, yPos, dwColor, centered);
+		D2Win_DrawFramedText_Real(wStr, xPos, yPos, dwColor, centered);
 	}
 }
 
@@ -771,6 +748,7 @@ void d2dx::AttachLateDetours(
 	D2Gfx_DrawShadow_Real = (D2Gfx_DrawShadowFunc)gameHelper->GetFunction(D2Function::D2Gfx_DrawShadow);
 	D2Win_DrawText_Real = (D2Win_DrawTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawText);
 	//D2Win_DrawTextEx_Real = (D2Win_DrawTextExFunc)gameHelper->GetFunction(D2Function::D2Win_DrawTextEx);
+	D2Win_DrawFramedText_Real = (D2Win_DrawFramedTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawFramedText);
 	D2Win_DrawRectangledText_Real = (D2Win_DrawRectangledTextFunc)gameHelper->GetFunction(D2Function::D2Win_DrawRectangledText);
 	D2Client_DrawUnit_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawUnit);
 	D2Client_DrawMissile_Real = (D2Client_DrawUnitFunc)gameHelper->GetFunction(D2Function::D2Client_DrawMissile);
@@ -783,6 +761,7 @@ void d2dx::AttachLateDetours(
 		!D2Gfx_DrawImageFast_Real ||
 		!D2Gfx_DrawShadow_Real ||
 		!D2Win_DrawText_Real ||
+		!D2Win_DrawFramedText_Real ||
 		!D2Client_DrawUnit_Real)
 	{
 		return;
@@ -799,26 +778,8 @@ void d2dx::AttachLateDetours(
 	DetourAttach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
 	DetourAttach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourAttach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
+	DetourAttach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
 	//DetourAttach(&(PVOID&)D2Win_DrawTextEx_Real, D2Win_DrawTextEx_Hooked);
-
-	switch (gameHelper->GetVersion()) {
-	case GameVersion::Lod109d:
-	case GameVersion::Lod110f:
-		D2Win_DrawFramedText_109_Real = (D2Win_DrawFramedTextFunc_109)gameHelper->GetFunction(D2Function::D2Win_DrawFramedText);
-		if (D2Win_DrawFramedText_109_Real) {
-			DetourAttach(&(PVOID&)D2Win_DrawFramedText_109_Real, D2Win_DrawFramedText_109_Hooked);
-		}
-		break;
-	case GameVersion::Lod112:
-	case GameVersion::Lod113c:
-	case GameVersion::Lod113d:
-	case GameVersion::Lod114d:
-		D2Win_DrawFramedText_112_Real = (D2Win_DrawFramedTextFunc_112)gameHelper->GetFunction(D2Function::D2Win_DrawFramedText);
-		if (D2Win_DrawFramedText_112_Real) {
-			DetourAttach(&(PVOID&)D2Win_DrawFramedText_112_Real, D2Win_DrawFramedText_112_Hooked);
-		}
-		break;
-	}
 
 	if (D2Win_DrawRectangledText_Real)
 	{
@@ -874,8 +835,7 @@ void d2dx::DetachLateDetours()
 	DetourDetach(&(PVOID&)D2Gfx_DrawImageFast_Real, D2Gfx_DrawImageFast_Hooked);
 	DetourDetach(&(PVOID&)D2Gfx_DrawShadow_Real, D2Gfx_DrawShadow_Hooked);
 	DetourDetach(&(PVOID&)D2Win_DrawText_Real, D2Win_DrawText_Hooked);
-	DetourDetach(&(PVOID&)D2Win_DrawFramedText_109_Real, D2Win_DrawFramedText_109_Hooked);
-	DetourDetach(&(PVOID&)D2Win_DrawFramedText_112_Real, D2Win_DrawFramedText_112_Hooked);
+	DetourDetach(&(PVOID&)D2Win_DrawFramedText_Real, D2Win_DrawFramedText_Hooked);
 	DetourDetach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 	DetourDetach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 	DetourDetach(&(PVOID&)Sleep_Real, Sleep_Hooked);

@@ -954,7 +954,7 @@ void* GameHelper::GetFunction(
 			break;
 		case D2Function::D2Win_DrawFramedText:
 			hModule = _hD2WinDll;
-			ordinal = 10130;
+			ordinal = 10129;
 			break;
 		case D2Function::D2Win_DrawRectangledText:
 			hModule = _hD2WinDll;
@@ -1005,7 +1005,7 @@ void* GameHelper::GetFunction(
 			break;
 		case D2Function::D2Win_DrawFramedText:
 			hModule = _hD2WinDll;
-			ordinal = 10130;
+			ordinal = 10129;
 			break;
 		case D2Function::D2Win_DrawRectangledText:
 			hModule = _hD2WinDll;
