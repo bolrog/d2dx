@@ -55,7 +55,8 @@ namespace d2dx
 		virtual void WriteToScreen(
 			_In_reads_(width * height) const uint32_t* pixels,
 			_In_ int32_t width,
-			_In_ int32_t height) = 0;
+			_In_ int32_t height,
+			_In_ bool forCinematic) = 0;
 
 		virtual void SetPalette(
 			_In_ int32_t paletteIndex,

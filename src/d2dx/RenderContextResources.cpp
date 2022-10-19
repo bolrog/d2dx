@@ -270,12 +270,22 @@ void RenderContextResources::CreateVideoTextures(
 	};
 
 	_videoTextureSize = { 640, 480 };
+	_cinematicTextureSize = { 640, 292 };
 
 	D2DX_CHECK_HR(
 		device->CreateTexture2D(&desc, NULL, &_videoTexture));
 
 	D2DX_CHECK_HR(
 		device->CreateShaderResourceView(_videoTexture.Get(), NULL, &_videoTextureSrv));
+
+	desc.Height = 292;
+	
+	D2DX_CHECK_HR(
+		device->CreateTexture2D(&desc, NULL, &_cinematicTexture));
+
+	D2DX_CHECK_HR(
+		device->CreateShaderResourceView(_cinematicTexture.Get(), NULL, &_cinematicTextureSrv));
+
 }
 
 _Use_decl_annotations_
