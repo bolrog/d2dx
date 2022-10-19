@@ -122,6 +122,21 @@ namespace d2dx
 			return _videoTextureSrv.Get();
 		}
 
+		Size GetCinematicTextureSize() const
+		{
+			return _cinematicTextureSize;
+		}
+
+		ID3D11Texture2D* GetCinematicTexture() const
+		{
+			return _cinematicTexture.Get();
+		}
+
+		ID3D11ShaderResourceView* GetCinematicSrv() const
+		{
+			return _cinematicTextureSrv.Get();
+		}
+
 		ID3D11RasterizerState* GetRasterizerState(bool enableScissor) const
 		{
 			return enableScissor ? _rasterizerState.Get() : _rasterizerStateNoScissor.Get();
@@ -221,6 +236,10 @@ namespace d2dx
 		Size _videoTextureSize;
 		ComPtr<ID3D11Texture2D> _videoTexture;
 		ComPtr<ID3D11ShaderResourceView> _videoTextureSrv;
+
+		Size _cinematicTextureSize;
+		ComPtr<ID3D11Texture2D> _cinematicTexture;
+		ComPtr<ID3D11ShaderResourceView> _cinematicTextureSrv;
 
 		std::unique_ptr<ITextureCache> _textureCaches[7];
 

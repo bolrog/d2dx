@@ -510,24 +510,41 @@ _Use_decl_annotations_
 void RenderContext::WriteToScreen(
 	const uint32_t* pixels,
 	int32_t width,
-	int32_t height)
+	int32_t height,
+	bool forCinematic)
 {
 	D3D11_MAPPED_SUBRESOURCE ms;
-	D2DX_CHECK_HR(_deviceContext->Map(_resources->GetVideoTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
-	memcpy(ms.pData, pixels, width * height * 4);
-	_deviceContext->Unmap(_resources->GetVideoTexture(), 0);
-
 	SetBlendState(AlphaBlend::Opaque);
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Display),
-		_resources->GetPixelShader(RenderContextPixelShader::Video),
-		_resources->GetVideoSrv(),
-		nullptr);
-
 	uint32_t startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetVideoTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+	uint32_t vertexCount = 0;
+
+	if (forCinematic) {
+		SetSizes({ width, 292 }, _windowSize);
+		int32_t offset = width * ((height - 292) / 2);
+		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetCinematicTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
+		memcpy(ms.pData, offset + pixels, width * 292 * 4);
+		_deviceContext->Unmap(_resources->GetCinematicTexture(), 0);
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Display),
+			_resources->GetPixelShader(RenderContextPixelShader::Video),
+			_resources->GetCinematicSrv(),
+			nullptr);
+		vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetVideoTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
+		UpdateViewport({ 0,0,_gameSize.width, 292 });
+	}
+	else {
+		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetVideoTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
+		memcpy(ms.pData, pixels, width * height * 4);
+		_deviceContext->Unmap(_resources->GetVideoTexture(), 0);
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Display),
+			_resources->GetPixelShader(RenderContextPixelShader::Video),
+			_resources->GetVideoSrv(),
+			nullptr);
+		vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetVideoTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
+		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+	}
+
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
 	Present();
@@ -837,6 +854,10 @@ void RenderContext::SetSizes(
 	Size gameSize,
 	Size windowSize)
 {
+	if (_gameSize == gameSize && _windowSize == windowSize) {
+		return;
+	}
+
 	_gameSize = gameSize;
 	_windowSize = windowSize;
 
