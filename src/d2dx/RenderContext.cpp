@@ -521,17 +521,15 @@ void RenderContext::WriteToScreen(
 
 	if (forCinematic) {
 		SetSizes({ width, 292 }, _windowSize, _screenMode);
-		int32_t offset = width * ((height - 292) / 2);
 		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetCinematicTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
-		memcpy(ms.pData, offset + pixels, width * 292 * 4);
+		memcpy(ms.pData, &pixels[width * 94], width * 292 * 4);
 		_deviceContext->Unmap(_resources->GetCinematicTexture(), 0);
 		SetShaderState(
 			_resources->GetVertexShader(RenderContextVertexShader::Display),
 			_resources->GetPixelShader(RenderContextPixelShader::Video),
 			_resources->GetCinematicSrv(),
 			nullptr);
-		vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetVideoTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
-		UpdateViewport({ 0,0,_gameSize.width, 292 });
+		vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetCinematicTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
 	}
 	else {
 		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetVideoTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
