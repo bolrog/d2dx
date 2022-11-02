@@ -34,6 +34,7 @@ namespace d2dx
 		NoTitleChange,
 		NoVSync,
 		NoMotionPrediction,
+		NoKeepAspectRatio,
 
 		DbgDumpTextures,
 

@@ -75,7 +75,7 @@ RenderContext::RenderContext(
 	_renderRect = Metrics::GetRenderRect(
 		gameSize,
 		_screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize,
-		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
 
 #ifndef NDEBUG
 	ShowCursor_Real(TRUE);
@@ -874,7 +874,7 @@ void RenderContext::SetSizes(
 	_renderRect = Metrics::GetRenderRect(
 		_gameSize,
 		displaySize,
-		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
@@ -917,7 +917,7 @@ void RenderContext::SetSizes(
 			_renderRect = Metrics::GetRenderRect(
 				_gameSize,
 				_windowSize,
-				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
 
 			windowRect = { 0, 0, _windowSize.width, _windowSize.height };
 			AdjustWindowRect(&windowRect, windowStyle, FALSE);
