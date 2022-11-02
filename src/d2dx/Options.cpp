@@ -79,6 +79,7 @@ void Options::ApplyCfg(
 		READ_OPTOUTS_FLAG(OptionsFlag::NoCompatModeFix, "nocompatmodefix");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoTitleChange, "notitlechange");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoMotionPrediction, "nomotionprediction");
+		READ_OPTOUTS_FLAG(OptionsFlag::NoKeepAspectRatio, "nokeepaspectratio");
 
 #undef READ_OPTOUTS_FLAG
 	}
@@ -163,6 +164,7 @@ void Options::ApplyCommandLine(
 	if (strstr(cmdLine, "-dxnocompatmodefix")) SetFlag(OptionsFlag::NoCompatModeFix, true);
 	if (strstr(cmdLine, "-dxnotitlechange")) SetFlag(OptionsFlag::NoTitleChange, true);
 	if (strstr(cmdLine, "-dxnomop")) SetFlag(OptionsFlag::NoMotionPrediction, true);
+	if (strstr(cmdLine, "-dxnokeepaspectratio")) SetFlag(OptionsFlag::NoKeepAspectRatio, true);
 
 	if (strstr(cmdLine, "-dxscale3")) SetWindowScale(3);
 	else if (strstr(cmdLine, "-dxscale2")) SetWindowScale(2);
