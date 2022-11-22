@@ -262,7 +262,7 @@ RenderContext::RenderContext(
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 
-	_vbCapacity = 4 * 1024 * 1024;
+	_vbCapacity = 1024 * 1024;
 
 	_gameSize = { 0, 0 };
 	SetSizes(_gameSize, _windowSize, _screenMode);
