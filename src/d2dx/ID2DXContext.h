@@ -25,13 +25,6 @@
 
 namespace d2dx
 {
-	enum class Feature
-	{
-		UnitMotionPrediction = 1,
-		WeatherMotionPrediction = 2,
-		TextMotionPrediction = 4,
-	};
-
 	struct ID2DXContext abstract : 
 		public IGlide3x,
 		public IWin32InterceptionHandler,
@@ -49,8 +42,5 @@ namespace d2dx
 		virtual void DisableBuiltinResMod() = 0;
 
 		virtual const Options& GetOptions() const = 0;
-		
-		virtual bool IsFeatureEnabled(
-			_In_ Feature feature) = 0;
 	};
 }

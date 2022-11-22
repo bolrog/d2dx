@@ -167,9 +167,6 @@ namespace d2dx
 
 		virtual const Options& GetOptions() const override;
 
-		virtual bool IsFeatureEnabled(
-			_In_ Feature feature) override;
-
 #pragma endregion ID2DXContext
 
 #pragma region IWin32InterceptionHandler
@@ -286,9 +283,6 @@ namespace d2dx
 		uint32_t _lastWeatherParticleIndex = 0xFFFFFFFF;
 
 		OffsetF _avgDir = { 0.0f, 0.0f };
-
-		bool _areFeatureFlagsInitialized = false;
-		uint32_t _featureFlags;
 
 		bool _skipCountingSleep = false;
 		int32_t _sleeps = 0;

@@ -786,7 +786,7 @@ void d2dx::AttachLateDetours(
 		DetourAttach(&(PVOID&)D2Win_DrawRectangledText_Real, D2Win_DrawRectangledText_Hooked);
 	}
 
-	if (d2dxContext->IsFeatureEnabled(Feature::UnitMotionPrediction))
+	if (!d2dxContext->GetOptions().GetFlag(OptionsFlag::NoMotionPrediction))
 	{
 		assert(D2Client_DrawUnit_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawUnit_Real,
@@ -799,10 +799,7 @@ void d2dx::AttachLateDetours(
 			assert(D2Client_DrawMissile_Real);
 			DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 		}
-	}
 
-	if (d2dxContext->IsFeatureEnabled(Feature::WeatherMotionPrediction))
-	{
 		assert(D2Client_DrawWeatherParticles_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real,
 			gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawWeatherParticles114d_Hooked : D2Client_DrawWeatherParticles_Hooked);
