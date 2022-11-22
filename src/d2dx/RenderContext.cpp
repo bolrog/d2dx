@@ -266,7 +266,7 @@ RenderContext::RenderContext(
 	renderTargetSize.width = max(1024, renderTargetSize.width);
 	renderTargetSize.height = max(768, renderTargetSize.height);
 
-	_vbCapacity = 4 * 1024 * 1024;
+	_vbCapacity = 1024 * 1024;
 
 	SetSizes(_gameSize, _windowSize);
 
@@ -400,7 +400,7 @@ void RenderContext::Present()
 	UpdateViewport(_renderRect);
 
 	RenderContextPixelShader pixelShader;
-	
+
 	switch (_d2dxContext->GetOptions().GetFiltering())
 	{
 	default:
