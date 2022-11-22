@@ -51,13 +51,17 @@ int64_t d2dx::TimeStart()
     return (int64_t)li.QuadPart;
 }
 
-float d2dx::TimeEndMs(int64_t sinceThisTime)
+int64_t d2dx::TimeEnd(int64_t sinceThisTime)
 {
-    warmup();
     LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
+    return li.QuadPart - sinceThisTime;
+}
+
+double d2dx::TimeToMs(int64_t time)
+{
     assert(_freq);
-    return (float)(double(li.QuadPart - sinceThisTime) / _freq);
+    return static_cast<double>(time) / _freq;
 }
 
 #define STATUS_SUCCESS (0x00000000)

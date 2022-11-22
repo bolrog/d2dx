@@ -465,8 +465,8 @@ void RenderContext::Present()
 		break;
 	}
 
-	double curTime = TimeEndMs(_timeStart);
-	_frameTimeMs = curTime - _prevTime;
+	auto curTime = TimeEnd(_timeStart);
+	_frameTimeMs = TimeToMs(curTime - _prevTime);
 	_prevTime = curTime;
 
 	if (_deviceContext1)

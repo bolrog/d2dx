@@ -213,7 +213,7 @@ namespace d2dx
 		int64_t _timeStart;
 		bool _hasAdjustedWindowPlacement = false;
 
-		double _prevTime;
+		int64_t _prevTime;
 		double _frameTimeMs;
 	};
 }
