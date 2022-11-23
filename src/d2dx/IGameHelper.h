@@ -44,10 +44,33 @@ namespace d2dx
 
 	struct DrawParameters
 	{
-		uint32_t unitId;
 		uint32_t unitType;
 		uint32_t unitToken;
 		uint32_t unitMode;
+	};
+
+	struct UnitInfo {
+		explicit UnitInfo(D2::Unit109 const* unit) noexcept :
+			id(unit->dwUnitId),
+			type(unit->dwType),
+			pos(unit->GetPos())
+		{}
+
+		explicit UnitInfo(D2::Unit110 const* unit) noexcept :
+			id(unit->dwUnitId),
+			type(unit->dwType),
+			pos(unit->GetPos())
+		{}
+
+		explicit UnitInfo(D2::Unit112 const* unit) noexcept :
+			id(unit->dwUnitId),
+			type(unit->dwType),
+			pos(unit->GetPos())
+		{}
+
+		uint32_t id;
+		D2::UnitType type;
+		Offset pos;
 	};
 
 	struct IGameHelper abstract
@@ -85,6 +108,9 @@ namespace d2dx
 			_In_ const D2::CellContextAny* cellContext) const = 0;
 
 		virtual D2::UnitAny* GetPlayerUnit() const = 0;
+
+		virtual UnitInfo GetUnitInfo(
+			_In_ const D2::UnitAny* unit) const = 0;
 
 		virtual Offset GetUnitPos(
 			_In_ const D2::UnitAny* unit) const = 0;

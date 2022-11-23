@@ -123,6 +123,8 @@ namespace d2dx
 		float x = 0;
 		float y = 0;
 
+		OffsetF() = default;
+
 		OffsetF(float x_, float y_) noexcept :
 			x{ x_ },
 			y{ y_ }

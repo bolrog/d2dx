@@ -799,7 +799,7 @@ void d2dx::AttachLateDetours(
 			assert(D2Client_DrawMissile_Real);
 			DetourAttach(&(PVOID&)D2Client_DrawMissile_Real, D2Client_DrawMissile_ESI_Hooked);
 		}
-
+	
 		assert(D2Client_DrawWeatherParticles_Real);
 		DetourAttach(&(PVOID&)D2Client_DrawWeatherParticles_Real,
 			gameHelper->GetVersion() == GameVersion::Lod114d ? D2Client_DrawWeatherParticles114d_Hooked : D2Client_DrawWeatherParticles_Hooked);

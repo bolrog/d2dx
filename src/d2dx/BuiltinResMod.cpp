@@ -49,7 +49,7 @@ BuiltinResMod::BuiltinResMod(
 
         if (!WriteResourceToFile(hModule, IDR_SGD2FR_DLL, "dll", "d2dx_sgd2freeres.dll"))
         {
-            D2DX_LOG("Failed to write d2dx_sgd2freeres.mpq");
+            D2DX_LOG("Failed to write d2dx_sgd2freeres.dll");
         }
 
         if (!WriteConfig(gameSize))

@@ -29,45 +29,74 @@ namespace d2dx
 		UnitMotionPredictor(
 			_In_ const std::shared_ptr<IGameHelper>& gameHelper);
 
-		void Update(
-			_In_ IRenderContext* renderContext);
+		void PrepareForNextFrame(
+			_In_ int32_t timeToNext);
 
 		Offset GetOffset(
-			_In_ const D2::UnitAny* unit);
-
-		void SetUnitScreenPos(
 			_In_ const D2::UnitAny* unit,
-			_In_ int32_t x,
-			_In_ int32_t y);
+			_In_ Offset screenPos);
 
-		Offset GetOffsetForShadow(
-			_In_ int32_t x,
-			_In_ int32_t y);
+		void StartShadow(
+			_In_ Offset screenPos,
+			_In_ std::size_t vertexStart);
+		
+		void AddShadowVerticies(
+			_In_ std::size_t vertexEnd);
+		
+		void UpdateShadowVerticies(
+			_Inout_ Vertex *vertices);
+
+		Offset GetShadowOffset(
+			_In_ Offset screenPos);
 
 	private:
-		struct UnitIdAndType final
-		{
-			uint32_t unitType = 0;
-			uint32_t unitId = 0;
+		struct Unit final {
+			Unit(D2::UnitAny const* unit, UnitInfo const &unitInfo, Offset screenPos) :
+				unit(unit),
+				id(unitInfo.id),
+				type(unitInfo.type),
+				actualPos(unitInfo.pos),
+				basePos(unitInfo.pos),
+				predictedPos(unitInfo.pos),
+				lastRenderedPos(unitInfo.pos),
+				lastRenderedScreenOffset({0, 0}),
+				screenPos(screenPos),
+				nextIdx(-1)
+			{}
+
+			D2::UnitAny const* unit;
+			uint32_t id;
+			D2::UnitType type;
+			Offset actualPos;
+			Offset basePos;
+			Offset predictedPos;
+			Offset lastRenderedPos;
+			Offset lastRenderedScreenOffset;
+			Offset screenPos;
+			std::size_t nextIdx;
 		};
 
-		struct UnitMotion final
-		{
-			Offset GetOffset() const;
+		struct Shadow final {
+			explicit Shadow(
+				Offset screenPos,
+				std::size_t vertexStart
+			) : 
+				screenPos(screenPos),
+				vertexStart(vertexStart),
+				vertexEnd(vertexStart)
+			{}
 
-			uint32_t lastUsedFrame = 0;
-			Offset lastPos = { 0, 0 };
-			Offset velocity = { 0, 0 };
-			Offset predictedPos = { 0, 0 };
-			Offset correctedPos = { 0, 0 };
-			int64_t dtLastPosChange = 0;
+			Offset screenPos;
+			std::size_t vertexStart;
+			std::size_t vertexEnd;
 		};
 
 		std::shared_ptr<IGameHelper> _gameHelper;
-		uint32_t _frame = 0;
-		Buffer<UnitIdAndType> _unitIdAndTypes;
-		Buffer<UnitMotion> _unitMotions;
-		Buffer<Offset> _unitScreenPositions;
-		int32_t _unitsCount = 0;
+		std::vector<Unit> _units;
+		std::vector<Unit> _prevUnits;
+		std::vector<Shadow> _shadows;
+		int32_t _sinceLastUpdate = 0;
+		int32_t _frameTimeAdjustment = 0;
+		bool _update = false;
 	};
 }

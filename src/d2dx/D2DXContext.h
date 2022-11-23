@@ -279,6 +279,7 @@ namespace d2dx
 
 		bool _isDrawingText = false;
 		Offset _playerScreenPos = { 0,0 };
+		bool _captureShadowVerticies = false;
 
 		uint32_t _lastWeatherParticleIndex = 0xFFFFFFFF;
 

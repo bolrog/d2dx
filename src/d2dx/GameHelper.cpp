@@ -748,6 +748,20 @@ void GameHelper::PatchUInt32(
 }
 
 _Use_decl_annotations_
+UnitInfo GameHelper::GetUnitInfo(
+	const D2::UnitAny* unit) const
+{
+	switch (_version) {
+	case GameVersion::Lod109d:
+		return UnitInfo(&unit->u.v109);
+	case GameVersion::Lod110f:
+		return UnitInfo(&unit->u.v110);
+	default:
+		return UnitInfo(&unit->u.v112);
+	}
+}
+
+_Use_decl_annotations_
 D2::UnitType GameHelper::GetUnitType(
 	const D2::UnitAny* unit) const
 {
@@ -1243,7 +1257,6 @@ DrawParameters GameHelper::GetDrawParameters(
 	case GameVersion::Lod109d:
 	case GameVersion::Lod110f:
 		return {
-			.unitId = cellContext->u.v109.dwUnit,
 			.unitType = cellContext->u.v109.dwClass,
 			.unitToken = cellContext->u.v109.dwUnitToken,
 			.unitMode = cellContext->u.v109.dwMode
@@ -1251,7 +1264,6 @@ DrawParameters GameHelper::GetDrawParameters(
 		};
 	case GameVersion::Lod112:
 		return {
-			.unitId = cellContext->u.v112.dwUnit,
 			.unitType = cellContext->u.v112.dwClass,
 			.unitToken = cellContext->u.v112.dwPlayerType,
 			.unitMode = cellContext->u.v112.dwMode
@@ -1261,7 +1273,6 @@ DrawParameters GameHelper::GetDrawParameters(
 	case GameVersion::Lod114d:
 	default:
 		return {
-			.unitId = cellContext->u.v113.dwUnit,
 			.unitType = cellContext->u.v113.dwClass,
 			.unitToken = cellContext->u.v113.dwPlayerType,
 			.unitMode = cellContext->u.v113.dwMode

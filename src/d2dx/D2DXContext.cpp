@@ -287,7 +287,7 @@ void D2DXContext::OnTexSource(
 	{
 		return;
 	}
-
+	
 	_readVertexState.isDirty = true;
 
 	uint8_t* pixels = _glideState.tmuMemory.items + startAddress;
@@ -417,7 +417,8 @@ void D2DXContext::OnBufferSwap()
 	if (!_options.GetFlag(OptionsFlag::NoMotionPrediction) &&
 		_majorGameState == MajorGameState::InGame)
 	{
-		const Offset offset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit());
+		auto playerOffset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit(), _playerScreenPos);
+		_unitMotionPredictor.UpdateShadowVerticies(_vertices.items);
 
 		for (uint32_t i = 0; i < _batchCount; ++i)
 		{
@@ -432,8 +433,8 @@ void D2DXContext::OnBufferSwap()
 				for (uint32_t j = 0; j < batchVertexCount; ++j)
 				{
 					_vertices.items[vertexIndex++].AddOffset(
-						-offset.x,
-						-offset.y);
+						-playerOffset.x,
+						-playerOffset.y);
 				}
 			}
 		}
@@ -447,6 +448,7 @@ void D2DXContext::OnBufferSwap()
 	_renderContext->Present();
 	_skipCountingSleep = false;
 
+	_unitMotionPredictor.PrepareForNextFrame(_renderContext->GetFrameTimeFp());
 	++_frame;
 
 	if (!(_frame & 255))
@@ -929,6 +931,10 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	pVertices[4] = pVertices[0];
 	pVertices[5] = pVertices[2];
 
+	if (_captureShadowVerticies) {
+		_unitMotionPredictor.AddShadowVerticies(_vertexCount + 6);
+	}
+
 	_vertexCount += 6;
 
 	_surfaceIdTracker.UpdateBatchSurfaceId(batch, _majorGameState, _gameSize, &_vertices.items[batch.GetStartVertex()], batch.GetVertexCount());
@@ -1265,11 +1271,10 @@ void D2DXContext::OnBufferClear()
 {
 	if (_majorGameState == MajorGameState::InGame && !_options.GetFlag(OptionsFlag::NoMotionPrediction))
 	{
-			_unitMotionPredictor.Update(_renderContext.get());
-			_textMotionPredictor.Update(_renderContext.get());
-			_weatherMotionPredictor.Update(_renderContext.get());
-		}
+		_textMotionPredictor.Update(_renderContext.get());
+		_weatherMotionPredictor.Update(_renderContext.get());
 	}
+}
 
 _Use_decl_annotations_
 Offset D2DXContext::BeginDrawText(
@@ -1336,8 +1341,6 @@ Offset D2DXContext::BeginDrawImage(
 
 	if (currentlyDrawingUnit)
 	{
-		_unitMotionPredictor.SetUnitScreenPos(currentlyDrawingUnit, pos.x, pos.y);
-
 		if (currentlyDrawingUnit == _gameHelper->GetPlayerUnit())
 		{
 			// The player unit itself.
@@ -1346,7 +1349,7 @@ Offset D2DXContext::BeginDrawImage(
 		}
 		else
 		{
-			offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit);
+			offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit, pos);
 		}
 	}
 	else
@@ -1363,7 +1366,8 @@ Offset D2DXContext::BeginDrawImage(
 			}
 			else
 			{
-				offset = _unitMotionPredictor.GetOffsetForShadow(pos.x, pos.y);
+				_unitMotionPredictor.StartShadow(pos, _vertexCount);
+				_captureShadowVerticies = true;
 			}
 		}
 		else
@@ -1389,5 +1393,6 @@ void D2DXContext::EndDrawImage()
 		return;
 	}
 
+	_captureShadowVerticies = false;
 	_scratchBatch.SetTextureCategory(TextureCategory::Unknown);
 }

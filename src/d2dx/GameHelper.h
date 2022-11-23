@@ -61,6 +61,9 @@ namespace d2dx
 
 		virtual D2::UnitAny* GetPlayerUnit() const override;
 
+		virtual UnitInfo GetUnitInfo(
+			_In_ const D2::UnitAny* unit) const override;
+
 		virtual Offset GetUnitPos(
 			_In_ const D2::UnitAny* unit) const override;
 

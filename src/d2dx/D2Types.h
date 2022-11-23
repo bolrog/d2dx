@@ -18,6 +18,8 @@
 */
 #pragma once
 
+#include "Types.h"
+
 namespace d2dx
 {
 	namespace D2
@@ -124,6 +126,10 @@ namespace d2dx
 
         struct Path
         {
+            Offset GetPos() const noexcept {
+                return { static_cast<int32_t>(x), static_cast<int32_t>(y) };
+            }
+
             DWORD x;    					//0x00
             DWORD y;    					//0x04
             DWORD xUnknown;					//0x08  16 * (wInitX - wInitY) <- Mby AutomapX
@@ -153,6 +159,8 @@ namespace d2dx
 
         struct StaticPath // size 0x20
         {
+            Offset GetPos() const noexcept;
+
             Room1* pRoom1;		//0x00
             DWORD xOffset;		//0x04
             DWORD yOffset;		//0x08
@@ -165,6 +173,8 @@ namespace d2dx
         static_assert(sizeof(StaticPath) == 0x20, "StaticPath size");
         
         struct Unit109 {
+            Offset GetPos() const noexcept;
+
             D2::UnitType dwType;		// 0x00
             DWORD dwClassId;			// 0x04
             DWORD dwUnitId;				// 0x0C
@@ -193,6 +203,8 @@ namespace d2dx
         static_assert(sizeof(Unit109) == 0x10C, "Unit109 size");
 
         struct Unit110 {
+            Offset GetPos() const noexcept;
+
             D2::UnitType dwType;		// 0x00
             DWORD dwClassId;			// 0x04
             void* pMemPool;				// 0x08
@@ -221,6 +233,8 @@ namespace d2dx
         static_assert(sizeof(Unit110) == 0x10C, "Unit110 size");
 
         struct Unit112 {
+            Offset GetPos() const noexcept;
+
             UnitType dwType;            // 0x00
             DWORD dwTxtFileNo;          // 0x04
             DWORD _1;                   // 0x08

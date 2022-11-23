@@ -18,236 +18,191 @@
 */
 #include "pch.h"
 #include "UnitMotionPredictor.h"
+#include "Vertex.h"
 
 using namespace d2dx;
 using namespace DirectX;
 
-_Use_decl_annotations_
-UnitMotionPredictor::UnitMotionPredictor(
-	const std::shared_ptr<IGameHelper>& gameHelper) :
-	_gameHelper{ gameHelper },
-	_unitIdAndTypes{ 1024, true },
-	_unitMotions{ 1024, true },
-	_unitScreenPositions{ 1024, true }
-{
+const std::int32_t D2_FRAME_LENGTH = (1 << 16) / 25;
+const float FLOAT_TO_FIXED_MUL = static_cast<float>(1 << 16);
+const float FIXED_TO_FLOAT_MUL = 1.f / FLOAT_TO_FIXED_MUL;
+
+float fixedToFloat(int32_t x) {
+	return static_cast<float>(x) * FIXED_TO_FLOAT_MUL;
+}
+
+OffsetF fixedToFloat(Offset x) {
+	return OffsetF(
+		static_cast<float>(x.x) * FIXED_TO_FLOAT_MUL,
+		static_cast<float>(x.y) * FIXED_TO_FLOAT_MUL
+	);
+}
+
+Offset floatToFixed(OffsetF x) {
+	return Offset(
+		static_cast<int32_t>(x.x * FLOAT_TO_FIXED_MUL),
+		static_cast<int32_t>(x.y * FLOAT_TO_FIXED_MUL)
+	);
 }
 
 _Use_decl_annotations_
-void UnitMotionPredictor::Update(
-	IRenderContext* renderContext)
+UnitMotionPredictor::UnitMotionPredictor(
+	const std::shared_ptr<IGameHelper>& gameHelper) :
+	_gameHelper{ gameHelper }
 {
-	const int32_t dt = renderContext->GetFrameTimeFp();
-	int32_t expiredUnitIndex = -1;
-
-	for (int32_t i = 0; i < _unitsCount; ++i)
-	{
-		UnitIdAndType& uiat = _unitIdAndTypes.items[i];
-
-		if (!uiat.unitId)
-		{
-			expiredUnitIndex = i;
-			continue;
-		}
-
-		auto unit = _gameHelper->FindUnit(uiat.unitId, (D2::UnitType)uiat.unitType);
-
-		if (!unit)
-		{
-			uiat.unitId = 0;
-			expiredUnitIndex = i;
-			continue;
-		}
-
-		UnitMotion& um = _unitMotions.items[i];
-		const Offset pos = _gameHelper->GetUnitPos(unit);
-
-		Offset posWhole{ pos.x >> 16, pos.y >> 16 };
-		Offset lastPosWhole{ um.lastPos.x >> 16, um.lastPos.y >> 16 };
-		Offset predictedPosWhole{ um.predictedPos.x >> 16, um.predictedPos.y >> 16 };
-
-		int32_t lastPosMd = max(abs(posWhole.x - lastPosWhole.x), abs(posWhole.y - lastPosWhole.y));
-		int32_t predictedPosMd = max(abs(posWhole.x - predictedPosWhole.x), abs(posWhole.y - predictedPosWhole.y));
-
-		if (lastPosMd > 2 || predictedPosMd > 2)
-		{
-			um.predictedPos = pos;
-			um.correctedPos = pos;
-			um.lastPos = pos;
-			um.velocity = { 0,0 };
-		}
-
-		const int32_t dx = pos.x - um.lastPos.x;
-		const int32_t dy = pos.y - um.lastPos.y;
-
-		um.dtLastPosChange += dt;
-
-		if (dx != 0 || dy != 0 || um.dtLastPosChange >= (65536 / 25))
-		{
-			um.correctedPos.x = ((int64_t)pos.x + um.lastPos.x) >> 1;
-			um.correctedPos.y = ((int64_t)pos.y + um.lastPos.y) >> 1;
-			//D2DX_DEBUG_LOG("Server %f %f", pos.x / 65536.0f, pos.y / 65536.0f);
-
-			um.velocity.x = 25 * dx;
-			um.velocity.y = 25 * dy;
-
-			um.lastPos = pos;
-			um.dtLastPosChange = 0;
-		}
-
-		if (um.velocity.x != 0 || um.velocity.y != 0)
-		{
-			if (um.dtLastPosChange < (65536 / 25))
-			{
-				Offset vStep{
-					(int32_t)(((int64_t)dt * um.velocity.x) >> 16),
-					(int32_t)(((int64_t)dt * um.velocity.y) >> 16) };
-
-				const int32_t correctionAmount = 7000;
-				const int32_t oneMinusCorrectionAmount = 65536 - correctionAmount;
-
-				um.predictedPos.x = (int32_t)(((int64_t)um.predictedPos.x * oneMinusCorrectionAmount + (int64_t)um.correctedPos.x * correctionAmount) >> 16);
-				um.predictedPos.y = (int32_t)(((int64_t)um.predictedPos.y * oneMinusCorrectionAmount + (int64_t)um.correctedPos.y * correctionAmount) >> 16);
-				//D2DX_DEBUG_LOG("Predicted %f %f", um.predictedPos.x / 65536.0f, um.predictedPos.y / 65536.0f);
-
-			/*	int32_t ex = um.correctedPos.x - um.predictedPos.x;
-				int32_t ey = um.correctedPos.y - um.predictedPos.y;
-
-				if (unit->dwType == D2::UnitType::Player && (ex != 0 || ey != 0))
-				{
-					D2DX_DEBUG_LOG("%f, %f, %f, %f, %f, %f, %f, %f",
-						pos.x / 65536.0f,
-						pos.y / 65536.0f,
-						um.correctedPos.x / 65536.0f,
-						um.correctedPos.y / 65536.0f,
-						um.predictedPos.x / 65536.0f,
-						um.predictedPos.y / 65536.0f,
-						ex / 65536.0f,
-						ey / 65536.0f);
-				}*/
-
-				um.predictedPos.x += vStep.x;
-				um.predictedPos.y += vStep.y;
-
-				um.correctedPos.x += vStep.x;
-				um.correctedPos.y += vStep.y;
-			}
-		}
-	}
-
-	// Gradually (one change per frame) compact the unit list.
-	if (_unitsCount > 1)
-	{
-		if (!_unitIdAndTypes.items[_unitsCount - 1].unitId)
-		{
-			// The last entry is expired. Shrink the list.
-			_unitMotions.items[_unitsCount - 1] = { };
-			--_unitsCount;
-		}
-		else if (expiredUnitIndex >= 0 && expiredUnitIndex < (_unitsCount - 1))
-		{
-			// Some entry is expired. Move the last entry to that place, and shrink the list.
-			_unitIdAndTypes.items[expiredUnitIndex] = _unitIdAndTypes.items[_unitsCount - 1];
-			_unitMotions.items[expiredUnitIndex] = _unitMotions.items[_unitsCount - 1];
-			_unitIdAndTypes.items[_unitsCount - 1] = { 0,0 };
-			_unitMotions.items[_unitsCount - 1] = { };
-			--_unitsCount;
-		}
-	}
-
-	++_frame;
+	_units.reserve(1024);
+	_prevUnits.reserve(1024);
+	_shadows.reserve(1024);
 }
 
 _Use_decl_annotations_
 Offset UnitMotionPredictor::GetOffset(
-	const D2::UnitAny* unit)
+	D2::UnitAny const* unit,
+	Offset screenPos)
 {
-	int32_t unitIndex = -1;
+	auto info = _gameHelper->GetUnitInfo(unit);
+	auto prev = std::lower_bound(_prevUnits.begin(), _prevUnits.end(), unit, [&](auto const& x, auto const& y) { return x.unit < y; });
+	if (prev == _prevUnits.end() || prev->id != info.id || prev->type != info.type) {
+		if (!_update) {
+			_update = true;
+			_sinceLastUpdate = 0;
 
-	auto unitId = _gameHelper->GetUnitId(unit);
-	auto unitType = _gameHelper->GetUnitType(unit);
 
-	for (int32_t i = 0; i < _unitsCount; ++i)
-	{
-		if (_unitIdAndTypes.items[i].unitId == unitId &&
-			_unitIdAndTypes.items[i].unitType == (uint32_t)unitType)
-		{
-			_unitMotions.items[i].lastUsedFrame = _frame;
-			unitIndex = i;
-			break;
+			for (auto& pred : _units) {
+				pred.predictedPos = pred.actualPos;
+				pred.basePos = pred.lastRenderedPos;
+			}
 		}
-	}
-
-	if (unitIndex < 0)
-	{
-		if (_unitsCount < (int32_t)_unitIdAndTypes.capacity)
-		{
-			unitIndex = _unitsCount++;
-			_unitIdAndTypes.items[unitIndex].unitId = unitId;
-			_unitIdAndTypes.items[unitIndex].unitType = (uint32_t)unitType;
-			_unitMotions.items[unitIndex] = { };
-			_unitMotions.items[unitIndex].lastUsedFrame = _frame;
-		}
-		else
-		{
-			D2DX_DEBUG_LOG("UMP: Too many units.");
-		}
-	}
-
-	if (unitIndex < 0)
-	{
+		_units.push_back(Unit(unit, info, screenPos));
 		return { 0, 0 };
 	}
-
-	return _unitMotions.items[unitIndex].GetOffset();
-}
-
-_Use_decl_annotations_
-void UnitMotionPredictor::SetUnitScreenPos(
-	const D2::UnitAny* unit,
-	int32_t x,
-	int32_t y)
-{
-	auto unitId = _gameHelper->GetUnitId(unit);
-	auto unitType = _gameHelper->GetUnitType(unit);
-
-	for (int32_t unitIndex = 0; unitIndex < _unitsCount; ++unitIndex)
-	{
-		if (_unitIdAndTypes.items[unitIndex].unitId == unitId &&
-			_unitIdAndTypes.items[unitIndex].unitType == (uint32_t)unitType)
-		{
-			_unitScreenPositions.items[unitIndex] = { x, y };
-			break;
-		}
+	if (prev->nextIdx != -1) {
+		return _units[prev->nextIdx].lastRenderedScreenOffset;
 	}
-}
 
-_Use_decl_annotations_
-Offset UnitMotionPredictor::GetOffsetForShadow(
-	_In_ int32_t x,
-	_In_ int32_t y)
-{
-	for (int32_t i = 0; i < _unitsCount; ++i)
-	{
-		if (!_unitIdAndTypes.items[i].unitId)
-		{
-			continue;
-		}
+	auto prevUnit = *prev;
+	prev->nextIdx = _units.size();
+	prevUnit.screenPos = screenPos;
+	if (!_update && prevUnit.actualPos != info.pos) {
+		_update = true;
+		_sinceLastUpdate = 0;
 
-		const int32_t dist = max(abs(_unitScreenPositions.items[i].x - x), abs(_unitScreenPositions.items[i].y - y));
-
-		if (dist < 8)
-		{
-			return _unitMotions.items[i].GetOffset();
+		for (auto& pred : _units) {
+			pred.predictedPos = pred.actualPos;
+			pred.basePos = pred.lastRenderedPos;
 		}
 	}
 
+	if (prevUnit.actualPos == info.pos) {
+		if (_update) {
+			prevUnit.predictedPos = prevUnit.actualPos;
+			prevUnit.basePos = prevUnit.lastRenderedPos;
+		}
+	}
+	else {
+		auto predOffset = info.pos - prevUnit.actualPos;
+		prevUnit.actualPos = info.pos;
+		if (std::abs(predOffset.x) >= 2 << 16 || std::abs(predOffset.y) >= 2 << 16) {
+			prevUnit.basePos = info.pos;
+			prevUnit.predictedPos = info.pos;
+		}
+		else {
+			prevUnit.basePos = prevUnit.lastRenderedPos;
+			prevUnit.predictedPos = info.pos + predOffset;
+		}
+	}
+
+	float predictionTime = fixedToFloat(D2_FRAME_LENGTH + _frameTimeAdjustment);
+	float currentTime = fixedToFloat(_sinceLastUpdate + _frameTimeAdjustment);
+	float predFract = currentTime / predictionTime;
+
+	auto offsetFromActual = fixedToFloat(prevUnit.predictedPos - prevUnit.actualPos) * predFract;
+	auto offsetFromBase = fixedToFloat(prevUnit.predictedPos - prevUnit.basePos) * predFract;
+	
+	OffsetF renderOffset;
+	if (offsetFromActual.x == 0.f && offsetFromActual.y == 0.f) {
+		renderOffset = offsetFromBase;
+	}
+	else {
+		//renderOffset = offsetFromBase;
+		renderOffset = offsetFromBase* (1.f - predFract) + offsetFromActual * predFract;
+	}
+
+	auto renderPos = fixedToFloat(prevUnit.basePos) + renderOffset;
+	auto offset = renderPos - fixedToFloat(prevUnit.actualPos);
+	prevUnit.lastRenderedPos = floatToFixed(renderPos);
+
+	const OffsetF scaleFactors{ 32.0f / std::sqrt(2.0f), 16.0f / std::sqrt(2.0f) };
+	OffsetF screenOffset = scaleFactors * OffsetF{ offset.x - offset.y, offset.x + offset.y } + 0.5f;
+	prevUnit.lastRenderedScreenOffset = { (int32_t)screenOffset.x, (int32_t)screenOffset.y };
+	
+	_units.push_back(prevUnit);
+	return prevUnit.lastRenderedScreenOffset;
+}
+
+_Use_decl_annotations_
+Offset UnitMotionPredictor::GetShadowOffset(
+	Offset screenPos)
+{
+	for (auto &unit: _prevUnits) {
+		if (std::abs(unit.screenPos.x - screenPos.x) < 10 && std::abs(unit.screenPos.y - screenPos.y) < 10) {
+			return unit.lastRenderedScreenOffset;
+		}
+	}
 	return { 0, 0 };
 }
 
-Offset UnitMotionPredictor::UnitMotion::GetOffset() const
+
+_Use_decl_annotations_
+void UnitMotionPredictor::StartShadow(
+	Offset screenPos,
+	std::size_t vertexStart)
 {
-	const OffsetF offset{ (predictedPos.x - lastPos.x) / 65536.0f, (predictedPos.y - lastPos.y) / 65536.0f };
-	const OffsetF scaleFactors{ 32.0f / sqrtf(2.0f), 16.0f / sqrtf(2.0f) };
-	const OffsetF screenOffset = scaleFactors * OffsetF{ offset.x - offset.y, offset.x + offset.y } + 0.5f;
-	return { (int32_t)screenOffset.x, (int32_t)screenOffset.y };
+	_shadows.push_back(Shadow(screenPos, vertexStart));
+}
+
+_Use_decl_annotations_
+void UnitMotionPredictor::AddShadowVerticies(
+	std::size_t vertexEnd)
+{
+	_shadows.back().vertexEnd = vertexEnd;
+}
+
+_Use_decl_annotations_
+void UnitMotionPredictor::UpdateShadowVerticies(
+	Vertex *vertices)
+{
+	for (auto& shadow : _shadows) {
+		for (auto unit = _units.rbegin(), end = _units.rend(); unit != end; ++unit) {
+			if (std::abs(unit->screenPos.x - shadow.screenPos.x) < 10 && std::abs(unit->screenPos.y - shadow.screenPos.y) < 10) {
+				for (auto i = shadow.vertexStart; i != shadow.vertexEnd; ++i) {
+					vertices[i].AddOffset(unit->lastRenderedScreenOffset.x, unit->lastRenderedScreenOffset.y);
+				}
+			}
+		}
+	}
+}
+
+_Use_decl_annotations_
+void UnitMotionPredictor::PrepareForNextFrame(
+	int32_t timeToNext)
+{
+	std::swap(_units, _prevUnits);
+	std::stable_sort(_prevUnits.begin(), _prevUnits.end(), [&](auto& x, auto& y) { return x.unit < y.unit; });
+	_units.clear();
+	_shadows.clear();
+	_update = false;
+
+	auto timeBeforeUpdate = D2_FRAME_LENGTH - _sinceLastUpdate;
+	_sinceLastUpdate += timeToNext;
+	if (_sinceLastUpdate >= D2_FRAME_LENGTH - 10) {
+		_update = true;
+		_sinceLastUpdate -= D2_FRAME_LENGTH;
+		_frameTimeAdjustment = timeBeforeUpdate;
+		if (_sinceLastUpdate >= D2_FRAME_LENGTH) {
+			_prevUnits.clear();
+			_sinceLastUpdate = 0;
+			_frameTimeAdjustment = 0;
+		}
+	}
 }

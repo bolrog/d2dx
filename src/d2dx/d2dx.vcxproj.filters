@@ -62,6 +62,7 @@
     <ClCompile Include="WeatherMotionPredictor.cpp" />
     <ClCompile Include="TextureHasher.cpp" />
     <ClCompile Include="TextMotionPredictor.cpp" />
+    <ClCompile Include="D2Types.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />

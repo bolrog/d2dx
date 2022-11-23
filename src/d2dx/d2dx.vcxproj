@@ -193,6 +193,7 @@
     <ClCompile Include="BuiltinResMod.cpp" />
     <ClCompile Include="CompatibilityModeDisabler.cpp" />
     <ClCompile Include="D2DXContextFactory.cpp" />
+    <ClCompile Include="D2Types.cpp" />
     <ClCompile Include="Detours.cpp" />
     <ClCompile Include="D2DXConfigurator.cpp" />
     <ClCompile Include="TextMotionPredictor.cpp" />
