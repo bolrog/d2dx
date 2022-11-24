@@ -29,7 +29,6 @@ namespace d2dx
 	}
 
 	int64_t TimeStart();
-	int64_t TimeEnd(int64_t start);
 	double TimeToMs(int64_t time);
 
 

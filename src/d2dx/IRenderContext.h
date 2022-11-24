@@ -83,6 +83,8 @@ namespace d2dx
 
 		virtual int32_t GetFrameTimeFp() const = 0;
 
+		virtual int64_t GetFrameTimeStamp() const = 0;
+
 		virtual ScreenMode GetScreenMode() const = 0;
 	};
 }

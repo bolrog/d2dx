@@ -37,10 +37,32 @@ namespace d2dx
 			_In_ uint32_t pixelsSize);
 
 		void PrintStats();
+		void ResetStats()
+		{
+			_lookups = 0;
+			_misses = 0;
+			_missedBytes = 0;
+		}
+
+		uint32_t Lookups()
+		{
+			return _lookups;
+		}
+
+		uint32_t Misses()
+		{
+			return _misses;
+		}
+
+		uint64_t MissedBytes()
+		{
+			return _missedBytes;
+		}
 
 	private:
 		Buffer<uint32_t> _cache;
-		uint32_t _cacheHits;
-		uint32_t _cacheMisses;
+		uint32_t _lookups = 0;
+		uint32_t _misses = 0;
+		uint64_t _missedBytes = 0;
 	};
 }

@@ -22,9 +22,18 @@
 #include "IWin32InterceptionHandler.h"
 #include "ID2InterceptionHandler.h"
 #include "Options.h"
+#include "Utils.h"
 
 namespace d2dx
 {
+	enum class ProfCategory {
+		TextureSource,
+		UnitMotion,
+		Draw,
+		ToGpu,
+		Count
+	};
+
 	struct ID2DXContext abstract : 
 		public IGlide3x,
 		public IWin32InterceptionHandler,
@@ -42,5 +51,11 @@ namespace d2dx
 		virtual void DisableBuiltinResMod() = 0;
 
 		virtual const Options& GetOptions() const = 0;
+
+#ifdef D2DX_PROFILE
+		virtual void AddTime(
+			_In_ int64_t time,
+			_In_ ProfCategory category) = 0;
+#endif // D2DX_PROFILE
 	};
 }

@@ -59,7 +59,7 @@ RenderContext::RenderContext(
 
 	_screenMode = initialScreenMode;
 
-	_timeStart = TimeStart();
+	_prevTime = TimeStart();
 
 	_hWnd = hWnd;
 	_d2dxContext = d2dxContext;
@@ -465,7 +465,7 @@ void RenderContext::Present()
 		break;
 	}
 
-	auto curTime = TimeEnd(_timeStart);
+	auto curTime = TimeStart();
 	_frameTimeMs = TimeToMs(curTime - _prevTime);
 	_prevTime = curTime;
 

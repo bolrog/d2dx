@@ -113,6 +113,11 @@ namespace d2dx
 		virtual float GetFrameTime() const override;
 		virtual int32_t GetFrameTimeFp() const override;
 
+		virtual int64_t GetFrameTimeStamp() const override
+		{
+			return _prevTime;
+		}
+
 		virtual ScreenMode GetScreenMode() const override;
 
 		void ClipCursor();
@@ -133,9 +138,6 @@ namespace d2dx
 
 		void SetBlendState(
 			_In_ AlphaBlend alphaBlend);
-
-		void AdjustWindowPlacement(
-			_In_ HWND hWnd);
 
 		uint32_t UpdateVerticesWithFullScreenTriangle(
 			_In_ Size srcSize,

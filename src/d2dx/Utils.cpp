@@ -51,13 +51,6 @@ int64_t d2dx::TimeStart()
     return (int64_t)li.QuadPart;
 }
 
-int64_t d2dx::TimeEnd(int64_t sinceThisTime)
-{
-    LARGE_INTEGER li;
-    QueryPerformanceCounter(&li);
-    return li.QuadPart - sinceThisTime;
-}
-
 double d2dx::TimeToMs(int64_t time)
 {
     assert(_freq);

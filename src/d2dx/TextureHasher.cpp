@@ -24,9 +24,7 @@
 using namespace d2dx;
 
 TextureHasher::TextureHasher() :
-	_cache{ D2DX_TMU_MEMORY_SIZE / 256, true },
-	_cacheHits{ 0 },
-	_cacheMisses{ 0 }
+	_cache{ D2DX_TMU_MEMORY_SIZE / 256, true }
 {
 }
 
@@ -46,14 +44,12 @@ uint32_t TextureHasher::GetHash(
 	assert((startAddress & 255) == 0);
 
 	uint32_t hash = _cache.items[startAddress >> 8];
+	++_lookups;
 
-	if (hash)
+	if (!hash)
 	{
-		++_cacheHits;
-	}
-	else
-	{
-		++_cacheMisses;
+		++_misses;
+		_missedBytes += pixelsSize;
 		hash = fnv_32a_buf((void*)pixels, pixelsSize, FNV1_32A_INIT);
 		_cache.items[startAddress >> 8] = hash;
 	}
@@ -64,8 +60,8 @@ uint32_t TextureHasher::GetHash(
 void TextureHasher::PrintStats()
 {
 	D2DX_DEBUG_LOG("Texture hash cache hits: %u (%i%%) misses %u",
-		_cacheHits,
-		(int32_t)(100.0f * (float)_cacheHits / (_cacheHits + _cacheMisses)),
-		_cacheMisses
+		_lookups - _misses,
+		(int32_t)(100.0f * (float)(_lookups - _misses) / _lookups),
+		_misses
 	);
 }

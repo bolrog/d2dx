@@ -282,6 +282,7 @@ void D2DXContext::OnTexSource(
 	int32_t width,
 	int32_t height)
 {
+	Timer timer(ProfCategory::TextureSource);
 	assert(tmu == 0 && (startAddress & 255) == 0);
 	if (!(tmu == 0 && (startAddress & 255) == 0))
 	{
@@ -417,6 +418,8 @@ void D2DXContext::OnBufferSwap()
 	if (!_options.GetFlag(OptionsFlag::NoMotionPrediction) &&
 		_majorGameState == MajorGameState::InGame)
 	{
+		Timer timer(ProfCategory::UnitMotion);
+
 		auto playerOffset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit(), _playerScreenPos);
 		_unitMotionPredictor.UpdateShadowVerticies(_vertices.items);
 
@@ -440,15 +443,65 @@ void D2DXContext::OnBufferSwap()
 		}
 	}
 
-	auto startVertexLocation = _renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
+	{
+		Timer timer(ProfCategory::ToGpu);
+		auto startVertexLocation = _renderContext->BulkWriteVertices(_vertices.items, _vertexCount);
+		DrawBatches(startVertexLocation);
+	}
 
-	DrawBatches(startVertexLocation);
+#ifdef D2DX_PROFILE
+	{
+		auto hashSize = _textureHasher.MissedBytes();
+		auto hashUnit = "B";
+		if (hashSize >= 1000000) {
+			hashSize /= 1000000;
+			hashUnit = "MB";
+		}
+		else if (hashSize >= 1000) {
+			hashSize /= 1000;
+			hashUnit = "kB";
+		}
+
+		D2DX_LOG(
+			"Frame profile:\n"
+			"Since last present: %.4fms\n"
+			"Total: %.4fms, events: %llu\n"
+			"TextureSource: %.4fms, events: %llu\n"
+			"UnitMotion: %.4fms, events: %llu\n"
+			"Draw: %.4fms, events: %llu\n"
+			"ToGpu: %.4fms, events: %llu\n"
+			"TextureHash Miss Rate: %d/%d (%llu%s)\n",
+			TimeToMs(TimeStart() - _renderContext->GetFrameTimeStamp()),
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Count)]),
+			_events[static_cast<std::size_t>(ProfCategory::Count)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::TextureSource)]),
+			_events[static_cast<std::size_t>(ProfCategory::TextureSource)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::UnitMotion)]),
+			_events[static_cast<std::size_t>(ProfCategory::UnitMotion)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Draw)]),
+			_events[static_cast<std::size_t>(ProfCategory::Draw)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::ToGpu)]),
+			_events[static_cast<std::size_t>(ProfCategory::ToGpu)],
+			_textureHasher.Misses(),
+			_textureHasher.Lookups(),
+			hashSize,
+			hashUnit
+		);
+
+		std::memset(&_times, 0, sizeof(_times));
+		std::memset(&_events, 0, sizeof(_events));
+		_textureHasher.ResetStats();
+	}
+#endif
 
 	_skipCountingSleep = true;
 	_renderContext->Present();
 	_skipCountingSleep = false;
 
-	_unitMotionPredictor.PrepareForNextFrame(_renderContext->GetFrameTimeFp());
+	{
+		Timer timer(ProfCategory::UnitMotion);
+		_unitMotionPredictor.PrepareForNextFrame(_renderContext->GetFrameTimeFp());
+	}
 	++_frame;
 
 	if (!(_frame & 255))
@@ -565,6 +618,7 @@ void D2DXContext::OnDrawPoint(
 	const void* pt,
 	uint32_t gameContext)
 {
+	Timer timer(ProfCategory::Draw);
 	Batch batch = _scratchBatch;
 	batch.SetGameAddress(GameAddress::Unknown);
 	batch.SetStartVertex(_vertexCount);
@@ -609,6 +663,7 @@ void D2DXContext::OnDrawLine(
 	const void* v2,
 	uint32_t gameContext)
 {
+	Timer timer(ProfCategory::Draw);
 	Batch batch = _scratchBatch;
 	batch.SetGameAddress(GameAddress::DrawLine);
 	batch.SetStartVertex(_vertexCount);
@@ -816,6 +871,7 @@ void D2DXContext::OnDrawVertexArray(
 	uint8_t** pointers,
 	uint32_t gameContext)
 {
+	Timer timer(ProfCategory::Draw);
 	assert(mode == GR_TRIANGLE_STRIP || mode == GR_TRIANGLE_FAN);
 
 	if (count < 3 || (mode != GR_TRIANGLE_STRIP && mode != GR_TRIANGLE_FAN))
@@ -893,6 +949,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	uint32_t stride,
 	uint32_t gameContext)
 {
+	Timer timer(ProfCategory::Draw);
 	assert(count == 4);
 	assert(mode == GR_TRIANGLE_FAN);
 	assert(stride == sizeof(D2::Vertex));
@@ -1338,6 +1395,8 @@ Offset D2DXContext::BeginDrawImage(
 	{
 		return offset;
 	}
+
+	Timer timer(ProfCategory::UnitMotion);
 
 	if (currentlyDrawingUnit)
 	{

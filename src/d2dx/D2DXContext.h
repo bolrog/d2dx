@@ -20,6 +20,7 @@
 
 #include "Batch.h"
 #include "Buffer.h"
+#include "D2DXContextFactory.h"
 #include "IBuiltinResMod.h"
 #include "ID2DXContext.h"
 #include "IGameHelper.h"
@@ -288,5 +289,42 @@ namespace d2dx
 		bool _skipCountingSleep = false;
 		int32_t _sleeps = 0;
 		uint32_t _threadId = 0;
+
+#ifdef D2DX_PROFILE
+		virtual void AddTime(
+			_In_ int64_t time,
+			_In_ ProfCategory category) override
+		{
+			_times[static_cast<std::size_t>(category)] += time;
+			_events[static_cast<std::size_t>(category)]++;
+			_times[static_cast<std::size_t>(ProfCategory::Count)] += time;
+			_events[static_cast<std::size_t>(ProfCategory::Count)]++;
+		}
+
+		int64_t _times[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
+		int64_t _events[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
+#endif
+	};
+
+	class Timer final {
+	public:
+		Timer(ProfCategory category) :
+			category(category)
+#ifdef D2DX_PROFILE
+			, context(D2DXContextFactory::GetInstance())
+			, start(TimeStart())
+#endif // D2DX_PROFILE
+		{}
+
+#ifdef D2DX_PROFILE
+		~Timer() {
+			context->AddTime(TimeStart() - start, category);
+		}
+#endif // D2DX_PROFILE
+
+	private:
+		ID2DXContext* context;
+		ProfCategory category;
+		int64_t start;
 	};
 }
