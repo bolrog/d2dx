@@ -102,7 +102,7 @@ Offset UnitMotionPredictor::GetOffset(
 	else {
 		auto predOffset = info.pos - prevUnit.actualPos;
 		prevUnit.actualPos = info.pos;
-		if (std::abs(predOffset.x) >= 2 << 16 || std::abs(predOffset.y) >= 2 << 16) {
+		if (std::abs(predOffset.x) >= (2 << 16) || std::abs(predOffset.y) >= (2 << 16)) {
 			prevUnit.basePos = info.pos;
 			prevUnit.predictedPos = info.pos;
 		}
@@ -112,23 +112,18 @@ Offset UnitMotionPredictor::GetOffset(
 		}
 	}
 
-	float predictionTime = fixedToFloat(D2_FRAME_LENGTH + _frameTimeAdjustment);
 	float currentTime = fixedToFloat(_sinceLastUpdate + _frameTimeAdjustment);
+	float predictionTime = fixedToFloat(D2_FRAME_LENGTH + _frameTimeAdjustment);
 	float predFract = currentTime / predictionTime;
+
+	const float CORRECTION_AMOUNT = 6000.f / 65536.f;
 
 	auto offsetFromActual = fixedToFloat(prevUnit.predictedPos - prevUnit.actualPos) * predFract;
 	auto offsetFromBase = fixedToFloat(prevUnit.predictedPos - prevUnit.basePos) * predFract;
-	
-	OffsetF renderOffset;
-	if (offsetFromActual.x == 0.f && offsetFromActual.y == 0.f) {
-		renderOffset = offsetFromBase;
-	}
-	else {
-		//renderOffset = offsetFromBase;
-		renderOffset = offsetFromBase* (1.f - predFract) + offsetFromActual * predFract;
-	}
+	auto renderPosFromActual = fixedToFloat(prevUnit.actualPos) + offsetFromActual;
+	auto renderPosFromBase = fixedToFloat(prevUnit.basePos) + offsetFromBase;
+	auto renderPos = renderPosFromBase *(1.f - CORRECTION_AMOUNT) + renderPosFromActual * CORRECTION_AMOUNT;
 
-	auto renderPos = fixedToFloat(prevUnit.basePos) + renderOffset;
 	auto offset = renderPos - fixedToFloat(prevUnit.actualPos);
 	prevUnit.lastRenderedPos = floatToFixed(renderPos);
 
