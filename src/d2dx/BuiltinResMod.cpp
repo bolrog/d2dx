@@ -58,7 +58,11 @@ BuiltinResMod::BuiltinResMod(
         }
 
         D2DX_LOG("Initializing SGD2FreeRes.");
-        LoadLibraryA("d2dx_sgd2freeres.dll");
+        if (LoadLibraryA("d2dx_sgd2freeres.dll") == 0)
+        {
+            D2DX_LOG("Failed to load d2dx_sgd2freeres.dll.");
+            return;
+        }
 
         _isActive = true;
         return;
