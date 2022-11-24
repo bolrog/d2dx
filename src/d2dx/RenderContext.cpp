@@ -1052,7 +1052,12 @@ void RenderContext::ClipCursor()
 	RECT clipRect;
 	::GetClientRect(_hWnd, &clipRect);
 	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.left);
-	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
+
+	clipRect.left += _renderRect.offset.x;
+	clipRect.top += _renderRect.offset.y;
+	clipRect.right = clipRect.left + _renderRect.size.width;
+	clipRect.bottom = clipRect.top + _renderRect.size.height;
+
 	::ClipCursor(&clipRect);
 }
 
