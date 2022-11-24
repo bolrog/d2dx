@@ -466,7 +466,14 @@ void RenderContext::Present()
 	}
 
 	auto curTime = TimeStart();
-	_frameTimeMs = TimeToMs(curTime - _prevTime);
+	_prevFrameTimes[_prevFrameTimeIdx++] = static_cast<uint32_t>(curTime - _prevTime);
+	_prevFrameTimeIdx &= 3;
+
+	uint64_t totalTime = 0;
+	for (size_t i = 0; i < 4; ++i) {
+		totalTime += _prevFrameTimes[i];
+	}
+	_frameTimeMs = TimeToMs(totalTime >> 2);
 	_prevTime = curTime;
 
 	if (_deviceContext1)

@@ -216,6 +216,8 @@ namespace d2dx
 		bool _hasAdjustedWindowPlacement = false;
 
 		int64_t _prevTime;
-		double _frameTimeMs;
+		uint32_t _prevFrameTimes[4] = {};
+		unsigned char _prevFrameTimeIdx = 0;
+		double _frameTimeMs = 0;
 	};
 }
