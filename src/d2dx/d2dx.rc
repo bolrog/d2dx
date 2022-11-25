@@ -89,8 +89,10 @@ END
 // mpq
 //
 
+#ifdef D2DX_INTERNAL_RES_MOD
 IDR_SGD2FR_MPQ          mpq                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.mpq.lzma"
 IDR_SGD2FR_DLL          dll                     "..\\..\\thirdparty\\sgd2freeres\\sgd2freeres.dll.lzma"
+#endif
 
 #endif    // Swedish (Sweden) resources
 /////////////////////////////////////////////////////////////////////////////
