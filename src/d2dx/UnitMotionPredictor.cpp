@@ -27,18 +27,18 @@ const std::int32_t D2_FRAME_LENGTH = (1 << 16) / 25;
 const float FLOAT_TO_FIXED_MUL = static_cast<float>(1 << 16);
 const float FIXED_TO_FLOAT_MUL = 1.f / FLOAT_TO_FIXED_MUL;
 
-float fixedToFloat(int32_t x) {
-	return static_cast<float>(x) * FIXED_TO_FLOAT_MUL;
+double fixedToDouble(int32_t x) {
+	return static_cast<double>(x) * FIXED_TO_FLOAT_MUL;
 }
 
-OffsetF fixedToFloat(Offset x) {
-	return OffsetF(
-		static_cast<float>(x.x) * FIXED_TO_FLOAT_MUL,
-		static_cast<float>(x.y) * FIXED_TO_FLOAT_MUL
+OffsetT<double> fixedToDouble(Offset x) {
+	return OffsetT<double>(
+		static_cast<double>(x.x) * FIXED_TO_FLOAT_MUL,
+		static_cast<double>(x.y) * FIXED_TO_FLOAT_MUL
 	);
 }
 
-Offset floatToFixed(OffsetF x) {
+Offset doubleToFixed(OffsetT<double> x) {
 	return Offset(
 		static_cast<int32_t>(x.x * FLOAT_TO_FIXED_MUL),
 		static_cast<int32_t>(x.y * FLOAT_TO_FIXED_MUL)
@@ -112,23 +112,21 @@ Offset UnitMotionPredictor::GetOffset(
 		}
 	}
 
-	float currentTime = fixedToFloat(_sinceLastUpdate + _frameTimeAdjustment);
-	float predictionTime = fixedToFloat(D2_FRAME_LENGTH + _frameTimeAdjustment);
-	float predFract = currentTime / predictionTime;
+	double predFractFromBase = fixedToDouble(_sinceLastUpdate + _frameTimeAdjustment)
+		/ fixedToDouble(D2_FRAME_LENGTH + _frameTimeAdjustment);
+	double predFractFromActual = fixedToDouble(_sinceLastUpdate) / fixedToDouble(D2_FRAME_LENGTH);
 
-	const float CORRECTION_AMOUNT = 6000.f / 65536.f;
+	auto offsetFromBase = fixedToDouble(prevUnit.predictedPos - prevUnit.basePos) * predFractFromBase;
+	auto offsetFromActual = fixedToDouble(prevUnit.predictedPos - prevUnit.actualPos) * predFractFromActual;
+	auto renderPosFromBase = fixedToDouble(prevUnit.basePos) + offsetFromBase;
+	auto renderPosFromActual = fixedToDouble(prevUnit.actualPos) + offsetFromActual;
+	auto renderPos = renderPosFromBase * (1.f - predFractFromBase) + renderPosFromActual * predFractFromBase;
 
-	auto offsetFromActual = fixedToFloat(prevUnit.predictedPos - prevUnit.actualPos) * predFract;
-	auto offsetFromBase = fixedToFloat(prevUnit.predictedPos - prevUnit.basePos) * predFract;
-	auto renderPosFromActual = fixedToFloat(prevUnit.actualPos) + offsetFromActual;
-	auto renderPosFromBase = fixedToFloat(prevUnit.basePos) + offsetFromBase;
-	auto renderPos = renderPosFromBase *(1.f - CORRECTION_AMOUNT) + renderPosFromActual * CORRECTION_AMOUNT;
+	auto offset = renderPos - fixedToDouble(prevUnit.actualPos);
+	prevUnit.lastRenderedPos = doubleToFixed(renderPos);
 
-	auto offset = renderPos - fixedToFloat(prevUnit.actualPos);
-	prevUnit.lastRenderedPos = floatToFixed(renderPos);
-
-	const OffsetF scaleFactors{ 32.0f / std::sqrt(2.0f), 16.0f / std::sqrt(2.0f) };
-	OffsetF screenOffset = scaleFactors * OffsetF{ offset.x - offset.y, offset.x + offset.y } + 0.5f;
+	const OffsetT<double> scaleFactors{ 32.0f / std::sqrt(2.0), 16.0f / std::sqrt(2.0) };
+	auto screenOffset = scaleFactors * OffsetT<double>{ offset.x - offset.y, offset.x + offset.y } + 0.5;
 	prevUnit.lastRenderedScreenOffset = { (int32_t)screenOffset.x, (int32_t)screenOffset.y };
 	
 	_units.push_back(prevUnit);
