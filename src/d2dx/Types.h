@@ -123,6 +123,8 @@ namespace d2dx
 		T x;
 		T y;
 		
+		OffsetT() = default;
+
 		OffsetT(T x_, T y_) noexcept :
 			x(x_),
 			y(y_)

@@ -420,7 +420,7 @@ void D2DXContext::OnBufferSwap()
 	{
 		Timer timer(ProfCategory::UnitMotion);
 
-		auto playerOffset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit(), _playerScreenPos);
+		auto playerOffset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit(), _playerScreenPos, true);
 		_unitMotionPredictor.UpdateShadowVerticies(_vertices.items);
 
 		for (uint32_t i = 0; i < _batchCount; ++i)
@@ -1408,7 +1408,7 @@ Offset D2DXContext::BeginDrawImage(
 		}
 		else
 		{
-			offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit, pos);
+			offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit, pos, false);
 		}
 	}
 	else

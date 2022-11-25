@@ -58,7 +58,8 @@ UnitMotionPredictor::UnitMotionPredictor(
 _Use_decl_annotations_
 Offset UnitMotionPredictor::GetOffset(
 	D2::UnitAny const* unit,
-	Offset screenPos)
+	Offset screenPos,
+	bool isPlayer)
 {
 	auto info = _gameHelper->GetUnitInfo(unit);
 	auto prev = std::lower_bound(_prevUnits.begin(), _prevUnits.end(), unit, [&](auto const& x, auto const& y) { return x.unit < y; });
@@ -95,8 +96,14 @@ Offset UnitMotionPredictor::GetOffset(
 
 	if (prevUnit.actualPos == info.pos) {
 		if (_update) {
-			prevUnit.predictedPos = prevUnit.actualPos;
-			prevUnit.basePos = prevUnit.lastRenderedPos;
+			if (isPlayer) {
+				prevUnit.predictedPos = prevUnit.lastRenderedPos;
+				prevUnit.basePos = prevUnit.lastRenderedPos;
+			}
+			else {
+				prevUnit.predictedPos = prevUnit.actualPos;
+				prevUnit.basePos = prevUnit.lastRenderedPos;
+			}
 		}
 	}
 	else {
@@ -112,15 +119,21 @@ Offset UnitMotionPredictor::GetOffset(
 		}
 	}
 
-	double predFractFromBase = fixedToDouble(_sinceLastUpdate + _frameTimeAdjustment)
-		/ fixedToDouble(D2_FRAME_LENGTH + _frameTimeAdjustment);
-	double predFractFromActual = fixedToDouble(_sinceLastUpdate) / fixedToDouble(D2_FRAME_LENGTH);
+	OffsetT<double> renderPos;
+	if (prevUnit.predictedPos == prevUnit.lastRenderedPos) {
+		renderPos = fixedToDouble(prevUnit.predictedPos);
+	}
+	else {
+		double predFractFromBase = fixedToDouble(_sinceLastUpdate + _frameTimeAdjustment)
+			/ fixedToDouble(D2_FRAME_LENGTH + _frameTimeAdjustment);
+		double predFractFromActual = fixedToDouble(_sinceLastUpdate) / fixedToDouble(D2_FRAME_LENGTH);
 
-	auto offsetFromBase = fixedToDouble(prevUnit.predictedPos - prevUnit.basePos) * predFractFromBase;
-	auto offsetFromActual = fixedToDouble(prevUnit.predictedPos - prevUnit.actualPos) * predFractFromActual;
-	auto renderPosFromBase = fixedToDouble(prevUnit.basePos) + offsetFromBase;
-	auto renderPosFromActual = fixedToDouble(prevUnit.actualPos) + offsetFromActual;
-	auto renderPos = renderPosFromBase * (1.f - predFractFromBase) + renderPosFromActual * predFractFromBase;
+		auto offsetFromBase = fixedToDouble(prevUnit.predictedPos - prevUnit.basePos) * predFractFromBase;
+		auto offsetFromActual = fixedToDouble(prevUnit.predictedPos - prevUnit.actualPos) * predFractFromActual;
+		auto renderPosFromBase = fixedToDouble(prevUnit.basePos) + offsetFromBase;
+		auto renderPosFromActual = fixedToDouble(prevUnit.actualPos) + offsetFromActual;
+		renderPos = renderPosFromBase * (1.f - predFractFromBase) + renderPosFromActual * predFractFromBase;
+	}
 
 	auto offset = renderPos - fixedToDouble(prevUnit.actualPos);
 	prevUnit.lastRenderedPos = doubleToFixed(renderPos);

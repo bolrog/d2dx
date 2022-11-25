@@ -34,7 +34,8 @@ namespace d2dx
 
 		Offset GetOffset(
 			_In_ const D2::UnitAny* unit,
-			_In_ Offset screenPos);
+			_In_ Offset screenPos,
+			_In_ bool isPlayer);
 
 		void StartShadow(
 			_In_ Offset screenPos,
