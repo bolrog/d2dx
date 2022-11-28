@@ -98,6 +98,7 @@ namespace d2dx
 		std::vector<Unit> _units;
 		std::vector<Unit> _prevUnits;
 		std::vector<Shadow> _shadows;
+		int32_t _currentUpdateTime = 0;
 		int32_t _sinceLastUpdate = 0;
 		int32_t _frameTimeAdjustment = 0;
 		bool _update = false;
