@@ -494,13 +494,18 @@ void D2DXContext::OnBufferSwap()
 	}
 #endif
 
+	auto prevProjectedTime = _renderContext->GetProjectedFrameTimeFp();
+
 	_skipCountingSleep = true;
 	_renderContext->Present();
 	_skipCountingSleep = false;
 
 	{
 		Timer timer(ProfCategory::UnitMotion);
-		_unitMotionPredictor.PrepareForNextFrame(_renderContext->GetFrameTimeFp());
+		_unitMotionPredictor.PrepareForNextFrame(
+			prevProjectedTime,
+			_renderContext->GetPrevFrameTimeFp(),
+			_renderContext->GetProjectedFrameTimeFp());
 	}
 	++_frame;
 

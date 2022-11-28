@@ -34,7 +34,7 @@ _Use_decl_annotations_
 void WeatherMotionPredictor::Update(
 	IRenderContext* renderContext)
 {
-	_dt = _gameHelper->IsGameMenuOpen() ? 0.0f : renderContext->GetFrameTime();
+	_dt = _gameHelper->IsGameMenuOpen() ? 0.0f : renderContext->GetProjectedFrameTime();
 	++_frame;
 }
 

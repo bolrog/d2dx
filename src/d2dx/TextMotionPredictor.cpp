@@ -38,7 +38,7 @@ void TextMotionPredictor::Update(
 {
 	renderContext->GetCurrentMetrics(&_gameSize, nullptr, nullptr);
 
-	const float dt = renderContext->GetFrameTime();
+	const float dt = renderContext->GetProjectedFrameTime();
 	int32_t expiredTextIndex = -1;
 
 	for (int32_t i = 0; i < _textsCount; ++i)

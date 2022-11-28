@@ -30,7 +30,9 @@ namespace d2dx
 			_In_ const std::shared_ptr<IGameHelper>& gameHelper);
 
 		void PrepareForNextFrame(
-			_In_ int32_t timeToNext);
+			_In_ uint32_t prevProjectedTime,
+			_In_ uint32_t prevActualTime,
+			_In_ uint32_t projectedTime);
 
 		Offset GetOffset(
 			_In_ const D2::UnitAny* unit,

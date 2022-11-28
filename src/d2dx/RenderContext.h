@@ -110,8 +110,10 @@ namespace d2dx
 
 		virtual void ToggleFullscreen() override;
 
-		virtual float GetFrameTime() const override;
-		virtual int32_t GetFrameTimeFp() const override;
+		virtual double GetProjectedFrameTime() const override;
+		virtual int32_t GetProjectedFrameTimeFp() const override;
+		virtual double GetPrevFrameTime() const override;
+		virtual int32_t GetPrevFrameTimeFp() const override;
 
 		virtual int64_t GetFrameTimeStamp() const override
 		{
@@ -218,6 +220,7 @@ namespace d2dx
 		int64_t _prevTime;
 		uint32_t _prevFrameTimes[4] = {};
 		unsigned char _prevFrameTimeIdx = 0;
-		double _frameTimeMs = 0;
+		double _prevFrameTimeMs = 0;
+		double _projectedFrameTimeMs = 0;
 	};
 }

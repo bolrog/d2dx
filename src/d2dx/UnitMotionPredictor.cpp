@@ -66,8 +66,8 @@ Offset UnitMotionPredictor::GetOffset(
 	if (prev == _prevUnits.end() || prev->id != info.id || prev->type != info.type) {
 		if (!_update) {
 			_update = true;
+			_frameTimeAdjustment += D2_FRAME_LENGTH - _sinceLastUpdate;
 			_sinceLastUpdate = 0;
-
 
 			for (auto& pred : _units) {
 				pred.predictedPos = pred.actualPos;
@@ -86,6 +86,7 @@ Offset UnitMotionPredictor::GetOffset(
 	prevUnit.screenPos = screenPos;
 	if (!_update && prevUnit.actualPos != info.pos) {
 		_update = true;
+		_frameTimeAdjustment += D2_FRAME_LENGTH - _sinceLastUpdate;
 		_sinceLastUpdate = 0;
 
 		for (auto& pred : _units) {
@@ -191,8 +192,13 @@ void UnitMotionPredictor::UpdateShadowVerticies(
 
 _Use_decl_annotations_
 void UnitMotionPredictor::PrepareForNextFrame(
-	int32_t timeToNext)
+	_In_ uint32_t prevProjectedTime,
+	_In_ uint32_t prevActualTime,
+	_In_ uint32_t projectedTime)
 {
+	_sinceLastUpdate -= prevProjectedTime + 10;
+	_sinceLastUpdate += prevActualTime;
+
 	std::swap(_units, _prevUnits);
 	std::stable_sort(_prevUnits.begin(), _prevUnits.end(), [&](auto& x, auto& y) { return x.unit < y.unit; });
 	_units.clear();
@@ -200,8 +206,8 @@ void UnitMotionPredictor::PrepareForNextFrame(
 	_update = false;
 
 	auto timeBeforeUpdate = D2_FRAME_LENGTH - _sinceLastUpdate;
-	_sinceLastUpdate += timeToNext;
-	if (_sinceLastUpdate >= D2_FRAME_LENGTH - 10) {
+	_sinceLastUpdate += projectedTime + 10;
+	if (_sinceLastUpdate >= D2_FRAME_LENGTH) {
 		_update = true;
 		_sinceLastUpdate -= D2_FRAME_LENGTH;
 		_frameTimeAdjustment = timeBeforeUpdate;
@@ -210,5 +216,10 @@ void UnitMotionPredictor::PrepareForNextFrame(
 			_sinceLastUpdate = 0;
 			_frameTimeAdjustment = 0;
 		}
+	}
+	else if (_sinceLastUpdate < -D2_FRAME_LENGTH) {
+		_prevUnits.clear();
+		_sinceLastUpdate = 0;
+		_frameTimeAdjustment = 0;
 	}
 }
