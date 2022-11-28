@@ -34,8 +34,7 @@ Update July 2021: I have been too busy to work on D2DX for a while, but hope to 
 
 ## Compatibility
 Game versions supported:
-  - All features: 1.09d, 1.13c, 1.13d and 1.14d.
-  - Without resolution switching: 1.10f, 1.12.
+  - All features: 1.09d, 1.10f, 1.12, 1.13c, 1.13d and 1.14d.
   - Other versions are unsupported, will display a warning at startup and exhibit glitches.
 
 For compatibility with mods, see the [wiki](https://github.com/bolrog/d2dx/wiki/Compatibility-with-other-mods).
