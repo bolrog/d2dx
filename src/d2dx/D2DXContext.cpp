@@ -449,8 +449,19 @@ void D2DXContext::OnBufferSwap()
 		DrawBatches(startVertexLocation);
 	}
 
+	auto prevProjectedTimeFp = _renderContext->GetProjectedFrameTimeFp();
+
 #ifdef D2DX_PROFILE
-	{
+	auto prevRenderTime = TimeToMs(TimeStart() - _renderContext->GetFrameTimeStamp());
+	auto prevProjectedTime = _renderContext->GetProjectedFrameTime() * 1000;
+#endif
+
+	_skipCountingSleep = true;
+	_renderContext->Present();
+	_skipCountingSleep = false;
+
+#ifdef D2DX_PROFILE
+	if (_majorGameState == MajorGameState::InGame) {
 		auto hashSize = _textureHasher.MissedBytes();
 		auto hashUnit = "B";
 		if (hashSize >= 1000000) {
@@ -461,17 +472,20 @@ void D2DXContext::OnBufferSwap()
 			hashSize /= 1000;
 			hashUnit = "kB";
 		}
+		auto prevFrameTime = _renderContext->GetPrevFrameTime() * 1000;
 
-		D2DX_LOG(
+		D2DX_LOG_PROFILE(
 			"Frame profile:\n"
-			"Since last present: %.4fms\n"
-			"Total: %.4fms, events: %llu\n"
-			"TextureSource: %.4fms, events: %llu\n"
-			"UnitMotion: %.4fms, events: %llu\n"
-			"Draw: %.4fms, events: %llu\n"
-			"ToGpu: %.4fms, events: %llu\n"
-			"TextureHash Miss Rate: %d/%d (%llu%s)\n",
-			TimeToMs(TimeStart() - _renderContext->GetFrameTimeStamp()),
+			"Projected frame time: %.4fms, Actual: %.4fms (%.4fms)\n"
+			"Render time: %.4fms\n"
+			"Total profiled: %.4fms (%u events)\n"
+			"TextureSource: %.4fms (%u events)\n"
+			"UnitMotion: %.4fms (%u events)\n"
+			"Draw: %.4fms (%u events)\n"
+			"ToGpu: %.4fms (%u events)\n"
+			"TextureHash Miss Rate: %u/%u (%llu%s)\n",
+			prevProjectedTime, prevFrameTime, prevProjectedTime - prevFrameTime,
+			prevRenderTime,
 			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Count)]),
 			_events[static_cast<std::size_t>(ProfCategory::Count)],
 			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::TextureSource)]),
@@ -482,10 +496,7 @@ void D2DXContext::OnBufferSwap()
 			_events[static_cast<std::size_t>(ProfCategory::Draw)],
 			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::ToGpu)]),
 			_events[static_cast<std::size_t>(ProfCategory::ToGpu)],
-			_textureHasher.Misses(),
-			_textureHasher.Lookups(),
-			hashSize,
-			hashUnit
+			_textureHasher.Misses(), _textureHasher.Lookups(), hashSize, hashUnit
 		);
 
 		std::memset(&_times, 0, sizeof(_times));
@@ -494,16 +505,10 @@ void D2DXContext::OnBufferSwap()
 	}
 #endif
 
-	auto prevProjectedTime = _renderContext->GetProjectedFrameTimeFp();
-
-	_skipCountingSleep = true;
-	_renderContext->Present();
-	_skipCountingSleep = false;
-
 	{
 		Timer timer(ProfCategory::UnitMotion);
 		_unitMotionPredictor.PrepareForNextFrame(
-			prevProjectedTime,
+			prevProjectedTimeFp,
 			_renderContext->GetPrevFrameTimeFp(),
 			_renderContext->GetProjectedFrameTimeFp());
 	}

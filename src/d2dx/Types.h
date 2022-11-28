@@ -206,6 +206,11 @@ namespace d2dx
 		bool operator==(const OffsetT& rhs) const = default;
 		bool operator!=(const OffsetT& rhs) const = default;
 
+		T RealLength() const noexcept
+		{
+			return std::hypot(x, y);
+		}
+
 		T Length() const noexcept
 		{
 			T lensqr = x * x + y * y;

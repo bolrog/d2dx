@@ -129,9 +129,9 @@ static DWORD WINAPI WriteToLogFileWorkItemFunc(PVOID pvContext)
 {
     char* s = (char*)pvContext;
 
-    OutputDebugStringA(s);
-
     EnterCriticalSection(&logFileCS);
+
+    OutputDebugStringA(s);
 
     if (logFile)
     {

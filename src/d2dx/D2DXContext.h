@@ -302,7 +302,7 @@ namespace d2dx
 		}
 
 		int64_t _times[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
-		int64_t _events[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
+		uint32_t _events[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
 #endif
 	};
 

@@ -65,6 +65,7 @@ Offset UnitMotionPredictor::GetOffset(
 	auto prev = std::lower_bound(_prevUnits.begin(), _prevUnits.end(), unit, [&](auto const& x, auto const& y) { return x.unit < y; });
 	if (prev == _prevUnits.end() || prev->id != info.id || prev->type != info.type) {
 		if (!_update) {
+			D2DX_LOG_PROFILE("MotionPredictor: Unexpected frame update");
 			_update = true;
 			_frameTimeAdjustment += D2_FRAME_LENGTH - _sinceLastUpdate;
 			_sinceLastUpdate = 0;
@@ -85,6 +86,7 @@ Offset UnitMotionPredictor::GetOffset(
 	prev->nextIdx = _units.size();
 	prevUnit.screenPos = screenPos;
 	if (!_update && prevUnit.actualPos != info.pos) {
+		D2DX_LOG_PROFILE("MotionPredictor: Unexpected frame update");
 		_update = true;
 		_frameTimeAdjustment += D2_FRAME_LENGTH - _sinceLastUpdate;
 		_sinceLastUpdate = 0;
@@ -117,6 +119,12 @@ Offset UnitMotionPredictor::GetOffset(
 		else {
 			prevUnit.basePos = prevUnit.lastRenderedPos;
 			prevUnit.predictedPos = info.pos + predOffset;
+			if (isPlayer) {
+				D2DX_LOG_PROFILE(
+					"MotionPredictor: Update player velocity %.4f/frame",
+					fixedToDouble(prevUnit.predictedPos - prevUnit.lastRenderedPos).RealLength()
+				);
+			}
 		}
 	}
 
@@ -134,6 +142,13 @@ Offset UnitMotionPredictor::GetOffset(
 		auto renderPosFromBase = fixedToDouble(prevUnit.basePos) + offsetFromBase;
 		auto renderPosFromActual = fixedToDouble(prevUnit.actualPos) + offsetFromActual;
 		renderPos = renderPosFromBase * (1.f - predFractFromBase) + renderPosFromActual * predFractFromBase;
+	}
+
+	if (isPlayer) {
+		D2DX_LOG_PROFILE(
+			"MotionPredictor: Move player by %f",
+			(fixedToDouble(prevUnit.lastRenderedPos) - renderPos).RealLength()
+		);
 	}
 
 	auto offset = renderPos - fixedToDouble(prevUnit.actualPos);
@@ -208,6 +223,7 @@ void UnitMotionPredictor::PrepareForNextFrame(
 	auto timeBeforeUpdate = D2_FRAME_LENGTH - _sinceLastUpdate;
 	_sinceLastUpdate += projectedTime + 10;
 	if (_sinceLastUpdate >= D2_FRAME_LENGTH) {
+		D2DX_LOG_PROFILE("MotionPredictor: Expect frame update");
 		_update = true;
 		_sinceLastUpdate -= D2_FRAME_LENGTH;
 		_frameTimeAdjustment = timeBeforeUpdate;
@@ -222,4 +238,10 @@ void UnitMotionPredictor::PrepareForNextFrame(
 		_sinceLastUpdate = 0;
 		_frameTimeAdjustment = 0;
 	}
+
+	D2DX_LOG_PROFILE(
+		"MotionPredictor: Predict at %d/%d of a frame",
+		_sinceLastUpdate + _frameTimeAdjustment,
+		D2_FRAME_LENGTH + _frameTimeAdjustment
+	);
 }
