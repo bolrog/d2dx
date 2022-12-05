@@ -259,6 +259,7 @@ void D2DXContext::OnTexDownload(
 	int32_t width,
 	int32_t height)
 {
+	Timer timer(ProfCategory::TextureDownload);
 	assert(tmu == 0 && (startAddress & 255) == 0);
 	if (!(tmu == 0 && (startAddress & 255) == 0))
 	{
@@ -451,59 +452,9 @@ void D2DXContext::OnBufferSwap()
 
 	auto prevProjectedTimeFp = _renderContext->GetProjectedFrameTimeFp();
 
-#ifdef D2DX_PROFILE
-	auto prevRenderTime = TimeToMs(TimeStart() - _renderContext->GetFrameTimeStamp());
-	auto prevProjectedTime = _renderContext->GetProjectedFrameTime() * 1000;
-#endif
-
 	_skipCountingSleep = true;
 	_renderContext->Present();
 	_skipCountingSleep = false;
-
-#ifdef D2DX_PROFILE
-	if (_majorGameState == MajorGameState::InGame) {
-		auto hashSize = _textureHasher.MissedBytes();
-		auto hashUnit = "B";
-		if (hashSize >= 1000000) {
-			hashSize /= 1000000;
-			hashUnit = "MB";
-		}
-		else if (hashSize >= 1000) {
-			hashSize /= 1000;
-			hashUnit = "kB";
-		}
-		auto prevFrameTime = _renderContext->GetPrevFrameTime() * 1000;
-
-		D2DX_LOG_PROFILE(
-			"Frame profile:\n"
-			"Projected frame time: %.4fms, Actual: %.4fms (%.4fms)\n"
-			"Render time: %.4fms\n"
-			"Total profiled: %.4fms (%u events)\n"
-			"TextureSource: %.4fms (%u events)\n"
-			"UnitMotion: %.4fms (%u events)\n"
-			"Draw: %.4fms (%u events)\n"
-			"ToGpu: %.4fms (%u events)\n"
-			"TextureHash Miss Rate: %u/%u (%llu%s)\n",
-			prevProjectedTime, prevFrameTime, prevProjectedTime - prevFrameTime,
-			prevRenderTime,
-			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Count)]),
-			_events[static_cast<std::size_t>(ProfCategory::Count)],
-			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::TextureSource)]),
-			_events[static_cast<std::size_t>(ProfCategory::TextureSource)],
-			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::UnitMotion)]),
-			_events[static_cast<std::size_t>(ProfCategory::UnitMotion)],
-			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Draw)]),
-			_events[static_cast<std::size_t>(ProfCategory::Draw)],
-			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::ToGpu)]),
-			_events[static_cast<std::size_t>(ProfCategory::ToGpu)],
-			_textureHasher.Misses(), _textureHasher.Lookups(), hashSize, hashUnit
-		);
-
-		std::memset(&_times, 0, sizeof(_times));
-		std::memset(&_events, 0, sizeof(_events));
-		_textureHasher.ResetStats();
-	}
-#endif
 
 	{
 		Timer timer(ProfCategory::UnitMotion);
@@ -1465,3 +1416,59 @@ void D2DXContext::EndDrawImage()
 	_captureShadowVerticies = false;
 	_scratchBatch.SetTextureCategory(TextureCategory::Unknown);
 }
+
+#ifdef D2DX_PROFILE
+#ifdef D2DX_PROFILE
+void D2DXContext::WriteProfile() {
+	if (_majorGameState == MajorGameState::InGame) {
+		auto hashSize = _textureHasher.MissedBytes();
+		auto hashUnit = "B";
+		if (hashSize >= 1000000) {
+			hashSize /= 1000000;
+			hashUnit = "MB";
+		}
+		else if (hashSize >= 1000) {
+			hashSize /= 1000;
+			hashUnit = "kB";
+		}
+		auto frameTime = TimeToMs(TimeStart() - _renderContext->GetFrameTimeStamp());
+		auto projectedFrameTime = _renderContext->GetProjectedFrameTime() * 1000;
+
+		D2DX_LOG_PROFILE(
+			"Frame profile:\n"
+			"Projected frame time: %.4fms, Actual: %.4fms (%.4fms)\n"
+			"Total profiled: %.4fms (%u events)\n"
+			"TextureDownload: %.4fms (%u events)\n"
+			"TextureSource: %.4fms (%u events)\n"
+			"TextureHash Miss Rate: %u/%u (%llu%s)\n"
+			"UnitMotion: %.4fms (%u events)\n"
+			"Draw: %.4fms (%u events)\n"
+			"ToGpu: %.4fms\n"
+			"PostPresent: %.4fms\n"
+			"PrePresent: %.4fms\n"
+			"Present: %.4fms\n",
+			projectedFrameTime, frameTime, projectedFrameTime - frameTime,
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Count)]),
+			_events[static_cast<std::size_t>(ProfCategory::Count)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::TextureDownload)]),
+			_events[static_cast<std::size_t>(ProfCategory::TextureDownload)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::TextureSource)]),
+			_events[static_cast<std::size_t>(ProfCategory::TextureSource)],
+			_textureHasher.Misses(), _textureHasher.Lookups(), hashSize, hashUnit,
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::UnitMotion)]),
+			_events[static_cast<std::size_t>(ProfCategory::UnitMotion)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Draw)]),
+			_events[static_cast<std::size_t>(ProfCategory::Draw)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::ToGpu)]),
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::PostPresent)]),
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::PrePresent)]),
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Present)])
+		);
+
+		std::memset(&_times, 0, sizeof(_times));
+		std::memset(&_events, 0, sizeof(_events));
+		_textureHasher.ResetStats();
+	}
+}
+#endif
+#endif

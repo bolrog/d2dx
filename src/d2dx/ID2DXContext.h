@@ -31,6 +31,11 @@ namespace d2dx
 		UnitMotion,
 		Draw,
 		ToGpu,
+		PrePresent,
+		Present,
+		PostPresent,
+		TextureDownload,
+		UnitMotionSort,
 		Count
 	};
 
@@ -56,6 +61,8 @@ namespace d2dx
 		virtual void AddTime(
 			_In_ int64_t time,
 			_In_ ProfCategory category) = 0;
+
+		virtual void WriteProfile() = 0;
 #endif // D2DX_PROFILE
 	};
 }

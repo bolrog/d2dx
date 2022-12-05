@@ -28,4 +28,27 @@ namespace d2dx
 		static ID2DXContext* GetInstance(bool createIfNeeded = true);
 		static void DestroyInstance();
 	};
+
+
+	class Timer final {
+	public:
+		Timer(ProfCategory category) :
+			category(category)
+#ifdef D2DX_PROFILE
+			, context(D2DXContextFactory::GetInstance())
+			, start(TimeStart())
+#endif // D2DX_PROFILE
+		{}
+
+#ifdef D2DX_PROFILE
+		~Timer() {
+			context->AddTime(TimeStart() - start, category);
+		}
+#endif // D2DX_PROFILE
+
+	private:
+		ID2DXContext* context;
+		ProfCategory category;
+		int64_t start;
+	};
 }

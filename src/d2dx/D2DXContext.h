@@ -301,30 +301,10 @@ namespace d2dx
 			_events[static_cast<std::size_t>(ProfCategory::Count)]++;
 		}
 
+		virtual void WriteProfile() override;
+
 		int64_t _times[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
 		uint32_t _events[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
 #endif
-	};
-
-	class Timer final {
-	public:
-		Timer(ProfCategory category) :
-			category(category)
-#ifdef D2DX_PROFILE
-			, context(D2DXContextFactory::GetInstance())
-			, start(TimeStart())
-#endif // D2DX_PROFILE
-		{}
-
-#ifdef D2DX_PROFILE
-		~Timer() {
-			context->AddTime(TimeStart() - start, category);
-		}
-#endif // D2DX_PROFILE
-
-	private:
-		ID2DXContext* context;
-		ProfCategory category;
-		int64_t start;
 	};
 }

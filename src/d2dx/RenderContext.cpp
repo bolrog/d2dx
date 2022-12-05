@@ -332,107 +332,110 @@ bool RenderContext::IsIntegerScale() const
 
 void RenderContext::Present()
 {
-	_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	float color[] = { .0f, .0f, .0f, .0f };
-
-	SetBlendState(AlphaBlend::Opaque);
-
-	SetRenderTargets(
-		_resources->GetFramebufferRtv(RenderContextFramebuffer::GammaCorrected),
-		nullptr);
-
-	_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::GammaCorrected), color);
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Display),
-		_resources->GetPixelShader(RenderContextPixelShader::Gamma),
-		_resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
-		_resources->GetTexture1DSrv(RenderContextTexture1D::GammaTable));
-
-	auto startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenTriangle(
-		_gameSize,
-		_resources->GetFramebufferSize(),
-		{ 0,0,_gameSize.width, _gameSize.height });
-
-	_deviceContext->Draw(vertexCount, startVertexLocation);
-
-	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing))
 	{
-		SetShaderState(
-			nullptr,
-			nullptr,
-			nullptr,
-			nullptr);
+		Timer timer(ProfCategory::PrePresent);
+
+		_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		SetBlendState(AlphaBlend::Opaque);
 
 		SetRenderTargets(
-			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::GammaCorrected),
 			nullptr);
 
-		_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game), color);
+		_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::GammaCorrected), color);
 		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
 
 		SetShaderState(
 			_resources->GetVertexShader(RenderContextVertexShader::Display),
-			_resources->GetPixelShader(RenderContextPixelShader::ResolveAA),
-			_resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected),
-			_resources->GetFramebufferSrv(RenderContextFramebuffer::SurfaceId));
+			_resources->GetPixelShader(RenderContextPixelShader::Gamma),
+			_resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
+			_resources->GetTexture1DSrv(RenderContextTexture1D::GammaTable));
 
-		startVertexLocation = _vbWriteIndex;
-		vertexCount = UpdateVerticesWithFullScreenTriangle(
+		auto startVertexLocation = _vbWriteIndex;
+		uint32_t vertexCount = UpdateVerticesWithFullScreenTriangle(
 			_gameSize,
 			_resources->GetFramebufferSize(),
 			{ 0,0,_gameSize.width, _gameSize.height });
 
 		_deviceContext->Draw(vertexCount, startVertexLocation);
+
+		if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing))
+		{
+			SetShaderState(
+				nullptr,
+				nullptr,
+				nullptr,
+				nullptr);
+
+			SetRenderTargets(
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+				nullptr);
+
+			_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game), color);
+			UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+
+			SetShaderState(
+				_resources->GetVertexShader(RenderContextVertexShader::Display),
+				_resources->GetPixelShader(RenderContextPixelShader::ResolveAA),
+				_resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected),
+				_resources->GetFramebufferSrv(RenderContextFramebuffer::SurfaceId));
+
+			startVertexLocation = _vbWriteIndex;
+			vertexCount = UpdateVerticesWithFullScreenTriangle(
+				_gameSize,
+				_resources->GetFramebufferSize(),
+				{ 0,0,_gameSize.width, _gameSize.height });
+
+			_deviceContext->Draw(vertexCount, startVertexLocation);
+		}
+
+		SetRasterizerState(_resources->GetRasterizerState(false));
+
+		SetRenderTargets(_backbufferRtv.Get(), nullptr);
+
+		_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
+		UpdateViewport(_renderRect);
+
+		RenderContextPixelShader pixelShader;
+
+		switch (_d2dxContext->GetOptions().GetFiltering())
+		{
+		default:
+		case FilteringOption::HighQuality:
+			pixelShader = IsIntegerScale() ?
+				RenderContextPixelShader::DisplayIntegerScale :
+				RenderContextPixelShader::DisplayNonintegerScale;
+			break;
+		case FilteringOption::Bilinear:
+			pixelShader = RenderContextPixelShader::DisplayBilinearScale;
+			break;
+		case FilteringOption::CatmullRom:
+			pixelShader = RenderContextPixelShader::DisplayCatmullRomScale;
+			break;
+		}
+
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Display),
+			_resources->GetPixelShader(pixelShader),
+			_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing) ? _resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected) : _resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
+			nullptr);
+
+		startVertexLocation = _vbWriteIndex;
+		vertexCount = UpdateVerticesWithFullScreenTriangle(
+			_gameSize,
+			_resources->GetFramebufferSize(),
+			_renderRect);
+
+		_deviceContext->Draw(vertexCount, startVertexLocation);
+
+		SetShaderState(
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr);
 	}
-
-	SetRasterizerState(_resources->GetRasterizerState(false));
-
-	SetRenderTargets(_backbufferRtv.Get(), nullptr);
-
-	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
-	UpdateViewport(_renderRect);
-
-	RenderContextPixelShader pixelShader;
-	
-	switch (_d2dxContext->GetOptions().GetFiltering())
-	{
-	default:
-	case FilteringOption::HighQuality:
-		pixelShader = IsIntegerScale() ?
-			RenderContextPixelShader::DisplayIntegerScale :
-			RenderContextPixelShader::DisplayNonintegerScale;
-		break;
-	case FilteringOption::Bilinear:
-		pixelShader = RenderContextPixelShader::DisplayBilinearScale;
-		break;
-	case FilteringOption::CatmullRom:
-		pixelShader = RenderContextPixelShader::DisplayCatmullRomScale;
-		break;
-	}
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Display),
-		_resources->GetPixelShader(pixelShader),
-		_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing) ? _resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected) : _resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
-		nullptr);
-
-	startVertexLocation = _vbWriteIndex;
-	vertexCount = UpdateVerticesWithFullScreenTriangle(
-		_gameSize,
-		_resources->GetFramebufferSize(),
-		_renderRect);
-
-	_deviceContext->Draw(vertexCount, startVertexLocation);
-
-	SetShaderState(
-		nullptr,
-		nullptr,
-		nullptr,
-		nullptr);
 
 #ifndef NDEBUG
 	if (!(_frameCount & 255))
@@ -448,62 +451,73 @@ void RenderContext::Present()
 	}
 #endif
 
-	switch (_syncStrategy)
 	{
-	case RenderContextSyncStrategy::AllowTearing:
-		D2DX_CHECK_HR(_swapChain1->Present(0, DXGI_PRESENT_ALLOW_TEARING));
-		break;
-	case RenderContextSyncStrategy::Interval0:
-		D2DX_CHECK_HR(_swapChain1->Present(0, 0));
-		break;
-	case RenderContextSyncStrategy::FrameLatencyWaitableObject:
-		D2DX_CHECK_HR(_swapChain1->Present(0, 0));
-		::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
-		break;
-	case RenderContextSyncStrategy::Interval1:
-		D2DX_CHECK_HR(_swapChain1->Present(1, 0));
-		break;
+		Timer timer(ProfCategory::Present);
+		switch (_syncStrategy)
+		{
+		case RenderContextSyncStrategy::AllowTearing:
+			D2DX_CHECK_HR(_swapChain1->Present(0, DXGI_PRESENT_ALLOW_TEARING));
+			break;
+		case RenderContextSyncStrategy::Interval0:
+			D2DX_CHECK_HR(_swapChain1->Present(0, 0));
+			break;
+		case RenderContextSyncStrategy::FrameLatencyWaitableObject:
+			D2DX_CHECK_HR(_swapChain1->Present(0, 0));
+			::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
+			break;
+		case RenderContextSyncStrategy::Interval1:
+			D2DX_CHECK_HR(_swapChain1->Present(1, 0));
+			break;
+		}
 	}
 
-	auto curTime = TimeStart();
-	_prevFrameTimeMs = TimeToMs(curTime - _prevTime);
-	_prevFrameTimes[_prevFrameTimeIdx++] = static_cast<uint32_t>(curTime - _prevTime);
-	_prevFrameTimeIdx &= 3;
+#ifdef D2DX_PROFILE
+	D2DXContextFactory::GetInstance()->WriteProfile();
+#endif
 
-	uint64_t totalTime = 0;
-	for (size_t i = 0; i < 4; ++i) {
-		totalTime += _prevFrameTimes[i];
-	}
-	_projectedFrameTimeMs = TimeToMs(totalTime >> 2);
-	_prevTime = curTime;
-
-	if (_deviceContext1)
 	{
-		_deviceContext1->DiscardView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game));
-		_deviceContext1->DiscardView(_backbufferRtv.Get());
+		Timer timer(ProfCategory::PostPresent);
+
+		auto curTime = TimeStart();
+		_prevFrameTimeMs = TimeToMs(curTime - _prevTime);
+		_prevFrameTimes[_prevFrameTimeIdx++] = static_cast<uint32_t>(curTime - _prevTime);
+		_prevFrameTimeIdx &= 3;
+
+		uint64_t totalTime = 0;
+		for (size_t i = 0; i < 4; ++i) {
+			totalTime += _prevFrameTimes[i];
+		}
+		_projectedFrameTimeMs = TimeToMs(totalTime >> 2);
+		_prevTime = curTime;
+
+		if (_deviceContext1)
+		{
+			_deviceContext1->DiscardView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game));
+			_deviceContext1->DiscardView(_backbufferRtv.Get());
+		}
+
+		_resources->OnNewFrame();
+
+		SetRenderTargets(
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId)
+		);
+
+		_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game), color);
+		_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId), color);
+
+		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+
+		SetRasterizerState(_resources->GetRasterizerState(true));
+
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Game),
+			_resources->GetPixelShader(RenderContextPixelShader::Game),
+			nullptr,
+			nullptr);
+
+		++_frameCount;
 	}
-
-	_resources->OnNewFrame();
-
-	SetRenderTargets(
-		_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
-		_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId)
-	);
-
-	_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game), color);
-	_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId), color);
-
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
-
-	SetRasterizerState(_resources->GetRasterizerState(true));
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Game),
-		_resources->GetPixelShader(RenderContextPixelShader::Game),
-		nullptr,
-		nullptr);
-
-	++_frameCount;
 }
 
 _Use_decl_annotations_
