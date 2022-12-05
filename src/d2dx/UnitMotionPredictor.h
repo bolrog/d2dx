@@ -53,14 +53,16 @@ namespace d2dx
 			_In_ Offset screenPos);
 
 	private:
+		void OnUnexpectedUpdate() noexcept;
+
 		struct Unit final {
 			Unit(D2::UnitAny const* unit, UnitInfo const &unitInfo, Offset screenPos) :
 				unit(unit),
 				id(unitInfo.id),
 				type(unitInfo.type),
 				actualPos(unitInfo.pos),
-				basePos(unitInfo.pos),
-				predictedPos(unitInfo.pos),
+				baseOffset(0, 0),
+				predictionOffset(0, 0),
 				lastRenderedPos(unitInfo.pos),
 				lastRenderedScreenOffset({0, 0}),
 				screenPos(screenPos),
@@ -71,8 +73,8 @@ namespace d2dx
 			uint32_t id;
 			D2::UnitType type;
 			Offset actualPos;
-			Offset basePos;
-			Offset predictedPos;
+			Offset baseOffset;
+			Offset predictionOffset;
 			Offset lastRenderedPos;
 			Offset lastRenderedScreenOffset;
 			Offset screenPos;

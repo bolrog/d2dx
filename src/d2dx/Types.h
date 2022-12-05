@@ -33,7 +33,7 @@
 
 namespace d2dx
 {
-	static_assert(((D2DX_TMU_MEMORY_SIZE - 1) >> 8) == 0xFFFF, "TMU memory start addresses aren't 16 bit.");
+	// static_assert(((D2DX_TMU_MEMORY_SIZE - 1) >> 8) == 0xFFFF, "TMU memory start addresses aren't 16 bit.");
 
 	enum class ScreenMode
 	{
@@ -173,6 +173,18 @@ namespace d2dx
 			return *this;
 		}
 
+		OffsetT& operator/=(T const& rhs) noexcept
+		{
+			x /= rhs;
+			y /= rhs;
+			return *this;
+		}
+
+		OffsetT operator-() const noexcept
+		{
+			return { -x, -y };
+		}
+
 		OffsetT operator+(const OffsetT& rhs) const noexcept
 		{
 			return { x + rhs.x, y + rhs.y };
@@ -201,6 +213,11 @@ namespace d2dx
 		OffsetT operator*(T const &rhs) const noexcept
 		{
 			return { x * rhs, y * rhs };
+		}
+
+		OffsetT operator/(T const& rhs) const noexcept
+		{
+			return { x / rhs, y / rhs };
 		}
 
 		bool operator==(const OffsetT& rhs) const = default;
