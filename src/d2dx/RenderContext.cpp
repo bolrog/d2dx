@@ -98,7 +98,7 @@ RenderContext::RenderContext(
 	};
 
 	_dxgiAllowTearingFlagSupported = IsAllowTearingFlagSupported();
-	_frameLatencyWaitableObjectSupported = false; //  IsFrameLatencyWaitableObjectSupported();
+	_frameLatencyWaitableObjectSupported = IsFrameLatencyWaitableObjectSupported();
 
 	_swapChainCreateFlags = 0;
 
@@ -199,20 +199,18 @@ RenderContext::RenderContext(
 
 	_swapChain1.As(&_swapChain2);
 
-#ifdef ALLOW_SET_SOURCE_SIZE
 	if (_swapChain2)
 	{
-		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::SetSourceSize;
-		D2DX_LOG("Using 'SetSourceSize' backbuffer sizing strategy.");
+		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::ResizeBuffers;
+		D2DX_LOG("Using 'ResizeBuffers' backbuffer sizing strategy.");
 
-		if (!_options.noVSync && _frameLatencyWaitableObjectSupported)
+		if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoVSync) && _frameLatencyWaitableObjectSupported)
 		{
 			D2DX_LOG("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
-			_frameLatencyWaitableObject = _swapChain2->GetFrameLatencyWaitableObject();
+			_frameLatencyWaitableObject = EventHandle(_swapChain2->GetFrameLatencyWaitableObject());
 		}
 	}
 	else
-#endif
 	{
 		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::ResizeBuffers;
 		D2DX_LOG("Using 'ResizeBuffers' backbuffer sizing strategy.")
