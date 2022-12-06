@@ -130,6 +130,7 @@ namespace d2dx
 		std::vector<Shadow> _shadows;
 		std::vector<Text> _texts;
 		std::vector<Text> _prevTexts;
+		int32_t _currentFrameTime = 0;
 		int32_t _sinceLastUpdate = 0;
 		int32_t _frameTimeAdjustment = 0;
 		int32_t _halfGameWidth = 0;
