@@ -34,26 +34,36 @@ namespace d2dx
 			_In_ uint32_t prevActualTime,
 			_In_ uint32_t projectedTime);
 
-		Offset GetOffset(
+		Offset GetUnitOffset(
 			_In_ const D2::UnitAny* unit,
 			_In_ Offset screenPos,
 			_In_ bool isPlayer);
 
-		void StartShadow(
+		void StartUnitShadow(
 			_In_ Offset screenPos,
 			_In_ std::size_t vertexStart);
 		
-		void AddShadowVerticies(
+		void AddUnitShadowVerticies(
 			_In_ std::size_t vertexEnd);
 		
-		void UpdateShadowVerticies(
+		void UpdateUnitShadowVerticies(
 			_Inout_ Vertex *vertices);
 
-		Offset GetShadowOffset(
+		Offset GetUnitShadowOffset(
 			_In_ Offset screenPos);
 
+		Offset GetTextOffset(
+			_In_ uint64_t id,
+			_In_ Offset pos);
+
+		void UpdateGameSize(
+			_In_ Size gameSize)
+		{
+			_halfGameWidth = gameSize.width / 2;
+		}
+
 	private:
-		void OnUnexpectedUpdate() noexcept;
+		void OnUnexpectedUpdate(char const* cause) noexcept;
 
 		struct Unit final {
 			Unit(D2::UnitAny const* unit, UnitInfo const &unitInfo, Offset screenPos) :
@@ -96,13 +106,33 @@ namespace d2dx
 			std::size_t vertexEnd;
 		};
 
+		struct Text final {
+			Text(uint64_t id, Offset pos) :
+				id(id),
+				actualPos(pos),
+				baseOffset({ 0, 0 }),
+				predictionOffset({ 0, 0 }),
+				lastRenderedPos(pos),
+				nextIdx(-1)
+			{}
+
+			uint64_t id;
+			Offset actualPos;
+			Offset baseOffset;
+			Offset predictionOffset;
+			Offset lastRenderedPos;
+			std::size_t nextIdx;
+		};
+
 		std::shared_ptr<IGameHelper> _gameHelper;
 		std::vector<Unit> _units;
 		std::vector<Unit> _prevUnits;
 		std::vector<Shadow> _shadows;
-		int32_t _currentUpdateTime = 0;
+		std::vector<Text> _texts;
+		std::vector<Text> _prevTexts;
 		int32_t _sinceLastUpdate = 0;
 		int32_t _frameTimeAdjustment = 0;
+		int32_t _halfGameWidth = 0;
 		bool _update = false;
 	};
 }

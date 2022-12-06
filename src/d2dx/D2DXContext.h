@@ -31,7 +31,6 @@
 #include "MotionPredictor.h"
 #include "SurfaceIdTracker.h"
 #include "TextureHasher.h"
-#include "TextMotionPredictor.h"
 #include "WeatherMotionPredictor.h"
 #include "Vertex.h"
 
@@ -254,7 +253,6 @@ namespace d2dx
 		std::shared_ptr<CompatibilityModeDisabler> _compatibilityModeDisabler;
 		TextureHasher _textureHasher;
 		MotionPredictor _motionPredictor;
-		TextMotionPredictor _textMotionPredictor;
 		WeatherMotionPredictor _weatherMotionPredictor;
 		SurfaceIdTracker _surfaceIdTracker;
 
