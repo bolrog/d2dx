@@ -138,7 +138,7 @@ Offset MotionPredictor::GetUnitOffset(
 		}
 		else {
 			prev.baseOffset = prev.lastRenderedPos - prev.actualPos;
-			prev.predictionOffset = (info.pos + predOffset / 2) - prev.lastRenderedPos;
+			prev.predictionOffset = (info.pos + predOffset / 4) - prev.lastRenderedPos;
 			if (isPlayer) {
 				D2DX_LOG_PROFILE(
 					"MotionPredictor: Update player velocity %.4f/frame",
@@ -260,7 +260,7 @@ Offset MotionPredictor::GetTextOffset(
 		}
 		else {
 			prev.baseOffset = prev.lastRenderedPos - prev.actualPos;
-			prev.predictionOffset = (pos + predOffset / 2) - prev.lastRenderedPos;
+			prev.predictionOffset = (pos + predOffset / 4) - prev.lastRenderedPos;
 		}
 	}
 
