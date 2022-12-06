@@ -17,7 +17,7 @@
 	along with D2DX.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "pch.h"
-#include "UnitMotionPredictor.h"
+#include "MotionPredictor.h"
 #include "Vertex.h"
 
 using namespace d2dx;
@@ -47,7 +47,7 @@ Offset doubleToFixed(OffsetT<double> x) {
 }
 
 _Use_decl_annotations_
-UnitMotionPredictor::UnitMotionPredictor(
+MotionPredictor::MotionPredictor(
 	const std::shared_ptr<IGameHelper>& gameHelper) :
 	_gameHelper{ gameHelper }
 {
@@ -56,7 +56,7 @@ UnitMotionPredictor::UnitMotionPredictor(
 	_shadows.reserve(1024);
 }
 
-void UnitMotionPredictor::OnUnexpectedUpdate() noexcept
+void MotionPredictor::OnUnexpectedUpdate() noexcept
 {
 	D2DX_LOG_PROFILE("MotionPredictor: Unexpected frame update");
 	_update = true;
@@ -81,7 +81,7 @@ void UnitMotionPredictor::OnUnexpectedUpdate() noexcept
 }
 
 _Use_decl_annotations_
-Offset UnitMotionPredictor::GetOffset(
+Offset MotionPredictor::GetOffset(
 	D2::UnitAny const* unit,
 	Offset screenPos,
 	bool isPlayer)
@@ -159,7 +159,7 @@ Offset UnitMotionPredictor::GetOffset(
 }
 
 _Use_decl_annotations_
-Offset UnitMotionPredictor::GetShadowOffset(
+Offset MotionPredictor::GetShadowOffset(
 	Offset screenPos)
 {
 	for (auto &unit: _prevUnits) {
@@ -172,7 +172,7 @@ Offset UnitMotionPredictor::GetShadowOffset(
 
 
 _Use_decl_annotations_
-void UnitMotionPredictor::StartShadow(
+void MotionPredictor::StartShadow(
 	Offset screenPos,
 	std::size_t vertexStart)
 {
@@ -180,14 +180,14 @@ void UnitMotionPredictor::StartShadow(
 }
 
 _Use_decl_annotations_
-void UnitMotionPredictor::AddShadowVerticies(
+void MotionPredictor::AddShadowVerticies(
 	std::size_t vertexEnd)
 {
 	_shadows.back().vertexEnd = vertexEnd;
 }
 
 _Use_decl_annotations_
-void UnitMotionPredictor::UpdateShadowVerticies(
+void MotionPredictor::UpdateShadowVerticies(
 	Vertex *vertices)
 {
 	for (auto& shadow : _shadows) {
@@ -202,7 +202,7 @@ void UnitMotionPredictor::UpdateShadowVerticies(
 }
 
 _Use_decl_annotations_
-void UnitMotionPredictor::PrepareForNextFrame(
+void MotionPredictor::PrepareForNextFrame(
 	_In_ uint32_t prevProjectedTime,
 	_In_ uint32_t prevActualTime,
 	_In_ uint32_t projectedTime)

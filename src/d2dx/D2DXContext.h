@@ -28,10 +28,10 @@
 #include "IRenderContext.h"
 #include "IWin32InterceptionHandler.h"
 #include "CompatibilityModeDisabler.h"
+#include "MotionPredictor.h"
 #include "SurfaceIdTracker.h"
 #include "TextureHasher.h"
 #include "TextMotionPredictor.h"
-#include "UnitMotionPredictor.h"
 #include "WeatherMotionPredictor.h"
 #include "Vertex.h"
 
@@ -253,7 +253,7 @@ namespace d2dx
 		std::unique_ptr<IBuiltinResMod> _builtinResMod;
 		std::shared_ptr<CompatibilityModeDisabler> _compatibilityModeDisabler;
 		TextureHasher _textureHasher;
-		UnitMotionPredictor _unitMotionPredictor;
+		MotionPredictor _motionPredictor;
 		TextMotionPredictor _textMotionPredictor;
 		WeatherMotionPredictor _weatherMotionPredictor;
 		SurfaceIdTracker _surfaceIdTracker;

@@ -23,10 +23,10 @@
 
 namespace d2dx
 {
-	class UnitMotionPredictor final
+	class MotionPredictor final
 	{
 	public:
-		UnitMotionPredictor(
+		MotionPredictor(
 			_In_ const std::shared_ptr<IGameHelper>& gameHelper);
 
 		void PrepareForNextFrame(

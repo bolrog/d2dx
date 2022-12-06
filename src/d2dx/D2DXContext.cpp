@@ -69,7 +69,7 @@ D2DXContext::D2DXContext(
 	_lastScreenOpenMode{ 0 },
 	_surfaceIdTracker{ gameHelper },
 	_textMotionPredictor{ gameHelper },
-	_unitMotionPredictor{ gameHelper },
+	_motionPredictor{ gameHelper },
 	_weatherMotionPredictor{ gameHelper }
 {
 	_threadId = GetCurrentThreadId();
@@ -421,8 +421,8 @@ void D2DXContext::OnBufferSwap()
 	{
 		Timer timer(ProfCategory::UnitMotion);
 
-		auto playerOffset = _unitMotionPredictor.GetOffset(_gameHelper->GetPlayerUnit(), _playerScreenPos, true);
-		_unitMotionPredictor.UpdateShadowVerticies(_vertices.items);
+		auto playerOffset = _motionPredictor.GetOffset(_gameHelper->GetPlayerUnit(), _playerScreenPos, true);
+		_motionPredictor.UpdateShadowVerticies(_vertices.items);
 
 		for (uint32_t i = 0; i < _batchCount; ++i)
 		{
@@ -458,7 +458,7 @@ void D2DXContext::OnBufferSwap()
 
 	{
 		Timer timer(ProfCategory::UnitMotion);
-		_unitMotionPredictor.PrepareForNextFrame(
+		_motionPredictor.PrepareForNextFrame(
 			prevProjectedTimeFp,
 			_renderContext->GetPrevFrameTimeFp(),
 			_renderContext->GetProjectedFrameTimeFp());
@@ -950,7 +950,7 @@ void D2DXContext::OnDrawVertexArrayContiguous(
 	pVertices[5] = pVertices[2];
 
 	if (_captureShadowVerticies) {
-		_unitMotionPredictor.AddShadowVerticies(_vertexCount + 6);
+		_motionPredictor.AddShadowVerticies(_vertexCount + 6);
 	}
 
 	_vertexCount += 6;
@@ -1369,7 +1369,7 @@ Offset D2DXContext::BeginDrawImage(
 		}
 		else
 		{
-			offset = _unitMotionPredictor.GetOffset(currentlyDrawingUnit, pos, false);
+			offset = _motionPredictor.GetOffset(currentlyDrawingUnit, pos, false);
 		}
 	}
 	else
@@ -1386,7 +1386,7 @@ Offset D2DXContext::BeginDrawImage(
 			}
 			else
 			{
-				_unitMotionPredictor.StartShadow(pos, _vertexCount);
+				_motionPredictor.StartShadow(pos, _vertexCount);
 				_captureShadowVerticies = true;
 			}
 		}

@@ -54,7 +54,7 @@
     <ClCompile Include="RenderContextResources.cpp" />
     <ClCompile Include="CompatibilityModeDisabler.cpp" />
     <ClCompile Include="SurfaceIdTracker.cpp" />
-    <ClCompile Include="UnitMotionPredictor.cpp" />
+    <ClCompile Include="MotionPredictor.cpp" />
     <ClCompile Include="Options.cpp" />
     <ClCompile Include="..\..\thirdparty\toml\toml.c">
       <Filter>thirdparty\toml</Filter>
@@ -139,7 +139,7 @@
     <ClInclude Include="SurfaceIdTracker.h" />
     <ClInclude Include="ID2InterceptionHandler.h" />
     <ClInclude Include="D2Types.h" />
-    <ClInclude Include="UnitMotionPredictor.h" />
+    <ClInclude Include="MotionPredictor.h" />
     <ClInclude Include="Options.h" />
     <ClInclude Include="..\..\thirdparty\toml\toml.h">
       <Filter>thirdparty\toml</Filter>
