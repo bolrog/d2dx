@@ -303,8 +303,8 @@ void __stdcall D2Gfx_DrawImage_Hooked(
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
-		auto offset = d2InterceptionHandler->BeginDrawImage(cellContext, nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawImage);
-		D2Gfx_DrawImage_Real(cellContext, nXpos + offset.x, nYpos + offset.y, dwGamma, nDrawMode, pPalette);
+		d2InterceptionHandler->BeginDrawImage(cellContext, nDrawMode, { nXpos, nYpos }, D2Function::D2Gfx_DrawImage);
+		D2Gfx_DrawImage_Real(cellContext, nXpos, nYpos, dwGamma, nDrawMode, pPalette);
 		d2InterceptionHandler->EndDrawImage();
 	}
 	else
@@ -400,11 +400,10 @@ void __stdcall D2Gfx_DrawShadow_Hooked(
 	int nYpos)
 {
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
-
 	if (d2InterceptionHandler)
 	{
-		auto offset = d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos }, D2Function::D2Gfx_DrawShadow);
-		D2Gfx_DrawShadow_Real(cellContext, nXpos + offset.x, nYpos + offset.y);
+		d2InterceptionHandler->BeginDrawImage(cellContext, (uint32_t)-1, { nXpos, nYpos }, D2Function::D2Gfx_DrawShadow);
+		D2Gfx_DrawShadow_Real(cellContext, nXpos, nYpos);
 		d2InterceptionHandler->EndDrawImage();
 	}
 	else
@@ -466,7 +465,7 @@ void __fastcall D2Win_DrawFramedText_Hooked(
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
-		auto offset = d2InterceptionHandler->BeginDrawText(wStr, { xPos, yPos }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawFramedText);
+		Offset offset = d2InterceptionHandler->BeginDrawText(wStr, { xPos, yPos }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawFramedText);
 		D2Win_DrawFramedText_Real(wStr, xPos + offset.x, yPos + offset.y, dwColor, centered);
 		d2InterceptionHandler->EndDrawText();
 	}
@@ -487,8 +486,8 @@ void __fastcall D2Win_DrawRectangledText_Hooked(
 	auto d2InterceptionHandler = GetD2InterceptionHandler();
 	if (d2InterceptionHandler)
 	{
-		auto offset = d2InterceptionHandler->BeginDrawText(wStr, { xPos, yPos }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawRectangledText);
-		D2Win_DrawRectangledText_Real(wStr, xPos + offset.x, yPos + offset.y, rectColor, rectTransparency, color);
+		d2InterceptionHandler->BeginDrawText(wStr, { xPos, yPos }, (uint32_t)(uintptr_t)_ReturnAddress(), D2Function::D2Win_DrawRectangledText);
+		D2Win_DrawRectangledText_Real(wStr, xPos, yPos, rectColor, rectTransparency, color);
 		d2InterceptionHandler->EndDrawText();
 	}
 	else

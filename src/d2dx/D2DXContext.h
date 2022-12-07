@@ -192,7 +192,7 @@ namespace d2dx
 
 		virtual void EndDrawText() override;
 
-		virtual Offset BeginDrawImage(
+		virtual void BeginDrawImage(
 			_In_ const D2::CellContextAny* cellContext,
 			_In_ uint32_t drawMode,
 			_In_ Offset pos,
@@ -279,6 +279,7 @@ namespace d2dx
 		bool _isDrawingText = false;
 		Offset _playerScreenPos = { 0,0 };
 		bool _captureShadowVerticies = false;
+		OffsetF _drawOffset = { 0.f, 0.f };
 
 		uint32_t _lastWeatherParticleIndex = 0xFFFFFFFF;
 

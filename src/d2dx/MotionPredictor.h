@@ -34,7 +34,7 @@ namespace d2dx
 			_In_ uint32_t prevActualTime,
 			_In_ uint32_t projectedTime);
 
-		Offset GetUnitOffset(
+		OffsetF GetUnitOffset(
 			_In_ const D2::UnitAny* unit,
 			_In_ Offset screenPos,
 			_In_ bool isPlayer);
@@ -49,10 +49,7 @@ namespace d2dx
 		void UpdateUnitShadowVerticies(
 			_Inout_ Vertex *vertices);
 
-		Offset GetUnitShadowOffset(
-			_In_ Offset screenPos);
-
-		Offset GetTextOffset(
+		OffsetF GetTextOffset(
 			_In_ uint64_t id,
 			_In_ Offset pos);
 
@@ -74,7 +71,7 @@ namespace d2dx
 				baseOffset(0, 0),
 				predictionOffset(0, 0),
 				lastRenderedPos(unitInfo.pos),
-				lastRenderedScreenOffset({0, 0}),
+				lastRenderedScreenOffset({0.f, 0.f}),
 				screenPos(screenPos),
 				nextIdx(-1)
 			{}
@@ -86,7 +83,7 @@ namespace d2dx
 			Offset baseOffset;
 			Offset predictionOffset;
 			Offset lastRenderedPos;
-			Offset lastRenderedScreenOffset;
+			OffsetF lastRenderedScreenOffset;
 			Offset screenPos;
 			std::size_t nextIdx;
 		};
@@ -110,17 +107,17 @@ namespace d2dx
 			Text(uint64_t id, Offset pos) :
 				id(id),
 				actualPos(pos),
-				baseOffset({ 0, 0 }),
-				predictionOffset({ 0, 0 }),
-				lastRenderedPos(pos),
+				baseOffset({ 0.f, 0.f }),
+				predictionOffset({ 0.f, 0.f }),
+				lastRenderedPos(OffsetF(pos)),
 				nextIdx(-1)
 			{}
 
 			uint64_t id;
 			Offset actualPos;
-			Offset baseOffset;
-			Offset predictionOffset;
-			Offset lastRenderedPos;
+			OffsetF baseOffset;
+			OffsetF predictionOffset;
+			OffsetF lastRenderedPos;
 			std::size_t nextIdx;
 		};
 
@@ -132,7 +129,7 @@ namespace d2dx
 		std::vector<Text> _prevTexts;
 		int32_t _currentFrameTime = 0;
 		int32_t _sinceLastUpdate = 0;
-		int32_t _frameTimeAdjustment = 0;
+		int32_t _fromPrevFrame = 0;
 		int32_t _halfGameWidth = 0;
 		bool _update = false;
 	};

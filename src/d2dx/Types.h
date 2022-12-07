@@ -133,7 +133,7 @@ namespace d2dx
 		}
 
 		template<typename U>
-		OffsetT(OffsetT<U> const &other) noexcept:
+		explicit OffsetT(OffsetT<U> const &other) noexcept:
 			x(static_cast<T>(other.x)),
 			y(static_cast<T>(other.y))
 		{}

@@ -26,7 +26,7 @@ using namespace DirectX;
 const std::int32_t D2_FRAME_LENGTH = (1 << 16) / 25;
 const double FLOAT_TO_FIXED_MUL = static_cast<float>(1 << 16);
 const double FIXED_TO_FLOAT_MUL = 1.f / FLOAT_TO_FIXED_MUL;
-const OffsetT<double> GAME_TO_SCREEN_POS = { 32. / 1.41421356237, 16. / 1.41421356237 };
+const OffsetF GAME_TO_SCREEN_POS = { 32.f / 1.41421356237f, 16.f / 1.41421356237f };
 const std::int32_t ADDITIONAL_PREDICTION_TIME = 10;
 
 double fixedToDouble(int32_t x) {
@@ -78,7 +78,7 @@ void MotionPredictor::OnUnexpectedUpdate(char const *cause) noexcept
 			cause, jumpAhead);
 		// In the second half of the current frame.
 		// Jump ahead to the next frame as this is likely behind the game.
-		_frameTimeAdjustment = jumpAhead + _currentFrameTime;
+		_fromPrevFrame = jumpAhead + _currentFrameTime;
 		_sinceLastUpdate = 0;
 	}
 
@@ -88,13 +88,13 @@ void MotionPredictor::OnUnexpectedUpdate(char const *cause) noexcept
 		pred.predictionOffset = -pred.baseOffset;
 	}
 	for (auto& text : _texts) {
-		text.baseOffset = text.lastRenderedPos - text.actualPos;
+		text.baseOffset = text.lastRenderedPos - OffsetF(text.actualPos);
 		text.predictionOffset = { 0, 0 };
 	}
 }
 
 _Use_decl_annotations_
-Offset MotionPredictor::GetUnitOffset(
+OffsetF MotionPredictor::GetUnitOffset(
 	D2::UnitAny const* unit,
 	Offset screenPos,
 	bool isPlayer)
@@ -114,7 +114,7 @@ Offset MotionPredictor::GetUnitOffset(
 		return _units[prevIter->nextIdx].lastRenderedScreenOffset;
 	}
 
-	auto prev = *prevIter;
+	Unit prev = *prevIter;
 	prevIter->nextIdx = _units.size();
 	prev.screenPos = screenPos;
 	if (!_update && prev.actualPos != info.pos) {
@@ -145,14 +145,14 @@ Offset MotionPredictor::GetUnitOffset(
 				D2DX_LOG_PROFILE(
 					"MotionPredictor: Update player velocity %.4f/frame",
 					fixedToDouble(prev.predictionOffset).RealLength()
-					* (fixedToDouble(D2_FRAME_LENGTH) / fixedToDouble(D2_FRAME_LENGTH + _frameTimeAdjustment))
+					* (fixedToDouble(D2_FRAME_LENGTH) / fixedToDouble(D2_FRAME_LENGTH + _fromPrevFrame))
 				);
 			}
 		}
 	}
 
-	double predFract = fixedToDouble(_sinceLastUpdate + _frameTimeAdjustment)
-		/ fixedToDouble(D2_FRAME_LENGTH + _frameTimeAdjustment);
+	double predFract = fixedToDouble(_sinceLastUpdate + _fromPrevFrame)
+		/ fixedToDouble(D2_FRAME_LENGTH + _fromPrevFrame);
 	auto offset = fixedToDouble(prev.baseOffset) + fixedToDouble(prev.predictionOffset) * predFract;
 	auto renderPos = prev.actualPos + doubleToFixed(offset);
 
@@ -164,25 +164,11 @@ Offset MotionPredictor::GetUnitOffset(
 	}
 
 	prev.lastRenderedPos = renderPos;
-	auto screenOffset = GAME_TO_SCREEN_POS * OffsetT<double>{ offset.x - offset.y, offset.x + offset.y } + 0.5;
-	prev.lastRenderedScreenOffset = { (int32_t)std::round(screenOffset.x), (int32_t)std::round(screenOffset.y) };
+	prev.lastRenderedScreenOffset = GAME_TO_SCREEN_POS * OffsetF(static_cast<float>(offset.x - offset.y), static_cast<float>(offset.x + offset.y));
 	
 	_units.push_back(prev);
 	return prev.lastRenderedScreenOffset;
 }
-
-_Use_decl_annotations_
-Offset MotionPredictor::GetUnitShadowOffset(
-	Offset screenPos)
-{
-	for (auto &unit: _prevUnits) {
-		if (std::abs(unit.screenPos.x - screenPos.x) < 10 && std::abs(unit.screenPos.y - screenPos.y) < 10) {
-			return unit.lastRenderedScreenOffset;
-		}
-	}
-	return { 0, 0 };
-}
-
 
 _Use_decl_annotations_
 void MotionPredictor::StartUnitShadow(
@@ -207,7 +193,8 @@ void MotionPredictor::UpdateUnitShadowVerticies(
 		for (auto unit = _units.rbegin(), end = _units.rend(); unit != end; ++unit) {
 			if (std::abs(unit->screenPos.x - shadow.screenPos.x) < 10 && std::abs(unit->screenPos.y - shadow.screenPos.y) < 10) {
 				for (auto i = shadow.vertexStart; i != shadow.vertexEnd; ++i) {
-					vertices[i].AddOffset(unit->lastRenderedScreenOffset.x, unit->lastRenderedScreenOffset.y);
+					auto offset = unit->lastRenderedScreenOffset;
+					vertices[i].AddOffset(offset.x, offset.y);
 				}
 			}
 		}
@@ -216,7 +203,7 @@ void MotionPredictor::UpdateUnitShadowVerticies(
 
 
 _Use_decl_annotations_
-Offset MotionPredictor::GetTextOffset(
+OffsetF MotionPredictor::GetTextOffset(
 	uint64_t id,
 	Offset pos)
 {
@@ -224,21 +211,21 @@ Offset MotionPredictor::GetTextOffset(
 	if (((screenOpenMode & 1) && pos.x >= _halfGameWidth)
 		|| ((screenOpenMode & 2) && pos.x <= _halfGameWidth))
 	{
-		return { 0, 0 };
+		return { 0.f, 0.f };
 	}
 
 	auto prevIter = std::lower_bound(_prevTexts.begin(), _prevTexts.end(), id, [&](auto const& x, auto const& y) { return x.id < y; });
 	if (prevIter == _prevTexts.end()) {
 		_texts.push_back(Text(id, pos));
-		return { 0, 0 };
+		return { 0.f, 0.f };
 	}
 	if (prevIter->nextIdx != -1) {
 		// Already processed this frame.
-		auto prev = _texts[prevIter->nextIdx];
-		return prev.lastRenderedPos - prev.actualPos;
+		Text const &prev = _texts[prevIter->nextIdx];
+		return prev.lastRenderedPos - OffsetF(prev.actualPos);
 	}
 
-	auto prev = *prevIter;
+	Text prev = *prevIter;
 	prevIter->nextIdx = _texts.size();
 	if (!_update && prev.actualPos != pos) {
 		OnUnexpectedUpdate("Text");
@@ -248,28 +235,28 @@ Offset MotionPredictor::GetTextOffset(
 		if (_update) {
 			// Text hasn't moved, stop moving the text as snapping to it's actual
 			// position is hard to look at
-			prev.baseOffset = prev.lastRenderedPos - prev.actualPos;
-			prev.predictionOffset = Offset(0, 0);
+			prev.baseOffset = prev.lastRenderedPos - OffsetF(prev.actualPos);
+			prev.predictionOffset = OffsetF(0.f, 0.f);
 		}
 	}
 	else {
-		auto predOffset = pos - prev.actualPos;
+		auto predOffset = OffsetF(pos - prev.actualPos);
 		prev.actualPos = pos;
 		if (std::abs(predOffset.x) >= 45 || std::abs(predOffset.y) >= 22) {
 			// Either texts were rearranged, or the player teleported
-			prev.baseOffset = { 0, 0 };
-			prev.predictionOffset = { 0, 0 };
+			prev.baseOffset = { 0.f, 0.f };
+			prev.predictionOffset = { 0.f, 0.f };
 		}
 		else {
-			prev.baseOffset = prev.lastRenderedPos - prev.actualPos;
-			prev.predictionOffset = (pos + predOffset / 4) - prev.lastRenderedPos;
+			prev.baseOffset = prev.lastRenderedPos - OffsetF(prev.actualPos);
+			prev.predictionOffset = (OffsetF(pos) + predOffset / 4) - prev.lastRenderedPos;
 		}
 	}
 
-	double predFract = static_cast<double>(_sinceLastUpdate + _frameTimeAdjustment)
-		/ static_cast<double>(D2_FRAME_LENGTH + _frameTimeAdjustment);
-	auto offset = prev.baseOffset + Offset((OffsetT<double>(prev.predictionOffset) * predFract).Round());
-	prev.lastRenderedPos = prev.actualPos + offset;
+	float predFract = static_cast<float>(_sinceLastUpdate + _fromPrevFrame)
+		/ static_cast<float>(D2_FRAME_LENGTH + _fromPrevFrame);
+	auto offset = prev.baseOffset + prev.predictionOffset * predFract;
+	prev.lastRenderedPos = OffsetF(prev.actualPos) + offset;
 
 	_texts.push_back(prev);
 	return offset;
@@ -300,13 +287,13 @@ void MotionPredictor::PrepareForNextFrame(
 		D2DX_LOG_PROFILE("MotionPredictor: Expecting frame update");
 		_update = true;
 		_sinceLastUpdate -= D2_FRAME_LENGTH;
-		_frameTimeAdjustment = timeBeforeUpdate;
+		_fromPrevFrame = timeBeforeUpdate;
 		if (_sinceLastUpdate >= D2_FRAME_LENGTH) {
 			_prevUnits.clear();
 			_prevTexts.clear();
 			_currentFrameTime = 0;
 			_sinceLastUpdate = 0;
-			_frameTimeAdjustment = 0;
+			_fromPrevFrame = 0;
 		}
 	}
 	else if (_sinceLastUpdate < -D2_FRAME_LENGTH) {
@@ -315,11 +302,11 @@ void MotionPredictor::PrepareForNextFrame(
 		_prevTexts.clear();
 		_currentFrameTime = 0;
 		_sinceLastUpdate = 0;
-		_frameTimeAdjustment = 0;
+		_fromPrevFrame = 0;
 	}
 
 	D2DX_LOG_PROFILE(
 		"MotionPredictor: Predict at %d/%d (+%d) of a frame",
-		_sinceLastUpdate, D2_FRAME_LENGTH, _frameTimeAdjustment
+		_sinceLastUpdate, D2_FRAME_LENGTH, _fromPrevFrame
 	);
 }

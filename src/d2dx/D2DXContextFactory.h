@@ -32,6 +32,8 @@ namespace d2dx
 
 	class Timer final {
 	public:
+#pragma warning(push)
+#pragma warning(disable: 26495)
 		Timer(ProfCategory category) :
 			category(category)
 #ifdef D2DX_PROFILE
@@ -39,6 +41,7 @@ namespace d2dx
 			, start(TimeStart())
 #endif // D2DX_PROFILE
 		{}
+#pragma warning(pop)
 
 #ifdef D2DX_PROFILE
 		~Timer() {

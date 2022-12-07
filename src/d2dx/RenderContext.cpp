@@ -614,8 +614,8 @@ uint32_t RenderContext::UpdateVerticesWithFullScreenTriangle(
 {
 	Vertex vertices[3] = {
 		Vertex{ 0, 0, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
-		Vertex{ dstRect.size.width * 2, 0, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
-		Vertex{ 0, dstRect.size.height * 2, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
+		Vertex{ static_cast<float>(dstRect.size.width * 2), 0, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
+		Vertex{ 0, static_cast<float>(dstRect.size.height * 2), srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
 	};
 
 	auto mapType = D3D11_MAP_WRITE_NO_OVERWRITE;

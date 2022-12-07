@@ -19,7 +19,7 @@
 
 struct DisplayVSInput
 {
-	int2 pos : POSITION;
+	float2 pos : POSITION;
 	int2 st : TEXCOORD0;
 	float4 color : COLOR;
 	uint2 misc : TEXCOORD1;
