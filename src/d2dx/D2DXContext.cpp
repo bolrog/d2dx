@@ -667,7 +667,7 @@ void D2DXContext::OnDrawLine(
 
 		auto dir = endPos - startPos;
 		float len = dir.Length();
-		dir.Normalize();
+		dir.NormalizeToLen(1.);
 
 		const float blendFactor = 0.1f;
 		const float oneMinusBlendFactor = 1.0f - blendFactor;
@@ -679,7 +679,7 @@ void D2DXContext::OnDrawLine(
 		else
 		{
 			_avgDir = _avgDir * oneMinusBlendFactor + dir * blendFactor;
-			_avgDir.Normalize();
+			_avgDir.NormalizeToLen(1.);
 		}
 		dir = _avgDir;
 
@@ -733,27 +733,25 @@ void D2DXContext::OnDrawLine(
 	}
 	else
 	{
-		OffsetF wideningVec = { d2Vertex0->y - d2Vertex1->y, d2Vertex1->x - d2Vertex0->x };
-		const float len = wideningVec.Length();
-		const float halfinvlen = 1.0f / (2.0f * len);
-		wideningVec *= halfinvlen;
+		OffsetF widening(d2Vertex1->y - d2Vertex0->y, d2Vertex1->x - d2Vertex0->x);
+		widening.NormalizeToLen(0.5f);
 
 		Vertex vertex1 = vertex0;
 		Vertex vertex2 = vertex0;
 		Vertex vertex3 = vertex0;
 
-		vertex0.SetPosition(d2Vertex0->x - wideningVec.x, d2Vertex0->y - wideningVec.y);
-		vertex1.SetPosition(d2Vertex0->x + wideningVec.x, d2Vertex0->y + wideningVec.y);
-		vertex2.SetPosition(d2Vertex1->x - wideningVec.x, d2Vertex1->y - wideningVec.y);
-		vertex3.SetPosition(d2Vertex1->x + wideningVec.x, d2Vertex1->y + wideningVec.y);
+		vertex0.SetPosition(d2Vertex1->x + widening.x, d2Vertex1->y - widening.y);
+		vertex1.SetPosition(d2Vertex0->x + widening.x, d2Vertex0->y - widening.y);
+		vertex2.SetPosition(d2Vertex1->x - widening.x, d2Vertex1->y + widening.y);
+		vertex3.SetPosition(d2Vertex0->x - widening.x, d2Vertex0->y + widening.y);
 
 		assert((_vertexCount + 6) < _vertices.capacity);
 		_vertices.items[_vertexCount++] = vertex0;
 		_vertices.items[_vertexCount++] = vertex1;
 		_vertices.items[_vertexCount++] = vertex2;
 		_vertices.items[_vertexCount++] = vertex1;
-		_vertices.items[_vertexCount++] = vertex2;
 		_vertices.items[_vertexCount++] = vertex3;
+		_vertices.items[_vertexCount++] = vertex2;
 
 		batch.SetVertexCount(6);
 	}

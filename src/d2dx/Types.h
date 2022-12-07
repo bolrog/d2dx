@@ -240,9 +240,9 @@ namespace d2dx
 			return { std::round(x), std::round(y) };
 		}
 
-		void Normalize() noexcept
+		void NormalizeToLen(T len) noexcept
 		{
-			const T invlen = T{ 1 } / Length();
+			const T invlen = len / Length();
 			x *= invlen;
 			y *= invlen;
 		}
