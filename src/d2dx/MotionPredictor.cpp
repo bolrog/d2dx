@@ -144,7 +144,7 @@ OffsetF MotionPredictor::GetUnitOffset(
 			if (isPlayer) {
 				D2DX_LOG_PROFILE(
 					"MotionPredictor: Update player velocity %.4f/frame",
-					fixedToDouble(prev.predictionOffset).RealLength()
+					fixedToDouble(prev.predictionOffset).Length()
 					* (fixedToDouble(D2_FRAME_LENGTH) / fixedToDouble(D2_FRAME_LENGTH + _fromPrevFrame))
 				);
 			}
@@ -159,7 +159,7 @@ OffsetF MotionPredictor::GetUnitOffset(
 	if (isPlayer) {
 		D2DX_LOG_PROFILE(
 			"MotionPredictor: Move player by %f",
-			fixedToDouble(prev.lastRenderedPos - renderPos).RealLength()
+			fixedToDouble(prev.lastRenderedPos - renderPos).Length()
 		);
 	}
 

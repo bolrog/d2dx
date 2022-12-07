@@ -230,15 +230,9 @@ namespace d2dx
 		bool operator==(const OffsetT& rhs) const = default;
 		bool operator!=(const OffsetT& rhs) const = default;
 
-		T RealLength() const noexcept
-		{
-			return std::hypot(x, y);
-		}
-
 		T Length() const noexcept
 		{
-			T lensqr = x * x + y * y;
-			return lensqr > T{ 0.01 } ? std::sqrt(lensqr) : T{1};
+			return std::hypot(x, y);
 		}
 
 		OffsetT<T> Round() const noexcept
