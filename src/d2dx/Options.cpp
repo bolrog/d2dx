@@ -100,10 +100,10 @@ void Options::ApplyCfg(
 			}
 		}
 
-		auto filtering = toml_int_in(game, "filtering");
-		if (filtering.ok)
+		auto upscaleFilter = toml_int_in(game, "filtering");
+		if (upscaleFilter.ok)
 		{
-			_filtering = (FilteringOption)filtering.u.i;
+			_upscaleFilter = (UpscaleOption)upscaleFilter.u.i;
 		}
 	}
 
@@ -225,7 +225,7 @@ void Options::SetUserSpecifiedGameSize(
 	_userSpecifiedGameSize = { max(-1, size.width), max(-1, size.height) };
 }
 
-FilteringOption Options::GetFiltering() const
+UpscaleOption Options::GetUpscaleFilter() const
 {
-	return _filtering;
+	return _upscaleFilter;
 }
