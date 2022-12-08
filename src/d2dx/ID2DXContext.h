@@ -35,6 +35,7 @@ namespace d2dx
 		Present,
 		PostPresent,
 		TextureDownload,
+		Sleep,
 		Count
 	};
 

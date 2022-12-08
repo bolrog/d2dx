@@ -1434,6 +1434,7 @@ void D2DXContext::WriteProfile() {
 			"TextureHash Miss Rate: %u/%u (%llu%s)\n"
 			"MotionPrediction: %.4fms (%u events)\n"
 			"Draw: %.4fms (%u events)\n"
+			"Sleep: %.4fms (%u events)\n"
 			"ToGpu: %.4fms\n"
 			"PostPresent: %.4fms\n"
 			"PrePresent: %.4fms\n"
@@ -1450,6 +1451,8 @@ void D2DXContext::WriteProfile() {
 			_events[static_cast<std::size_t>(ProfCategory::MotionPrediction)],
 			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Draw)]),
 			_events[static_cast<std::size_t>(ProfCategory::Draw)],
+			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::Sleep)]),
+			_events[static_cast<std::size_t>(ProfCategory::Sleep)],
 			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::ToGpu)]),
 			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::PostPresent)]),
 			TimeToMs(_times[static_cast<std::size_t>(ProfCategory::PrePresent)]),

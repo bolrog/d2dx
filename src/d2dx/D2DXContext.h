@@ -294,6 +294,11 @@ namespace d2dx
 			_In_ int64_t time,
 			_In_ ProfCategory category) override
 		{
+			if (category == ProfCategory::Sleep &&
+				(_skipCountingSleep || _threadId != GetCurrentThreadId()))\
+			{
+				return;
+			}
 			_times[static_cast<std::size_t>(category)] += time;
 			_events[static_cast<std::size_t>(category)]++;
 			_times[static_cast<std::size_t>(ProfCategory::Count)] += time;

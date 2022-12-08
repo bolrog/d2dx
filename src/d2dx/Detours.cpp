@@ -64,6 +64,7 @@ Sleep_Real)(
 static VOID WINAPI Sleep_Hooked(
 	_In_ DWORD dwMilliseconds)
 {
+	Timer timer(ProfCategory::Sleep);
 	auto win32InterceptionHandler = GetWin32InterceptionHandler();
 	if (win32InterceptionHandler)
 	{
@@ -100,6 +101,7 @@ static DWORD WINAPI SleepEx_Hooked(
 		return SleepEx_Real(dwMilliseconds, bAlertable);
 	}
 
+	Timer timer(ProfCategory::Sleep);
 	auto win32InterceptionHandler = GetWin32InterceptionHandler();
 	if (win32InterceptionHandler)
 	{
