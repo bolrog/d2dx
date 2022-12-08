@@ -28,14 +28,13 @@ namespace d2dx
 {
 	enum class ProfCategory {
 		TextureSource,
-		UnitMotion,
+		MotionPrediction,
 		Draw,
 		ToGpu,
 		PrePresent,
 		Present,
 		PostPresent,
 		TextureDownload,
-		UnitMotionSort,
 		Count
 	};
 
