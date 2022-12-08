@@ -88,6 +88,9 @@ namespace d2dx
 
 		UpscaleOption GetUpscaleFilter() const;
 
+		void SetUpscaleFilter(
+			_In_ UpscaleOption upscaleFilter) noexcept;
+
 	private:
 		uint32_t _flags = 0;
 		int32_t _windowScale = 1;
