@@ -206,8 +206,13 @@ RenderContext::RenderContext(
 
 		if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoVSync) && _frameLatencyWaitableObjectSupported)
 		{
-			D2DX_LOG("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
 			_frameLatencyWaitableObject = EventHandle(_swapChain2->GetFrameLatencyWaitableObject());
+			if (_frameLatencyWaitableObject == nullptr) {
+				_syncStrategy = RenderContextSyncStrategy::Interval1;
+			}
+			else {
+				D2DX_LOG("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
+			}
 		}
 	}
 	else
@@ -470,7 +475,7 @@ void RenderContext::Present()
 			D2DX_CHECK_HR(_swapChain1->Present(0, 0));
 			break;
 		case RenderContextSyncStrategy::FrameLatencyWaitableObject:
-			D2DX_CHECK_HR(_swapChain1->Present(0, 0));
+			D2DX_CHECK_HR(_swapChain1->Present(1, 0));
 			::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
 			break;
 		case RenderContextSyncStrategy::Interval1:
