@@ -37,20 +37,20 @@ namespace d2dx
 		Timer(ProfCategory category) :
 			category(category)
 #ifdef D2DX_PROFILE
-			, context(D2DXContextFactory::GetInstance())
 			, start(TimeStart())
 #endif // D2DX_PROFILE
 		{}
 #pragma warning(pop)
-
 #ifdef D2DX_PROFILE
 		~Timer() {
-			context->AddTime(TimeStart() - start, category);
+			int64_t time = TimeStart() - start;
+			if (auto context = D2DXContextFactory::GetInstance(false)) {
+				context->AddTime(time, category);
+			}
 		}
 #endif // D2DX_PROFILE
 
 	private:
-		ID2DXContext* context;
 		ProfCategory category;
 		int64_t start;
 	};
