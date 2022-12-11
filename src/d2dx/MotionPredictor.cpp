@@ -33,6 +33,10 @@ double fixedToDouble(int32_t x) {
 	return static_cast<double>(x) * FIXED_TO_FLOAT_MUL;
 }
 
+int32_t doubleToFixed(double x) {
+	return static_cast<int32_t>(x * FLOAT_TO_FIXED_MUL);
+}
+
 OffsetT<double> fixedToDouble(Offset x) {
 	return OffsetT<double>(
 		static_cast<double>(x.x) * FIXED_TO_FLOAT_MUL,
@@ -45,6 +49,13 @@ Offset doubleToFixed(OffsetT<double> x) {
 		static_cast<int32_t>(x.x * FLOAT_TO_FIXED_MUL),
 		static_cast<int32_t>(x.y * FLOAT_TO_FIXED_MUL)
 	);
+}
+
+// Calculate the new frame adjustment
+int32_t AdjustRollover(int32_t rollover, int32_t prev_rollover) {
+	double adjustFract = fixedToDouble(rollover) / fixedToDouble(D2_FRAME_LENGTH + prev_rollover);
+	// Solve `y = x/(x + D2_FRAME_LENGTH)` where `y = fromPrevFract`
+	return doubleToFixed(-(fixedToDouble(D2_FRAME_LENGTH) * adjustFract / (adjustFract - 1.)));
 }
 
 _Use_decl_annotations_
@@ -63,22 +74,23 @@ void MotionPredictor::OnUnexpectedUpdate(char const *cause) noexcept
 {
 	_update = true;
 	if (_sinceLastUpdate < D2_FRAME_LENGTH / 2) {
+		// In the first half of the current frame.
+		// Dial back the time a bit as this is likely ahead of the game.
 		auto drawBack = (_currentFrameTime - ADDITIONAL_PREDICTION_TIME) / 4;
 		D2DX_LOG_PROFILE(
 			"MotionPredictor(%s): Unexpected frame update (draw back %d)",
 			cause, drawBack);
-		// In the first half of the current frame.
-		// Dial back the time a bit as this is likely ahead of the game.
 		_sinceLastUpdate -= drawBack;
 	}
 	else {
-		auto jumpAhead = D2_FRAME_LENGTH - _sinceLastUpdate;
-		D2DX_LOG_PROFILE(
-			"MotionPredictor(%s): Unexpected frame update (jump ahead %d)",
-			cause, jumpAhead);
 		// In the second half of the current frame.
 		// Jump ahead to the next frame as this is likely behind the game.
-		_fromPrevFrame = jumpAhead + _currentFrameTime;
+		D2DX_LOG_PROFILE(
+			"MotionPredictor(%s): Unexpected frame update (jump ahead %d)",
+			cause,
+			doubleToFixed(fixedToDouble(_fromPrevFrame) * (1. - fixedToDouble(_currentFrameTime) / fixedToDouble(D2_FRAME_LENGTH - _sinceLastUpdate + _currentFrameTime)))
+		);
+		_fromPrevFrame = AdjustRollover(D2_FRAME_LENGTH - _sinceLastUpdate + _currentFrameTime, _fromPrevFrame);
 		_sinceLastUpdate = 0;
 	}
 
@@ -268,8 +280,8 @@ void MotionPredictor::PrepareForNextFrame(
 	_In_ uint32_t prevActualTime,
 	_In_ uint32_t projectedTime)
 {
-	_sinceLastUpdate -= prevProjectedTime + ADDITIONAL_PREDICTION_TIME;
-	_sinceLastUpdate += prevActualTime;
+	_sinceLastUpdate -= _currentFrameTime;
+	_sinceLastUpdate += _currentFrameTime != 0 ? prevActualTime : 0;
 
 	std::swap(_units, _prevUnits);
 	std::stable_sort(_prevUnits.begin(), _prevUnits.end(), [&](auto& x, auto& y) { return x.unit < y.unit; });
@@ -282,12 +294,12 @@ void MotionPredictor::PrepareForNextFrame(
 
 	auto timeBeforeUpdate = D2_FRAME_LENGTH - _sinceLastUpdate;
 	_currentFrameTime = projectedTime + ADDITIONAL_PREDICTION_TIME;
-	_sinceLastUpdate += projectedTime + ADDITIONAL_PREDICTION_TIME;
+	_sinceLastUpdate += _currentFrameTime;
 	if (_sinceLastUpdate >= D2_FRAME_LENGTH) {
 		D2DX_LOG_PROFILE("MotionPredictor: Expecting frame update");
 		_update = true;
 		_sinceLastUpdate -= D2_FRAME_LENGTH;
-		_fromPrevFrame = timeBeforeUpdate;
+		_fromPrevFrame = AdjustRollover(timeBeforeUpdate, _fromPrevFrame);
 		if (_sinceLastUpdate >= D2_FRAME_LENGTH) {
 			_prevUnits.clear();
 			_prevTexts.clear();
