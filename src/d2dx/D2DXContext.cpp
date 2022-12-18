@@ -421,7 +421,6 @@ void D2DXContext::OnBufferSwap()
 	{
 		Timer timer(ProfCategory::MotionPrediction);
 
-		auto playerOffset = _motionPredictor.GetUnitOffset(_gameHelper->GetPlayerUnit(), _playerScreenPos, true);
 		_motionPredictor.UpdateUnitShadowVerticies(_vertices.items);
 
 		for (uint32_t i = 0; i < _batchCount; ++i)
@@ -437,8 +436,8 @@ void D2DXContext::OnBufferSwap()
 				for (uint32_t j = 0; j < batchVertexCount; ++j)
 				{
 					_vertices.items[vertexIndex++].AddOffset(
-						-playerOffset.x,
-						-playerOffset.y);
+						-_playerOffset.x,
+						-_playerOffset.y);
 				}
 			}
 		}
@@ -1359,6 +1358,10 @@ void D2DXContext::BeginDrawImage(
 			// The player unit itself.
 			_scratchBatch.SetTextureCategory(TextureCategory::Player);
 			_playerScreenPos = pos;
+			if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
+			{
+				_playerOffset = _motionPredictor.GetUnitOffset(currentlyDrawingUnit, pos, true);
+			}
 		}
 		else if (!_options.GetFlag(OptionsFlag::NoMotionPrediction))
 		{

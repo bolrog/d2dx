@@ -278,6 +278,7 @@ namespace d2dx
 
 		bool _isDrawingText = false;
 		Offset _playerScreenPos = { 0,0 };
+		OffsetF _playerOffset = { 0.f, 0.f };
 		bool _captureShadowVerticies = false;
 		OffsetF _drawOffset = { 0.f, 0.f };
 
