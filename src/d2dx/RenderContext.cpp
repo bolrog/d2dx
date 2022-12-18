@@ -893,12 +893,7 @@ void RenderContext::SetSizes(
 		return;
 	}
 
-	if (_resources && gameSize != _gameSize) {
-		_resources->SetFramebufferSize(gameSize, _device.Get());
-		SetRenderTargets(
-			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
-			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
-	}
+	bool updateGameSize = gameSize != _gameSize;
 
 	_gameSize = gameSize;
 	_windowSize = windowSize;
@@ -906,10 +901,28 @@ void RenderContext::SetSizes(
 
 	auto displaySize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
 
-	_renderRect = Metrics::GetRenderRect(
+	auto renderRect = Metrics::GetRenderRect(
 		_gameSize,
 		displaySize,
 		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
+
+	bool updateRenderSize = renderRect.size != _renderRect.size;
+	_renderRect = renderRect;
+
+	if (_resources) {
+		if (_d2dxContext->GetOptions().GetUpscaleFilter() == UpscaleOption::Render && updateRenderSize) {
+			_resources->SetFramebufferSize(renderRect.size, _device.Get());
+			SetRenderTargets(
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+		}
+		else if (updateGameSize) {
+			_resources->SetFramebufferSize(_gameSize, _device.Get());
+			SetRenderTargets(
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+		}
+	}
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
