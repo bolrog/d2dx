@@ -227,7 +227,7 @@ OffsetF MotionPredictor::GetTextOffset(
 	}
 
 	auto prevIter = std::lower_bound(_prevTexts.begin(), _prevTexts.end(), id, [&](auto const& x, auto const& y) { return x.id < y; });
-	if (prevIter == _prevTexts.end()) {
+	if (prevIter == _prevTexts.end() || prevIter->id != id) {
 		_texts.push_back(Text(id, pos));
 		return { 0.f, 0.f };
 	}
