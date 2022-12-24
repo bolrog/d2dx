@@ -1313,13 +1313,7 @@ Offset D2DXContext::BeginDrawText(
 	if (d2Function != D2Function::D2Win_DrawText && !_options.GetFlag(OptionsFlag::NoMotionPrediction))
 	{
 		auto hash = fnv_32a_buf((void*)str, wcslen(str), FNV1_32A_INIT);
-
-		const uint64_t textId =
-			(((uint64_t)(returnAddress & 0xFFFFFF) << 40ULL) |
-			((uint64_t)((uintptr_t)str & 0xFFFFFF) << 16ULL)) ^
-			(uint64_t)hash;
-
-		offset = _motionPredictor.GetTextOffset(textId, pos);
+		offset = _motionPredictor.GetTextOffset(hash, (uintptr_t)str, pos);
 		if (d2Function == D2Function::D2Win_DrawFramedText) {
 			return Offset(offset.Round());
 		}

@@ -50,7 +50,8 @@ namespace d2dx
 			_Inout_ Vertex *vertices);
 
 		OffsetF GetTextOffset(
-			_In_ uint64_t id,
+			_In_ uint32_t hash,
+			_In_ uintptr_t address,
 			_In_ Offset pos);
 
 		void UpdateGameSize(
@@ -104,8 +105,9 @@ namespace d2dx
 		};
 
 		struct Text final {
-			Text(uint64_t id, Offset pos) :
-				id(id),
+			Text(uint32_t hash, uintptr_t address, Offset pos) :
+				hash(hash),
+				address(address),
 				actualPos(pos),
 				baseOffset({ 0.f, 0.f }),
 				predictionOffset({ 0.f, 0.f }),
@@ -113,7 +115,8 @@ namespace d2dx
 				nextIdx(-1)
 			{}
 
-			uint64_t id;
+			uint32_t hash;
+			uintptr_t address;
 			Offset actualPos;
 			OffsetF baseOffset;
 			OffsetF predictionOffset;

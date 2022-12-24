@@ -192,17 +192,17 @@ namespace d2dx
 			return { -x, -y };
 		}
 
-		OffsetT operator+(const OffsetT& rhs) const noexcept
+		constexpr OffsetT operator+(const OffsetT& rhs) const noexcept
 		{
 			return { x + rhs.x, y + rhs.y };
 		}
 
-		OffsetT operator-(const OffsetT& rhs) const noexcept
+		constexpr OffsetT operator-(const OffsetT& rhs) const noexcept
 		{
 			return { x - rhs.x, y - rhs.y };
 		}
 
-		OffsetT operator*(const OffsetT& rhs) const noexcept
+		constexpr OffsetT operator*(const OffsetT& rhs) const noexcept
 		{
 			return { x * rhs.x, y * rhs.y };
 		}

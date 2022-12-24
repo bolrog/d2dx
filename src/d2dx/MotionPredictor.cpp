@@ -23,10 +23,12 @@
 using namespace d2dx;
 using namespace DirectX;
 
+const float ROOT_TWO = 1.41421356237f;
 const std::int32_t D2_FRAME_LENGTH = (1 << 16) / 25;
 const double FLOAT_TO_FIXED_MUL = static_cast<float>(1 << 16);
 const double FIXED_TO_FLOAT_MUL = 1.f / FLOAT_TO_FIXED_MUL;
-const OffsetF GAME_TO_SCREEN_POS = { 32.f / 1.41421356237f, 16.f / 1.41421356237f };
+const OffsetF GAME_TO_SCREEN_POS = { 32.f / ROOT_TWO, 16.f / ROOT_TWO };
+const OffsetF TEXT_SEARCH_DIST = OffsetF(1.5f, 1.5f) * GAME_TO_SCREEN_POS;
 const std::int32_t ADDITIONAL_PREDICTION_TIME = 10;
 
 double fixedToDouble(int32_t x) {
@@ -216,7 +218,8 @@ void MotionPredictor::UpdateUnitShadowVerticies(
 
 _Use_decl_annotations_
 OffsetF MotionPredictor::GetTextOffset(
-	uint64_t id,
+	uint32_t hash,
+	uintptr_t address,
 	Offset pos)
 {
 	auto screenOpenMode = _gameHelper->ScreenOpenMode();
@@ -226,19 +229,64 @@ OffsetF MotionPredictor::GetTextOffset(
 		return { 0.f, 0.f };
 	}
 
-	auto prevIter = std::lower_bound(_prevTexts.begin(), _prevTexts.end(), id, [&](auto const& x, auto const& y) { return x.id < y; });
-	if (prevIter == _prevTexts.end() || prevIter->id != id) {
-		_texts.push_back(Text(id, pos));
+	auto [prevStart, prevEnd] = std::equal_range(
+		_prevTexts.begin(),
+		_prevTexts.end(),
+		Text(hash, address, pos),
+		[&](Text const &x, Text const &y) { return x.hash < y.hash; });
+	if (prevStart == prevEnd) {
+		_texts.push_back(Text(hash, address, pos));
 		return { 0.f, 0.f };
 	}
-	if (prevIter->nextIdx != -1) {
-		// Already processed this frame.
-		Text const &prev = _texts[prevIter->nextIdx];
-		return prev.lastRenderedPos - OffsetF(prev.actualPos);
+	Text* pprev = nullptr;
+	for (auto i = prevStart; i != prevEnd; ++i) {
+		if (i->address == address) {
+			if (i->nextIdx != -1) {
+				// Already processed this frame.
+				Text const& prev = _texts[i->nextIdx];
+				return prev.lastRenderedPos - OffsetF(prev.actualPos);
+			}
+			pprev = &*i;
+			break;
+		}
+	}
+	if (!pprev) {
+		// Exact match not found. Search for a partial match as the game sometimes
+		// reallocates the text labels.
+		if (!_update) {
+			// No movement from the previous frame, search for the same render position as the previous frame.
+			for (auto i = prevStart; i != prevEnd; ++i) {
+				if (i->actualPos == pos && i->nextIdx == -1) {
+					pprev = &*i;
+					break;
+				}
+			}
+		}
+		else {
+			// Frame movement expected, search for a unique label within an on screen rectangle
+			for (auto i = prevStart; i != prevEnd; ++i) {
+				auto offset = OffsetF(pos - i->actualPos);
+				if (std::abs(offset.x) < TEXT_SEARCH_DIST.x && std::abs(offset.y) < TEXT_SEARCH_DIST.y && i->nextIdx == -1)
+				{
+					if (!pprev)
+					{
+						pprev = &*i;
+					}
+					else {
+						_texts.push_back(Text(hash, address, pos));
+						return { 0.f, 0.f };
+					}
+				}
+			}
+		}
+	}
+	if (!pprev) {
+		_texts.push_back(Text(hash, address, pos));
+		return { 0.f, 0.f };
 	}
 
-	Text prev = *prevIter;
-	prevIter->nextIdx = _texts.size();
+	Text prev = *pprev;
+	pprev->nextIdx = _texts.size();
 	if (!_update && prev.actualPos != pos) {
 		OnUnexpectedUpdate("Text");
 	}
@@ -286,7 +334,7 @@ void MotionPredictor::PrepareForNextFrame(
 	std::swap(_units, _prevUnits);
 	std::stable_sort(_prevUnits.begin(), _prevUnits.end(), [&](auto& x, auto& y) { return x.unit < y.unit; });
 	std::swap(_texts, _prevTexts);
-	std::stable_sort(_prevTexts.begin(), _prevTexts.end(), [&](auto& x, auto& y) { return x.id < y.id; });
+	std::stable_sort(_prevTexts.begin(), _prevTexts.end(), [&](auto& x, auto& y) { return x.hash < y.hash; });
 	_units.clear();
 	_shadows.clear();
 	_texts.clear();
