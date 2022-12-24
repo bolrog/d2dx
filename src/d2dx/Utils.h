@@ -29,7 +29,7 @@ namespace d2dx
 	}
 
 	int64_t TimeStart();
-	float TimeEndMs(int64_t start);
+	double TimeToMs(int64_t time);
 
 
 #ifdef NDEBUG
@@ -37,7 +37,7 @@ namespace d2dx
 #else
 #define D2DX_DEBUG_LOG(fmt, ...) \
 	{ \
-		static char ss[256]; \
+		static char ss[1024]; \
 		sprintf_s(ss, fmt "\n", __VA_ARGS__); \
 		d2dx::detail::Log(ss); \
 	}
@@ -45,7 +45,7 @@ namespace d2dx
 
 #define D2DX_LOG(fmt, ...) \
 	{ \
-		static char ssss[256]; \
+		static char ssss[1024]; \
 		sprintf_s(ssss, fmt "\n", __VA_ARGS__); \
 		d2dx::detail::Log(ssss); \
 	}
@@ -78,3 +78,9 @@ namespace d2dx
 		_In_ uint32_t dataSize,
 		_In_z_ const char* filename);
 }
+
+#ifdef D2DX_PROFILE
+#define D2DX_LOG_PROFILE(fmt, ...) D2DX_LOG(fmt, __VA_ARGS__)
+#else
+#define D2DX_LOG_PROFILE(fmt, ...)
+#endif

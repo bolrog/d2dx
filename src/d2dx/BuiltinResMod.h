@@ -39,15 +39,6 @@ namespace d2dx
         bool IsCompatible(
             _In_ IGameHelper* gameHelper);
 
-        bool WriteResourceToFile(
-            _In_ HMODULE hModule,
-            _In_ int32_t resourceId,
-            _In_z_ const char* ext,
-            _In_z_ const char* filename);
-
-        bool WriteConfig(
-            _In_ Size gameSize);
-
         bool _isActive = false;
     };
 }

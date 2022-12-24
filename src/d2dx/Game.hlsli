@@ -19,7 +19,7 @@
 
 struct GameVSInput
 {
-	int2 pos : POSITION;
+	float2 pos : POSITION;
 	int2 texCoord : TEXCOORD0;
 	float4 color : COLOR0;
 	uint2 misc : TEXCOORD1;

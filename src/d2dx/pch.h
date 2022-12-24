@@ -22,12 +22,18 @@
 #define WIN32_LEAN_AND_MEAN
 #define __MSC__
 
+#include <algorithm>
 #include <array>
 #include <stdexcept>
 #include <cstdio>
 #include <cstdint>
+#include <cstring>
 #include <cassert>
 #include <filesystem>
+#include <memory>
+#include <system_error>
+#include <type_traits>
+#include <vector>
 
 #include <windows.h>
 #include <windowsx.h>
@@ -36,9 +42,7 @@
 #include <combaseapi.h>
 #include <wrl/implements.h>
 #include <wrl.h>
-#include <memory>
 #include <comdef.h>
-#include <system_error>
 #include <emmintrin.h>
 #include <string.h>
 

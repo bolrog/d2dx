@@ -8,3 +8,5 @@
 publish/
 **_dxbc.txt
 /.vs/
+**/Profile
+**/Release (ResMod)

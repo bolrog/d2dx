@@ -54,14 +54,14 @@
     <ClCompile Include="RenderContextResources.cpp" />
     <ClCompile Include="CompatibilityModeDisabler.cpp" />
     <ClCompile Include="SurfaceIdTracker.cpp" />
-    <ClCompile Include="UnitMotionPredictor.cpp" />
+    <ClCompile Include="MotionPredictor.cpp" />
     <ClCompile Include="Options.cpp" />
     <ClCompile Include="..\..\thirdparty\toml\toml.c">
       <Filter>thirdparty\toml</Filter>
     </ClCompile>
     <ClCompile Include="WeatherMotionPredictor.cpp" />
     <ClCompile Include="TextureHasher.cpp" />
-    <ClCompile Include="TextMotionPredictor.cpp" />
+    <ClCompile Include="D2Types.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -138,14 +138,13 @@
     <ClInclude Include="SurfaceIdTracker.h" />
     <ClInclude Include="ID2InterceptionHandler.h" />
     <ClInclude Include="D2Types.h" />
-    <ClInclude Include="UnitMotionPredictor.h" />
+    <ClInclude Include="MotionPredictor.h" />
     <ClInclude Include="Options.h" />
     <ClInclude Include="..\..\thirdparty\toml\toml.h">
       <Filter>thirdparty\toml</Filter>
     </ClInclude>
     <ClInclude Include="WeatherMotionPredictor.h" />
     <ClInclude Include="TextureHasher.h" />
-    <ClInclude Include="TextMotionPredictor.h" />
     <ClInclude Include="..\..\thirdparty\pocketlzma\pocketlzma.hpp">
       <Filter>thirdparty\pocketlzma</Filter>
     </ClInclude>

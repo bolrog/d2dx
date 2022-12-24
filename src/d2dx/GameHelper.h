@@ -57,9 +57,12 @@ namespace d2dx
 			_In_ D2Function function) const override;
 
 		virtual DrawParameters GetDrawParameters(
-			_In_ const D2::CellContext* cellContext) const override;
+			_In_ const D2::CellContextAny* cellContext) const override;
 
 		virtual D2::UnitAny* GetPlayerUnit() const override;
+
+		virtual UnitInfo GetUnitInfo(
+			_In_ const D2::UnitAny* unit) const override;
 
 		virtual Offset GetUnitPos(
 			_In_ const D2::UnitAny* unit) const override;

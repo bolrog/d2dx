@@ -22,14 +22,21 @@
 #include "IWin32InterceptionHandler.h"
 #include "ID2InterceptionHandler.h"
 #include "Options.h"
+#include "Utils.h"
 
 namespace d2dx
 {
-	enum class Feature
-	{
-		UnitMotionPrediction = 1,
-		WeatherMotionPrediction = 2,
-		TextMotionPrediction = 4,
+	enum class ProfCategory {
+		TextureSource,
+		MotionPrediction,
+		Draw,
+		ToGpu,
+		PrePresent,
+		Present,
+		PostPresent,
+		TextureDownload,
+		Sleep,
+		Count
 	};
 
 	struct ID2DXContext abstract : 
@@ -49,8 +56,13 @@ namespace d2dx
 		virtual void DisableBuiltinResMod() = 0;
 
 		virtual const Options& GetOptions() const = 0;
-		
-		virtual bool IsFeatureEnabled(
-			_In_ Feature feature) = 0;
+
+#ifdef D2DX_PROFILE
+		virtual void AddTime(
+			_In_ int64_t time,
+			_In_ ProfCategory category) = 0;
+
+		virtual void WriteProfile() = 0;
+#endif // D2DX_PROFILE
 	};
 }

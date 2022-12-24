@@ -79,6 +79,7 @@ void Options::ApplyCfg(
 		READ_OPTOUTS_FLAG(OptionsFlag::NoCompatModeFix, "nocompatmodefix");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoTitleChange, "notitlechange");
 		READ_OPTOUTS_FLAG(OptionsFlag::NoMotionPrediction, "nomotionprediction");
+		READ_OPTOUTS_FLAG(OptionsFlag::NoKeepAspectRatio, "nokeepaspectratio");
 
 #undef READ_OPTOUTS_FLAG
 	}
@@ -99,10 +100,10 @@ void Options::ApplyCfg(
 			}
 		}
 
-		auto filtering = toml_int_in(game, "filtering");
-		if (filtering.ok)
+		auto upscaleFilter = toml_int_in(game, "filtering");
+		if (upscaleFilter.ok)
 		{
-			_filtering = (FilteringOption)filtering.u.i;
+			SetUpscaleFilter((UpscaleOption)upscaleFilter.u.i);
 		}
 	}
 
@@ -163,6 +164,13 @@ void Options::ApplyCommandLine(
 	if (strstr(cmdLine, "-dxnocompatmodefix")) SetFlag(OptionsFlag::NoCompatModeFix, true);
 	if (strstr(cmdLine, "-dxnotitlechange")) SetFlag(OptionsFlag::NoTitleChange, true);
 	if (strstr(cmdLine, "-dxnomop")) SetFlag(OptionsFlag::NoMotionPrediction, true);
+	if (strstr(cmdLine, "-dxnokeepaspectratio")) SetFlag(OptionsFlag::NoKeepAspectRatio, true);
+
+	char const* upscale = strstr(cmdLine, "-dxupscale=");
+	if (upscale) {
+		SetUpscaleFilter(static_cast<UpscaleOption>(
+			static_cast<unsigned int>(upscale[11]) - static_cast<unsigned int>('0')));
+	}
 
 	if (strstr(cmdLine, "-dxscale3")) SetWindowScale(3);
 	else if (strstr(cmdLine, "-dxscale2")) SetWindowScale(2);
@@ -223,7 +231,15 @@ void Options::SetUserSpecifiedGameSize(
 	_userSpecifiedGameSize = { max(-1, size.width), max(-1, size.height) };
 }
 
-FilteringOption Options::GetFiltering() const
+UpscaleOption Options::GetUpscaleFilter() const
 {
-	return _filtering;
+	return _upscaleFilter;
+}
+
+void Options::SetUpscaleFilter(
+	_In_ UpscaleOption upscale) noexcept
+{
+	if (upscale < UpscaleOption::Count) {
+		_upscaleFilter = upscale;
+	}
 }

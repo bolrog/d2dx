@@ -34,6 +34,7 @@ namespace d2dx
 		NoTitleChange,
 		NoVSync,
 		NoMotionPrediction,
+		NoKeepAspectRatio,
 
 		DbgDumpTextures,
 
@@ -42,12 +43,13 @@ namespace d2dx
 		Count
 	};
 
-	enum class FilteringOption
+	enum class UpscaleOption
 	{
 		HighQuality = 0,
 		Bilinear = 1,
 		CatmullRom = 2,
-		Count = 3
+		Render = 3,
+		Count = 4
 	};
 
 	class Options final
@@ -84,13 +86,16 @@ namespace d2dx
 		void SetUserSpecifiedGameSize(
 			_In_ Size size);
 
-		FilteringOption GetFiltering() const;
+		UpscaleOption GetUpscaleFilter() const;
+
+		void SetUpscaleFilter(
+			_In_ UpscaleOption upscaleFilter) noexcept;
 
 	private:
 		uint32_t _flags = 0;
 		int32_t _windowScale = 1;
 		Offset _windowPosition{ -1, -1 };
 		Size _userSpecifiedGameSize{ -1, -1 };
-		FilteringOption _filtering{ FilteringOption::HighQuality };
+		UpscaleOption _upscaleFilter{ UpscaleOption::Render };
 	};
 }

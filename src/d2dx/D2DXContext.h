@@ -20,6 +20,7 @@
 
 #include "Batch.h"
 #include "Buffer.h"
+#include "D2DXContextFactory.h"
 #include "IBuiltinResMod.h"
 #include "ID2DXContext.h"
 #include "IGameHelper.h"
@@ -27,10 +28,9 @@
 #include "IRenderContext.h"
 #include "IWin32InterceptionHandler.h"
 #include "CompatibilityModeDisabler.h"
+#include "MotionPredictor.h"
 #include "SurfaceIdTracker.h"
 #include "TextureHasher.h"
-#include "TextMotionPredictor.h"
-#include "UnitMotionPredictor.h"
 #include "WeatherMotionPredictor.h"
 #include "Vertex.h"
 
@@ -167,9 +167,6 @@ namespace d2dx
 
 		virtual const Options& GetOptions() const override;
 
-		virtual bool IsFeatureEnabled(
-			_In_ Feature feature) override;
-
 #pragma endregion ID2DXContext
 
 #pragma region IWin32InterceptionHandler
@@ -195,8 +192,8 @@ namespace d2dx
 
 		virtual void EndDrawText() override;
 
-		virtual Offset BeginDrawImage(
-			_In_ const D2::CellContext* cellContext,
+		virtual void BeginDrawImage(
+			_In_ const D2::CellContextAny* cellContext,
 			_In_ uint32_t drawMode,
 			_In_ Offset pos,
 			_In_ D2Function d2Function) override;
@@ -255,8 +252,7 @@ namespace d2dx
 		std::unique_ptr<IBuiltinResMod> _builtinResMod;
 		std::shared_ptr<CompatibilityModeDisabler> _compatibilityModeDisabler;
 		TextureHasher _textureHasher;
-		UnitMotionPredictor _unitMotionPredictor;
-		TextMotionPredictor _textMotionPredictor;
+		MotionPredictor _motionPredictor;
 		WeatherMotionPredictor _weatherMotionPredictor;
 		SurfaceIdTracker _surfaceIdTracker;
 
@@ -282,16 +278,38 @@ namespace d2dx
 
 		bool _isDrawingText = false;
 		Offset _playerScreenPos = { 0,0 };
+		OffsetF _playerOffset = { 0.f, 0.f };
+		bool _captureShadowVerticies = false;
+		OffsetF _drawOffset = { 0.f, 0.f };
 
 		uint32_t _lastWeatherParticleIndex = 0xFFFFFFFF;
 
 		OffsetF _avgDir = { 0.0f, 0.0f };
 
-		bool _areFeatureFlagsInitialized = false;
-		uint32_t _featureFlags;
-
 		bool _skipCountingSleep = false;
 		int32_t _sleeps = 0;
 		uint32_t _threadId = 0;
+
+#ifdef D2DX_PROFILE
+		virtual void AddTime(
+			_In_ int64_t time,
+			_In_ ProfCategory category) override
+		{
+			if (category == ProfCategory::Sleep &&
+				(_skipCountingSleep || _threadId != GetCurrentThreadId()))\
+			{
+				return;
+			}
+			_times[static_cast<std::size_t>(category)] += time;
+			_events[static_cast<std::size_t>(category)]++;
+			_times[static_cast<std::size_t>(ProfCategory::Count)] += time;
+			_events[static_cast<std::size_t>(ProfCategory::Count)]++;
+		}
+
+		virtual void WriteProfile() override;
+
+		int64_t _times[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
+		uint32_t _events[static_cast<std::size_t>(ProfCategory::Count) + 1] = {};
+#endif
 	};
 }

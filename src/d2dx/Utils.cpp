@@ -51,13 +51,10 @@ int64_t d2dx::TimeStart()
     return (int64_t)li.QuadPart;
 }
 
-float d2dx::TimeEndMs(int64_t sinceThisTime)
+double d2dx::TimeToMs(int64_t time)
 {
-    warmup();
-    LARGE_INTEGER li;
-    QueryPerformanceCounter(&li);
     assert(_freq);
-    return (float)(double(li.QuadPart - sinceThisTime) / _freq);
+    return static_cast<double>(time) / _freq;
 }
 
 #define STATUS_SUCCESS (0x00000000)
@@ -132,9 +129,9 @@ static DWORD WINAPI WriteToLogFileWorkItemFunc(PVOID pvContext)
 {
     char* s = (char*)pvContext;
 
-    OutputDebugStringA(s);
-
     EnterCriticalSection(&logFileCS);
+
+    OutputDebugStringA(s);
 
     if (logFile)
     {

@@ -55,7 +55,8 @@ namespace d2dx
 		virtual void WriteToScreen(
 			_In_reads_(width * height) const uint32_t* pixels,
 			_In_ int32_t width,
-			_In_ int32_t height) = 0;
+			_In_ int32_t height,
+			_In_ bool forCinematic) = 0;
 
 		virtual void SetPalette(
 			_In_ int32_t paletteIndex,
@@ -68,7 +69,8 @@ namespace d2dx
 
 		virtual void SetSizes(
 			_In_ Size gameSize,
-			_In_ Size windowSize) = 0;
+			_In_ Size windowSize,
+			_In_ ScreenMode screenMode) = 0;
 
 		virtual void GetCurrentMetrics(
 			_Out_opt_ Size* gameSize,
@@ -77,9 +79,15 @@ namespace d2dx
 
 		virtual void ToggleFullscreen() = 0;
 
-		virtual float GetFrameTime() const = 0;
+		virtual double GetProjectedFrameTime() const = 0;
 
-		virtual int32_t GetFrameTimeFp() const = 0;
+		virtual int32_t GetProjectedFrameTimeFp() const = 0;
+
+		virtual double GetPrevFrameTime() const = 0;
+
+		virtual int32_t GetPrevFrameTimeFp() const = 0;
+
+		virtual int64_t GetFrameTimeStamp() const = 0;
 
 		virtual ScreenMode GetScreenMode() const = 0;
 	};

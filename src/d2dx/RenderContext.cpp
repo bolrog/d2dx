@@ -59,7 +59,7 @@ RenderContext::RenderContext(
 
 	_screenMode = initialScreenMode;
 
-	_timeStart = TimeStart();
+	_prevTime = TimeStart();
 
 	_hWnd = hWnd;
 	_d2dxContext = d2dxContext;
@@ -75,7 +75,7 @@ RenderContext::RenderContext(
 	_renderRect = Metrics::GetRenderRect(
 		gameSize,
 		_screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize,
-		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
 
 #ifndef NDEBUG
 	ShowCursor_Real(TRUE);
@@ -98,7 +98,7 @@ RenderContext::RenderContext(
 	};
 
 	_dxgiAllowTearingFlagSupported = IsAllowTearingFlagSupported();
-	_frameLatencyWaitableObjectSupported = false; //  IsFrameLatencyWaitableObjectSupported();
+	_frameLatencyWaitableObjectSupported = IsFrameLatencyWaitableObjectSupported();
 
 	_swapChainCreateFlags = 0;
 
@@ -199,20 +199,23 @@ RenderContext::RenderContext(
 
 	_swapChain1.As(&_swapChain2);
 
-#ifdef ALLOW_SET_SOURCE_SIZE
 	if (_swapChain2)
 	{
-		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::SetSourceSize;
-		D2DX_LOG("Using 'SetSourceSize' backbuffer sizing strategy.");
+		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::ResizeBuffers;
+		D2DX_LOG("Using 'ResizeBuffers' backbuffer sizing strategy.");
 
-		if (!_options.noVSync && _frameLatencyWaitableObjectSupported)
+		if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoVSync) && _frameLatencyWaitableObjectSupported)
 		{
-			D2DX_LOG("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
-			_frameLatencyWaitableObject = _swapChain2->GetFrameLatencyWaitableObject();
+			_frameLatencyWaitableObject = EventHandle(_swapChain2->GetFrameLatencyWaitableObject());
+			if (_frameLatencyWaitableObject == nullptr) {
+				_syncStrategy = RenderContextSyncStrategy::Interval1;
+			}
+			else {
+				D2DX_LOG("Will sync using IDXGISwapChain2::GetFrameLatencyWaitableObject.");
+			}
 		}
 	}
 	else
-#endif
 	{
 		_backbufferSizingStrategy = RenderContextBackbufferSizingStrategy::ResizeBuffers;
 		D2DX_LOG("Using 'ResizeBuffers' backbuffer sizing strategy.")
@@ -262,18 +265,15 @@ RenderContext::RenderContext(
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 
-	Size renderTargetSize = _d2dxContext->GetSuggestedCustomResolution();
-	renderTargetSize.width = max(1024, renderTargetSize.width);
-	renderTargetSize.height = max(768, renderTargetSize.height);
+	_vbCapacity = 1024 * 1024;
 
-	_vbCapacity = 4 * 1024 * 1024;
-
-	SetSizes(_gameSize, _windowSize);
+	_gameSize = { 0, 0 };
+	SetSizes(_gameSize, _windowSize, _screenMode);
 
 	_resources = std::make_unique<RenderContextResources>(
 			_vbCapacity * sizeof(Vertex),
 			16 * sizeof(Constants),
-			renderTargetSize,
+			gameSize,
 			_device.Get(),
 			simd);
 
@@ -335,107 +335,120 @@ bool RenderContext::IsIntegerScale() const
 
 void RenderContext::Present()
 {
-	_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	float color[] = { .0f, .0f, .0f, .0f };
-
-	SetBlendState(AlphaBlend::Opaque);
-
-	SetRenderTargets(
-		_resources->GetFramebufferRtv(RenderContextFramebuffer::GammaCorrected),
-		nullptr);
-
-	_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::GammaCorrected), color);
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Display),
-		_resources->GetPixelShader(RenderContextPixelShader::Gamma),
-		_resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
-		_resources->GetTexture1DSrv(RenderContextTexture1D::GammaTable));
-
-	auto startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenTriangle(
-		_gameSize,
-		_resources->GetFramebufferSize(),
-		{ 0,0,_gameSize.width, _gameSize.height });
-
-	_deviceContext->Draw(vertexCount, startVertexLocation);
-
-	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing))
 	{
-		SetShaderState(
-			nullptr,
-			nullptr,
-			nullptr,
-			nullptr);
+		Timer timer(ProfCategory::PrePresent);
 
-		SetRenderTargets(
-			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
-			nullptr);
+		_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game), color);
-		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+		SetBlendState(AlphaBlend::Opaque);
+
+		bool needsUpscale = NeedsPostRenderUpscale();
+		bool needsAA = !_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing);
+		ID3D11ShaderResourceView* source = _resources->GetFramebufferSrv(RenderContextFramebuffer::Game);
+		ID3D11ShaderResourceView* additionalSource = _resources->GetTexture1DSrv(RenderContextTexture1D::GammaTable);
+		RenderContextPixelShader pixelShader = RenderContextPixelShader::Gamma;
+
+		// Render gamma to texture if needed
+		if (needsUpscale || needsAA) {
+			ID3D11RenderTargetView* target = _resources->GetFramebufferRtv(RenderContextFramebuffer::GammaCorrected);
+			SetRenderTargets(target, nullptr);
+			_deviceContext->ClearRenderTargetView(target, color);
+			UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+
+			SetShaderState(
+				_resources->GetVertexShader(RenderContextVertexShader::Display),
+				_resources->GetPixelShader(RenderContextPixelShader::Gamma),
+				source,
+				additionalSource);
+
+			auto startVertexLocation = _vbWriteIndex;
+			uint32_t vertexCount = UpdateVerticesWithFullScreenTriangle(
+				_gameSize,
+				_resources->GetFramebufferSize(),
+				{ 0,0,_gameSize.width, _gameSize.height });
+
+			_deviceContext->Draw(vertexCount, startVertexLocation);
+
+			source = _resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected);
+			additionalSource = nullptr;
+			pixelShader = RenderContextPixelShader::ResolveAA;
+		}
+
+		// render aa to texture if needed
+		if (needsUpscale && needsAA) {
+			ID3D11RenderTargetView* target = _resources->GetFramebufferRtv(RenderContextFramebuffer::Game);
+			SetShaderState(
+				nullptr,
+				nullptr,
+				nullptr,
+				nullptr);
+			SetRenderTargets(target, nullptr);
+			_deviceContext->ClearRenderTargetView(target, color);
+			UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+
+			SetShaderState(
+				_resources->GetVertexShader(RenderContextVertexShader::Display),
+				_resources->GetPixelShader(RenderContextPixelShader::ResolveAA),
+				source,
+				_resources->GetFramebufferSrv(RenderContextFramebuffer::SurfaceId));
+
+			auto startVertexLocation = _vbWriteIndex;
+			auto vertexCount = UpdateVerticesWithFullScreenTriangle(
+				_gameSize,
+				_resources->GetFramebufferSize(),
+				{ 0,0,_gameSize.width, _gameSize.height });
+
+			_deviceContext->Draw(vertexCount, startVertexLocation);
+			source = _resources->GetFramebufferSrv(RenderContextFramebuffer::Game);
+		}
+
+		if (needsUpscale) {
+			switch (_d2dxContext->GetOptions().GetUpscaleFilter())
+			{
+			default:
+			case UpscaleOption::HighQuality:
+				pixelShader = IsIntegerScale() ?
+					RenderContextPixelShader::DisplayIntegerScale :
+					RenderContextPixelShader::DisplayNonintegerScale;
+				break;
+			case UpscaleOption::Bilinear:
+				pixelShader = RenderContextPixelShader::DisplayBilinearScale;
+				break;
+			case UpscaleOption::CatmullRom:
+				pixelShader = RenderContextPixelShader::DisplayCatmullRomScale;
+				break;
+			}
+		}
+		else if (needsAA) {
+			additionalSource = _resources->GetFramebufferSrv(RenderContextFramebuffer::SurfaceId);
+		}
+
+		SetRasterizerState(_resources->GetRasterizerState(false));
+		SetRenderTargets(_backbufferRtv.Get(), nullptr);
+		_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
+		UpdateViewport(_renderRect);
 
 		SetShaderState(
 			_resources->GetVertexShader(RenderContextVertexShader::Display),
-			_resources->GetPixelShader(RenderContextPixelShader::ResolveAA),
-			_resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected),
-			_resources->GetFramebufferSrv(RenderContextFramebuffer::SurfaceId));
+			_resources->GetPixelShader(pixelShader),
+			source,
+			additionalSource);
 
-		startVertexLocation = _vbWriteIndex;
-		vertexCount = UpdateVerticesWithFullScreenTriangle(
+		auto startVertexLocation = _vbWriteIndex;
+		auto vertexCount = UpdateVerticesWithFullScreenTriangle(
 			_gameSize,
 			_resources->GetFramebufferSize(),
-			{ 0,0,_gameSize.width, _gameSize.height });
+			_renderRect);
 
 		_deviceContext->Draw(vertexCount, startVertexLocation);
+
+		SetShaderState(
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr);
 	}
-
-	SetRasterizerState(_resources->GetRasterizerState(false));
-
-	SetRenderTargets(_backbufferRtv.Get(), nullptr);
-
-	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
-	UpdateViewport(_renderRect);
-
-	RenderContextPixelShader pixelShader;
-	
-	switch (_d2dxContext->GetOptions().GetFiltering())
-	{
-	default:
-	case FilteringOption::HighQuality:
-		pixelShader = IsIntegerScale() ?
-			RenderContextPixelShader::DisplayIntegerScale :
-			RenderContextPixelShader::DisplayNonintegerScale;
-		break;
-	case FilteringOption::Bilinear:
-		pixelShader = RenderContextPixelShader::DisplayBilinearScale;
-		break;
-	case FilteringOption::CatmullRom:
-		pixelShader = RenderContextPixelShader::DisplayCatmullRomScale;
-		break;
-	}
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Display),
-		_resources->GetPixelShader(pixelShader),
-		_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoAntiAliasing) ? _resources->GetFramebufferSrv(RenderContextFramebuffer::GammaCorrected) : _resources->GetFramebufferSrv(RenderContextFramebuffer::Game),
-		nullptr);
-
-	startVertexLocation = _vbWriteIndex;
-	vertexCount = UpdateVerticesWithFullScreenTriangle(
-		_gameSize,
-		_resources->GetFramebufferSize(),
-		_renderRect);
-
-	_deviceContext->Draw(vertexCount, startVertexLocation);
-
-	SetShaderState(
-		nullptr,
-		nullptr,
-		nullptr,
-		nullptr);
 
 #ifndef NDEBUG
 	if (!(_frameCount & 255))
@@ -451,54 +464,73 @@ void RenderContext::Present()
 	}
 #endif
 
-	switch (_syncStrategy)
 	{
-	case RenderContextSyncStrategy::AllowTearing:
-		D2DX_CHECK_HR(_swapChain1->Present(0, DXGI_PRESENT_ALLOW_TEARING));
-		break;
-	case RenderContextSyncStrategy::Interval0:
-		D2DX_CHECK_HR(_swapChain1->Present(0, 0));
-		break;
-	case RenderContextSyncStrategy::FrameLatencyWaitableObject:
-		D2DX_CHECK_HR(_swapChain1->Present(0, 0));
-		::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
-		break;
-	case RenderContextSyncStrategy::Interval1:
-		D2DX_CHECK_HR(_swapChain1->Present(1, 0));
-		break;
+		Timer timer(ProfCategory::Present);
+		switch (_syncStrategy)
+		{
+		case RenderContextSyncStrategy::AllowTearing:
+			D2DX_CHECK_HR(_swapChain1->Present(0, DXGI_PRESENT_ALLOW_TEARING));
+			break;
+		case RenderContextSyncStrategy::Interval0:
+			D2DX_CHECK_HR(_swapChain1->Present(0, 0));
+			break;
+		case RenderContextSyncStrategy::FrameLatencyWaitableObject:
+			D2DX_CHECK_HR(_swapChain1->Present(1, 0));
+			::WaitForSingleObjectEx(_frameLatencyWaitableObject.Get(), 1000, true);
+			break;
+		case RenderContextSyncStrategy::Interval1:
+			D2DX_CHECK_HR(_swapChain1->Present(1, 0));
+			break;
+		}
 	}
 
-	double curTime = TimeEndMs(_timeStart);
-	_frameTimeMs = curTime - _prevTime;
-	_prevTime = curTime;
+#ifdef D2DX_PROFILE
+	D2DXContextFactory::GetInstance()->WriteProfile();
+#endif
 
-	if (_deviceContext1)
 	{
-		_deviceContext1->DiscardView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game));
-		_deviceContext1->DiscardView(_backbufferRtv.Get());
+		Timer timer(ProfCategory::PostPresent);
+
+		auto curTime = TimeStart();
+		_prevFrameTimeMs = TimeToMs(curTime - _prevTime);
+		_prevFrameTimes[_prevFrameTimeIdx++] = static_cast<uint32_t>(curTime - _prevTime);
+		_prevFrameTimeIdx &= 3;
+
+		uint64_t totalTime = 0;
+		for (size_t i = 0; i < 4; ++i) {
+			totalTime += _prevFrameTimes[i];
+		}
+		_projectedFrameTimeMs = TimeToMs(totalTime >> 2);
+		_prevTime = curTime;
+
+		if (_deviceContext1)
+		{
+			_deviceContext1->DiscardView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game));
+			_deviceContext1->DiscardView(_backbufferRtv.Get());
+		}
+
+		_resources->OnNewFrame();
+
+		SetRenderTargets(
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId)
+		);
+
+		_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game), color);
+		_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId), color);
+
+		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+
+		SetRasterizerState(_resources->GetRasterizerState(true));
+
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Game),
+			_resources->GetPixelShader(RenderContextPixelShader::Game),
+			nullptr,
+			nullptr);
+
+		++_frameCount;
 	}
-
-	_resources->OnNewFrame();
-
-	SetRenderTargets(
-		_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
-		_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId)
-	);
-
-	_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::Game), color);
-	_deviceContext->ClearRenderTargetView(_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId), color);
-
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
-
-	SetRasterizerState(_resources->GetRasterizerState(true));
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Game),
-		_resources->GetPixelShader(RenderContextPixelShader::Game),
-		nullptr,
-		nullptr);
-
-	++_frameCount;
 }
 
 _Use_decl_annotations_
@@ -514,24 +546,39 @@ _Use_decl_annotations_
 void RenderContext::WriteToScreen(
 	const uint32_t* pixels,
 	int32_t width,
-	int32_t height)
+	int32_t height,
+	bool forCinematic)
 {
 	D3D11_MAPPED_SUBRESOURCE ms;
-	D2DX_CHECK_HR(_deviceContext->Map(_resources->GetVideoTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
-	memcpy(ms.pData, pixels, width * height * 4);
-	_deviceContext->Unmap(_resources->GetVideoTexture(), 0);
-
 	SetBlendState(AlphaBlend::Opaque);
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Display),
-		_resources->GetPixelShader(RenderContextPixelShader::Video),
-		_resources->GetVideoSrv(),
-		nullptr);
-
 	uint32_t startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetVideoTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+	uint32_t vertexCount = 0;
+
+	if (forCinematic) {
+		SetSizes({ width, 292 }, _windowSize, _screenMode);
+		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetCinematicTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
+		memcpy(ms.pData, &pixels[width * 94], width * 292 * 4);
+		_deviceContext->Unmap(_resources->GetCinematicTexture(), 0);
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Display),
+			_resources->GetPixelShader(RenderContextPixelShader::Video),
+			_resources->GetCinematicSrv(),
+			nullptr);
+		vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetCinematicTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
+	}
+	else {
+		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetVideoTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
+		memcpy(ms.pData, pixels, width * height * 4);
+		_deviceContext->Unmap(_resources->GetVideoTexture(), 0);
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Display),
+			_resources->GetPixelShader(RenderContextPixelShader::Video),
+			_resources->GetVideoSrv(),
+			nullptr);
+		vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetVideoTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
+		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+	}
+
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
 	Present();
@@ -582,8 +629,8 @@ uint32_t RenderContext::UpdateVerticesWithFullScreenTriangle(
 {
 	Vertex vertices[3] = {
 		Vertex{ 0, 0, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
-		Vertex{ dstRect.size.width * 2, 0, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
-		Vertex{ 0, dstRect.size.height * 2, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
+		Vertex{ static_cast<float>(dstRect.size.width * 2), 0, srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
+		Vertex{ 0, static_cast<float>(dstRect.size.height * 2), srcTextureSize.width, srcTextureSize.height, 0xFFFFFFFF, false, srcSize.height, 0, srcSize.width },
 	};
 
 	auto mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
@@ -839,17 +886,43 @@ void RenderContext::ResizeBackbuffer()
 _Use_decl_annotations_
 void RenderContext::SetSizes(
 	Size gameSize,
-	Size windowSize)
+	Size windowSize,
+	ScreenMode screenMode)
 {
+	if (_gameSize == gameSize && _windowSize == windowSize && _screenMode == screenMode) {
+		return;
+	}
+
+	bool updateGameSize = gameSize != _gameSize;
+
 	_gameSize = gameSize;
 	_windowSize = windowSize;
+	_screenMode = screenMode;
 
 	auto displaySize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
 
-	_renderRect = Metrics::GetRenderRect(
+	auto renderRect = Metrics::GetRenderRect(
 		_gameSize,
 		displaySize,
-		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
+
+	bool updateRenderSize = renderRect.size != _renderRect.size;
+	_renderRect = renderRect;
+
+	if (_resources) {
+		if (_d2dxContext->GetOptions().GetUpscaleFilter() == UpscaleOption::Render && updateRenderSize) {
+			_resources->SetFramebufferSize(renderRect.size, _device.Get());
+			SetRenderTargets(
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+		}
+		else if (updateGameSize) {
+			_resources->SetFramebufferSize(_gameSize, _device.Get());
+			SetRenderTargets(
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+				_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+		}
+	}
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
@@ -892,7 +965,7 @@ void RenderContext::SetSizes(
 			_renderRect = Metrics::GetRenderRect(
 				_gameSize,
 				_windowSize,
-				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
 
 			windowRect = { 0, 0, _windowSize.width, _windowSize.height };
 			AdjustWindowRect(&windowRect, windowStyle, FALSE);
@@ -987,13 +1060,11 @@ void RenderContext::ToggleFullscreen()
 {
 	if (_screenMode == ScreenMode::FullscreenDefault)
 	{
-		_screenMode = ScreenMode::Windowed;
-		SetSizes(_gameSize, _windowSize);
+		SetSizes(_gameSize, _windowSize, ScreenMode::Windowed);
 	}
 	else
 	{
-		_screenMode = ScreenMode::FullscreenDefault;
-		SetSizes(_gameSize, _windowSize);
+		SetSizes(_gameSize, _windowSize, ScreenMode::FullscreenDefault);
 	}
 }
 
@@ -1029,7 +1100,12 @@ void RenderContext::ClipCursor()
 	RECT clipRect;
 	::GetClientRect(_hWnd, &clipRect);
 	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.left);
-	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
+
+	clipRect.left += _renderRect.offset.x;
+	clipRect.top += _renderRect.offset.y;
+	clipRect.right = clipRect.left + _renderRect.size.width;
+	clipRect.bottom = clipRect.top + _renderRect.size.height;
+
 	::ClipCursor(&clipRect);
 }
 
@@ -1038,18 +1114,36 @@ void RenderContext::UnclipCursor()
 	::ClipCursor(NULL);
 }
 
-float RenderContext::GetFrameTime() const
+double RenderContext::GetProjectedFrameTime() const
 {
-	return (float)(_frameTimeMs / 1000.0);
+	return _projectedFrameTimeMs / 1000.0;
 }
 
-int32_t RenderContext::GetFrameTimeFp() const
+int32_t RenderContext::GetProjectedFrameTimeFp() const
 {
-	auto frameTimeMs = (int64_t)(_frameTimeMs * (65536.0 / 1000.0));
+	auto frameTimeMs = (int64_t)(_projectedFrameTimeMs * (65536.0 / 1000.0));
+	return (int32_t)max(INT_MIN, min(INT_MAX, frameTimeMs));
+}
+
+double RenderContext::GetPrevFrameTime() const
+{
+	return _prevFrameTimeMs / 1000.0;
+}
+
+int32_t RenderContext::GetPrevFrameTimeFp() const
+{
+	auto frameTimeMs = (int64_t)(_prevFrameTimeMs * (65536.0 / 1000.0));
 	return (int32_t)max(INT_MIN, min(INT_MAX, frameTimeMs));
 }
 
 ScreenMode RenderContext::GetScreenMode() const
 {
 	return _screenMode;
+}
+
+bool RenderContext::NeedsPostRenderUpscale() const noexcept
+{
+	return _d2dxContext->GetOptions().GetUpscaleFilter() == UpscaleOption::Render ?
+		false :
+		_gameSize != _renderRect.size;
 }

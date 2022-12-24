@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30517.126
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "d2dx", "d2dx\d2dx.vcxproj", "{93A28F27-8D56-470C-B699-15B0CF2C926A}"
 EndProject
@@ -10,15 +10,25 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
+		Profile|x86 = Profile|x86
+		Release (ResMod)|x86 = Release (ResMod)|x86
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Debug|x86.ActiveCfg = Debug|Win32
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Debug|x86.Build.0 = Debug|Win32
+		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Profile|x86.ActiveCfg = Profile|Win32
+		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Profile|x86.Build.0 = Profile|Win32
+		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release (ResMod)|x86.ActiveCfg = Release (ResMod)|Win32
+		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release (ResMod)|x86.Build.0 = Release (ResMod)|Win32
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release|x86.ActiveCfg = Release|Win32
 		{93A28F27-8D56-470C-B699-15B0CF2C926A}.Release|x86.Build.0 = Release|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Debug|x86.ActiveCfg = Debug|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Debug|x86.Build.0 = Debug|Win32
+		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Profile|x86.ActiveCfg = Profile|Win32
+		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Profile|x86.Build.0 = Profile|Win32
+		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release (ResMod)|x86.ActiveCfg = Release (ResMod)|Win32
+		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release (ResMod)|x86.Build.0 = Release (ResMod)|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release|x86.ActiveCfg = Release|Win32
 		{64214704-FE00-4DB6-BEFA-1E622F7262A1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection

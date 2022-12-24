@@ -35,8 +35,8 @@ namespace d2dx
 		}
 
 		Vertex(
-			int32_t x,
-			int32_t y,
+			float x,
+			float y,
 			int32_t s,
 			int32_t t,
 			uint32_t color,
@@ -52,8 +52,6 @@ namespace d2dx
 			_isChromaKeyEnabled_surfaceId((isChromaKeyEnabled ? 0x4000 : 0) | (surfaceId & 16383)),
 			_paletteIndex_atlasIndex((paletteIndex << 12) | (atlasIndex & 4095))
 		{
-			assert(x >= INT16_MIN && x <= INT16_MAX);
-			assert(y >= INT16_MIN && y <= INT16_MAX);
 			assert(s >= INT16_MIN && s <= INT16_MAX);
 			assert(t >= INT16_MIN && t <= INT16_MAX);
 			assert(paletteIndex >= 0 && paletteIndex < D2DX_MAX_PALETTES);
@@ -62,24 +60,24 @@ namespace d2dx
 		}
 
 		inline void AddOffset(
-			_In_ int32_t x,
-			_In_ int32_t y) noexcept
+			_In_ float x,
+			_In_ float y) noexcept
 		{
 			_x += x;
 			_y += y;
 		}
 
-		inline int32_t GetX() const noexcept
+		inline float GetX() const noexcept
 		{
 			return _x;
 		}
 
-		inline int32_t GetY() const noexcept
+		inline float GetY() const noexcept
 		{
 			return _y;
 		}
 
-		inline void SetPosition(int32_t x, int32_t y) noexcept
+		inline void SetPosition(float x, float y) noexcept
 		{
 			_x = x;
 			_y = y;
@@ -131,8 +129,8 @@ namespace d2dx
 		}
 
 	private:
-		int16_t _x;
-		int16_t _y;
+		float _x;
+		float _y;
 		int16_t _s;
 		int16_t _t;
 		uint32_t _color;
@@ -140,5 +138,5 @@ namespace d2dx
 		uint16_t _isChromaKeyEnabled_surfaceId;
 	};
 
-	static_assert(sizeof(Vertex) == 16, "sizeof(Vertex)");
+	static_assert(sizeof(Vertex) == 20, "sizeof(Vertex)");
 }
