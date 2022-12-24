@@ -140,8 +140,24 @@ OffsetF MotionPredictor::GetUnitOffset(
 			// Unit hasn't moved, snap the unit back to it's actual position.
 			// Note the player isn't snapped back as the whole screen jerking
 			// backwards is quite annoying.
-			prev.baseOffset = prev.lastRenderedPos - prev.actualPos;
-			prev.predictionOffset = isPlayer? Offset(0, 0) : -prev.baseOffset;
+			if (isPlayer) {
+				if (prev.predictionOffset == Offset(0, 0)) {
+					prev.baseOffset = prev.lastRenderedPos - prev.actualPos;
+				}
+				else {
+					auto prevOffset = fixedToDouble(prev.lastRenderedPos - (prev.actualPos + prev.baseOffset));
+					auto limit = fixedToDouble(prev.predictionOffset) * 0.9;
+					auto newOffset = OffsetT(
+						prevOffset.x < 0 ? min(prevOffset.x, limit.x) : max(prevOffset.x, limit.x),
+						prevOffset.y < 0 ? min(prevOffset.y, limit.y) : max(prevOffset.y, limit.y));
+					prev.baseOffset = prev.baseOffset + doubleToFixed(newOffset);
+				}
+				prev.predictionOffset = { 0, 0 };
+			}
+			else {
+				prev.baseOffset = prev.lastRenderedPos - prev.actualPos;
+				prev.predictionOffset = -prev.baseOffset;
+			}
 		}
 	}
 	else {
@@ -295,8 +311,18 @@ OffsetF MotionPredictor::GetTextOffset(
 		if (_update) {
 			// Text hasn't moved, stop moving the text as snapping to it's actual
 			// position is hard to look at
-			prev.baseOffset = prev.lastRenderedPos - OffsetF(prev.actualPos);
-			prev.predictionOffset = OffsetF(0.f, 0.f);
+			if (prev.predictionOffset == OffsetF(0.f, 0.f)) {
+				prev.baseOffset = prev.lastRenderedPos - OffsetF(prev.actualPos);
+			}
+			else {
+				auto prevOffset = prev.lastRenderedPos - (OffsetF(prev.actualPos) + prev.baseOffset);
+				auto limit = prev.predictionOffset * 0.9;
+				auto newOffset = OffsetT(
+					prevOffset.x < 0 ? min(prevOffset.x, limit.x) : max(prevOffset.x, limit.x),
+					prevOffset.y < 0 ? min(prevOffset.y, limit.y) : max(prevOffset.y, limit.y));
+				prev.baseOffset = prev.baseOffset + newOffset;
+			}
+			prev.predictionOffset = { 0, 0 };
 		}
 	}
 	else {
