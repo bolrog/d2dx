@@ -1298,7 +1298,7 @@ Offset D2DXContext::BeginDrawText(
 	{
 		auto hash = fnv_32a_buf((void*)str, wcslen(str), FNV1_32A_INIT);
 
-		const uint64_t textId = 
+		const uint64_t textId =
 			(((uint64_t)(returnAddress & 0xFFFFFF) << 40ULL) |
 			((uint64_t)((uintptr_t)str & 0xFFFFFF) << 16ULL)) ^
 			(uint64_t)hash;
@@ -1311,7 +1311,7 @@ Offset D2DXContext::BeginDrawText(
 		// In 1.14d, some color codes are black. Remap them.
 
 		// Bright white -> white
-		while (wchar_t* subStr = wcsstr(str, L"ÿc/"))
+		while (wchar_t* subStr = wcsstr(str, L"\u00FFc/"))
 		{
 			subStr[2] = L'0';
 		}
@@ -1328,7 +1328,7 @@ void D2DXContext::EndDrawText()
 
 _Use_decl_annotations_
 Offset D2DXContext::BeginDrawImage(
-	const D2::CellContext* cellContext,
+	const D2::CellContextAny* cellContext,
 	uint32_t drawMode,
 	Offset pos,
 	D2Function d2Function)
@@ -1375,8 +1375,8 @@ Offset D2DXContext::BeginDrawImage(
 		else
 		{
 			DrawParameters drawParameters = _gameHelper->GetDrawParameters(cellContext);
-			const bool isMiscUi = drawParameters.unitType == 0 && cellContext->dwMode == 0 && drawMode != 3;
-			const bool isBeltItem = drawParameters.unitType == 4 && cellContext->dwMode == 4;
+			const bool isMiscUi = drawParameters.unitType == 0 && drawParameters.unitMode == 0 && drawMode != 3;
+			const bool isBeltItem = drawParameters.unitType == 4 && drawParameters.unitMode == 4;
 
 			if (isMiscUi || isBeltItem)
 			{
@@ -1413,6 +1413,7 @@ bool D2DXContext::IsFeatureEnabled(
 		{
 			if (
 				gameVersion == GameVersion::Lod109d ||
+				gameVersion == GameVersion::Lod110f ||
 				gameVersion == GameVersion::Lod112 ||
 				gameVersion == GameVersion::Lod113c ||
 				gameVersion == GameVersion::Lod113d ||
@@ -1422,12 +1423,6 @@ bool D2DXContext::IsFeatureEnabled(
 				D2DX_LOG("  UnitMotionPrediction");
 				_featureFlags |= (uint32_t)Feature::WeatherMotionPrediction;
 				D2DX_LOG("  WeatherMotionPrediction");
-			}
-
-			if (gameVersion == GameVersion::Lod113c ||
-				gameVersion == GameVersion::Lod113d ||
-				gameVersion == GameVersion::Lod114d)
-			{
 				_featureFlags |= (uint32_t)Feature::TextMotionPrediction;
 				D2DX_LOG("  TextMotionPrediction");
 			}

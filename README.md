@@ -34,8 +34,7 @@ Update July 2021: I have been too busy to work on D2DX for a while, but hope to 
 
 ## Compatibility
 Game versions supported:
-  - All features: 1.09d, 1.13c, 1.13d and 1.14d.
-  - Without resolution switching: 1.10f, 1.12.
+  - 1.09d, 1.10f, 1.12, 1.13c, 1.13d and 1.14d.
   - Other versions are unsupported, will display a warning at startup and exhibit glitches.
 
 For compatibility with mods, see the [wiki](https://github.com/bolrog/d2dx/wiki/Compatibility-with-other-mods).
@@ -45,7 +44,7 @@ For compatibility with mods, see the [wiki](https://github.com/bolrog/d2dx/wiki/
 
 ## Installation
   Copy the included "glide3x.dll" into your Diablo II folder.
-  
+
   Note that in some cases you may have to also download and install the Visual C++ runtime library from Microsoft: https://aka.ms/vs/16/release/vc_redist.x86.exe
 
 ## Usage
@@ -94,7 +93,7 @@ D2DX is free software, but if you enjoy the project and want to buy me a coffee,
   - Fix low fps in the menus for 1.09d.
 
 ### 0.99.527b
-  - Add 'filtering' option in cfg file, which allows using bilinear filtering or Catmull-Rom for scaling the game, 
+  - Add 'filtering' option in cfg file, which allows using bilinear filtering or Catmull-Rom for scaling the game,
     for those who prefer the softer look over the default integer-scale/sharp-bilinear.
   - Fix artifacts when vsync is off.
 
