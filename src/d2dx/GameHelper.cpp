@@ -419,7 +419,7 @@ GameVersion GameHelper::GetGameVersion()
 	{
 		version = GameVersion::Lod109d;
 	}
-	else if (a == 1 && b == 0 && c == 10 && d == 9)
+	else if (a == 1 && b == 0 && c == 10 && d == 39)
 	{
 		version = GameVersion::Lod110f;
 	}
@@ -514,7 +514,7 @@ bool GameHelper::TryApplyMenuFpsFix()
 {
 	/* Patches found using 1.10 lead from D2Tweaks: https://github.com/Revan600/d2tweaks/. */
 
-	switch (_version) 
+	switch (_version)
 	{
 	case GameVersion::Lod109d:
 		if (ProbeUInt32(_hD2WinDll, 0xEC0C, 0x5051196A))
@@ -565,7 +565,7 @@ bool GameHelper::TryApplyInGameSleepFixes()
 {
 	switch (_version)
 	{
-	case GameVersion::Lod110f: 
+	case GameVersion::Lod110f:
 		if (ProbeUInt32(_hD2ClientDll, 0x2684, 0x15FF0A6A))
 		{
 			PatchUInt32(_hD2ClientDll, 0x2684, 0x90909090);
@@ -716,10 +716,10 @@ D2::UnitAny* GameHelper::GetPlayerUnit() const
 
 _Use_decl_annotations_
 bool GameHelper::ProbeUInt32(
-	HANDLE hModule, 
-	uint32_t offset, 
+	HANDLE hModule,
+	uint32_t offset,
 	uint32_t probeValue)
-{ 
+{
 	uint32_t* patchLocation = (uint32_t*)((uint32_t)hModule + offset);
 
 	if (*patchLocation != probeValue)
@@ -741,7 +741,7 @@ void GameHelper::PatchUInt32(
 
 	DWORD dwOldPage;
 	VirtualProtect(patchLocation, 4, PAGE_EXECUTE_READWRITE, &dwOldPage);
-	
+
 	*patchLocation = value;
 
 	VirtualProtect(patchLocation, 4, dwOldPage, &dwOldPage);
@@ -929,10 +929,10 @@ void* GameHelper::GetFunction(
 			hModule = _hD2GfxDll;
 			ordinal = 10076;
 			break;
-		case D2Function::D2Gfx_DrawShadow: 
+		case D2Function::D2Gfx_DrawShadow:
 			hModule = _hD2GfxDll;
 			ordinal = 10075;
-			break; 
+			break;
 		case D2Function::D2Win_DrawText:
 			hModule = _hD2WinDll;
 			ordinal = 10117;
@@ -1034,7 +1034,7 @@ void* GameHelper::GetFunction(
 			ordinal = 10096;
 			break;
 		case D2Function::D2Win_DrawFramedText:
-			hModule = _hD2WinDll; 
+			hModule = _hD2WinDll;
 			ordinal = 10085;
 			break;
 		case D2Function::D2Win_DrawRectangledText:
