@@ -79,6 +79,8 @@ namespace d2dx
 
 		void OnNewFrame();
 
+		void SetFramebufferSize(Size framebufferSize, ID3D11Device* device);
+
 		ID3D11InputLayout* GetInputLayout() const { return _inputLayout.Get(); }
 
 		ID3D11VertexShader* GetVertexShader(RenderContextVertexShader vertexShader) const
@@ -118,6 +120,21 @@ namespace d2dx
 		ID3D11ShaderResourceView* GetVideoSrv() const
 		{
 			return _videoTextureSrv.Get();
+		}
+
+		Size GetCinematicTextureSize() const
+		{
+			return _cinematicTextureSize;
+		}
+
+		ID3D11Texture2D* GetCinematicTexture() const
+		{
+			return _cinematicTexture.Get();
+		}
+
+		ID3D11ShaderResourceView* GetCinematicSrv() const
+		{
+			return _cinematicTextureSrv.Get();
 		}
 
 		ID3D11RasterizerState* GetRasterizerState(bool enableScissor) const
@@ -219,6 +236,10 @@ namespace d2dx
 		Size _videoTextureSize;
 		ComPtr<ID3D11Texture2D> _videoTexture;
 		ComPtr<ID3D11ShaderResourceView> _videoTextureSrv;
+
+		Size _cinematicTextureSize;
+		ComPtr<ID3D11Texture2D> _cinematicTexture;
+		ComPtr<ID3D11ShaderResourceView> _cinematicTextureSrv;
 
 		std::unique_ptr<ITextureCache> _textureCaches[7];
 

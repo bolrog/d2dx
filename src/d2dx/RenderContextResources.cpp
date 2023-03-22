@@ -81,6 +81,22 @@ ITextureCache* RenderContextResources::GetTextureCache(
 	return _textureCaches[log2Longest].get();
 }
 
+void RenderContextResources::SetFramebufferSize(
+	Size framebufferSize,
+	ID3D11Device* device)
+{
+	_framebuffers[0].texture = nullptr;
+	_framebuffers[0].rtv= nullptr;
+	_framebuffers[0].srv= nullptr;
+	_framebuffers[1].texture = nullptr;
+	_framebuffers[1].rtv = nullptr;
+	_framebuffers[1].srv = nullptr;
+	_framebuffers[2].texture = nullptr;
+	_framebuffers[2].rtv = nullptr;
+	_framebuffers[2].srv = nullptr;
+	CreateFramebuffers(framebufferSize, device);
+}
+
 _Use_decl_annotations_
 void RenderContextResources::CreateShadersAndInputLayout(
 	ID3D11Device* device)
@@ -254,12 +270,22 @@ void RenderContextResources::CreateVideoTextures(
 	};
 
 	_videoTextureSize = { 640, 480 };
+	_cinematicTextureSize = { 640, 292 };
 
 	D2DX_CHECK_HR(
 		device->CreateTexture2D(&desc, NULL, &_videoTexture));
 
 	D2DX_CHECK_HR(
 		device->CreateShaderResourceView(_videoTexture.Get(), NULL, &_videoTextureSrv));
+
+	desc.Height = 292;
+	
+	D2DX_CHECK_HR(
+		device->CreateTexture2D(&desc, NULL, &_cinematicTexture));
+
+	D2DX_CHECK_HR(
+		device->CreateShaderResourceView(_cinematicTexture.Get(), NULL, &_cinematicTextureSrv));
+
 }
 
 _Use_decl_annotations_

@@ -86,7 +86,8 @@ namespace d2dx
 		virtual void WriteToScreen(
 			_In_reads_(width* height) const uint32_t* pixels,
 			_In_ int32_t width,
-			_In_ int32_t height) override;
+			_In_ int32_t height,
+			_In_ bool forCinematic) override;
 
 		virtual void SetPalette(
 			_In_ int32_t paletteIndex,
@@ -99,7 +100,8 @@ namespace d2dx
 
 		virtual void SetSizes(
 			_In_ Size gameSize,
-			_In_ Size windowSize) override;
+			_In_ Size windowSize,
+			_In_ ScreenMode screenMode) override;
 
 		virtual void GetCurrentMetrics(
 			_Out_opt_ Size* gameSize,

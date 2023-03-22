@@ -184,8 +184,12 @@ _Use_decl_annotations_
 Rect d2dx::Metrics::GetRenderRect(
 	Size gameSize,
 	Size desktopSize,
-	bool wide) noexcept
+	bool keepAspect) noexcept
 {
+	if (!keepAspect) {
+		return Rect{ 0, 0, desktopSize.width, desktopSize.height };
+	}
+
 	int32_t scaleFactor = 1;
 
 	while (

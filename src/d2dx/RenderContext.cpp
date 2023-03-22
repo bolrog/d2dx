@@ -75,7 +75,7 @@ RenderContext::RenderContext(
 	_renderRect = Metrics::GetRenderRect(
 		gameSize,
 		_screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize,
-		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
 
 #ifndef NDEBUG
 	ShowCursor_Real(TRUE);
@@ -262,18 +262,15 @@ RenderContext::RenderContext(
 	float color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	_deviceContext->ClearRenderTargetView(_backbufferRtv.Get(), color);
 
-	Size renderTargetSize = _d2dxContext->GetSuggestedCustomResolution();
-	renderTargetSize.width = max(1024, renderTargetSize.width);
-	renderTargetSize.height = max(768, renderTargetSize.height);
-
 	_vbCapacity = 4 * 1024 * 1024;
 
-	SetSizes(_gameSize, _windowSize);
+	_gameSize = { 0, 0 };
+	SetSizes(_gameSize, _windowSize, _screenMode);
 
 	_resources = std::make_unique<RenderContextResources>(
 			_vbCapacity * sizeof(Vertex),
 			16 * sizeof(Constants),
-			renderTargetSize,
+			gameSize,
 			_device.Get(),
 			simd);
 
@@ -400,7 +397,7 @@ void RenderContext::Present()
 	UpdateViewport(_renderRect);
 
 	RenderContextPixelShader pixelShader;
-	
+
 	switch (_d2dxContext->GetOptions().GetFiltering())
 	{
 	default:
@@ -514,24 +511,39 @@ _Use_decl_annotations_
 void RenderContext::WriteToScreen(
 	const uint32_t* pixels,
 	int32_t width,
-	int32_t height)
+	int32_t height,
+	bool forCinematic)
 {
 	D3D11_MAPPED_SUBRESOURCE ms;
-	D2DX_CHECK_HR(_deviceContext->Map(_resources->GetVideoTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
-	memcpy(ms.pData, pixels, width * height * 4);
-	_deviceContext->Unmap(_resources->GetVideoTexture(), 0);
-
 	SetBlendState(AlphaBlend::Opaque);
-
-	SetShaderState(
-		_resources->GetVertexShader(RenderContextVertexShader::Display),
-		_resources->GetPixelShader(RenderContextPixelShader::Video),
-		_resources->GetVideoSrv(),
-		nullptr);
-
 	uint32_t startVertexLocation = _vbWriteIndex;
-	uint32_t vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetVideoTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
-	UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+	uint32_t vertexCount = 0;
+
+	if (forCinematic) {
+		SetSizes({ width, 292 }, _windowSize, _screenMode);
+		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetCinematicTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
+		memcpy(ms.pData, &pixels[width * 94], width * 292 * 4);
+		_deviceContext->Unmap(_resources->GetCinematicTexture(), 0);
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Display),
+			_resources->GetPixelShader(RenderContextPixelShader::Video),
+			_resources->GetCinematicSrv(),
+			nullptr);
+		vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetCinematicTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
+	}
+	else {
+		D2DX_CHECK_HR(_deviceContext->Map(_resources->GetVideoTexture(), 0, D3D11_MAP_WRITE_DISCARD, 0, &ms));
+		memcpy(ms.pData, pixels, width * height * 4);
+		_deviceContext->Unmap(_resources->GetVideoTexture(), 0);
+		SetShaderState(
+			_resources->GetVertexShader(RenderContextVertexShader::Display),
+			_resources->GetPixelShader(RenderContextPixelShader::Video),
+			_resources->GetVideoSrv(),
+			nullptr);
+		vertexCount = UpdateVerticesWithFullScreenTriangle(_gameSize, _resources->GetVideoTextureSize(), { 0,0,_gameSize.width, _gameSize.height });
+		UpdateViewport({ 0,0,_gameSize.width, _gameSize.height });
+	}
+
 	_deviceContext->Draw(vertexCount, startVertexLocation);
 
 	Present();
@@ -839,17 +851,30 @@ void RenderContext::ResizeBackbuffer()
 _Use_decl_annotations_
 void RenderContext::SetSizes(
 	Size gameSize,
-	Size windowSize)
+	Size windowSize,
+	ScreenMode screenMode)
 {
+	if (_gameSize == gameSize && _windowSize == windowSize && _screenMode == screenMode) {
+		return;
+	}
+
+	if (_resources && gameSize != _gameSize) {
+		_resources->SetFramebufferSize(gameSize, _device.Get());
+		SetRenderTargets(
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::Game),
+			_resources->GetFramebufferRtv(RenderContextFramebuffer::SurfaceId));
+	}
+
 	_gameSize = gameSize;
 	_windowSize = windowSize;
+	_screenMode = screenMode;
 
 	auto displaySize = _screenMode == ScreenMode::FullscreenDefault ? _desktopSize : _windowSize;
 
 	_renderRect = Metrics::GetRenderRect(
 		_gameSize,
 		displaySize,
-		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+		!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
 
 	bool centerOnCurrentPosition = _hasAdjustedWindowPlacement;
 	_hasAdjustedWindowPlacement = true;
@@ -892,7 +917,7 @@ void RenderContext::SetSizes(
 			_renderRect = Metrics::GetRenderRect(
 				_gameSize,
 				_windowSize,
-				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoWide));
+				!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoKeepAspectRatio));
 
 			windowRect = { 0, 0, _windowSize.width, _windowSize.height };
 			AdjustWindowRect(&windowRect, windowStyle, FALSE);
@@ -987,13 +1012,11 @@ void RenderContext::ToggleFullscreen()
 {
 	if (_screenMode == ScreenMode::FullscreenDefault)
 	{
-		_screenMode = ScreenMode::Windowed;
-		SetSizes(_gameSize, _windowSize);
+		SetSizes(_gameSize, _windowSize, ScreenMode::Windowed);
 	}
 	else
 	{
-		_screenMode = ScreenMode::FullscreenDefault;
-		SetSizes(_gameSize, _windowSize);
+		SetSizes(_gameSize, _windowSize, ScreenMode::FullscreenDefault);
 	}
 }
 

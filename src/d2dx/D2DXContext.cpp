@@ -222,7 +222,7 @@ void D2DXContext::OnSstWinOpen(
 			windowSize.width = width;
 			windowSize.height = height;
 		}
-		_renderContext->SetSizes(gameSize, windowSize * _options.GetWindowScale());
+		_renderContext->SetSizes(gameSize, windowSize * _options.GetWindowScale(), _renderContext->GetScreenMode());
 	}
 
 	_batchCount = 0;
@@ -323,9 +323,10 @@ void D2DXContext::CheckMajorGameState()
 {
 	const int32_t batchCount = (int32_t)_batchCount;
 
-	if (_majorGameState == MajorGameState::Unknown && batchCount == 0)
+	if ((_majorGameState == MajorGameState::Unknown || _majorGameState == MajorGameState::FmvIntro) && batchCount == 0)
 	{
 		_majorGameState = MajorGameState::FmvIntro;
+		return;
 	}
 
 	_majorGameState = MajorGameState::Menus;
@@ -1020,7 +1021,8 @@ void D2DXContext::OnLfbUnlock(
 	const uint32_t* lfbPtr,
 	uint32_t strideInBytes)
 {
-	_renderContext->WriteToScreen(lfbPtr, 640, 480);
+	bool forCinematic = !(_majorGameState == MajorGameState::Unknown || _majorGameState == MajorGameState::FmvIntro);
+	_renderContext->WriteToScreen(lfbPtr, 640, 480, forCinematic);
 }
 
 _Use_decl_annotations_
