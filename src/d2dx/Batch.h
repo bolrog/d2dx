@@ -170,12 +170,12 @@ namespace d2dx
 			return result;
 		}
 
-		inline uint32_t GetHash() const noexcept
+		inline uint64_t GetHash() const noexcept
 		{
 			return _textureHash;
 		}
 
-		void SetTextureHash(uint32_t textureHash) noexcept
+		void SetTextureHash(uint64_t textureHash) noexcept
 		{
 			_textureHash = textureHash;
 		}
@@ -240,7 +240,7 @@ namespace d2dx
 		}
 
 	private:
-		uint32_t _textureHash;
+		uint64_t _textureHash;
 		uint16_t _startVertexLow;
 		uint16_t _vertexCount;
 		uint16_t _textureStartAddress;							// byte address / D2DX_TMU_ADDRESS_ALIGNMENT
@@ -251,5 +251,5 @@ namespace d2dx
 		uint8_t _textureAtlas;									// .....AAA
 	};
 
-	static_assert(sizeof(Batch) == 16, "sizeof(Batch)");
+	static_assert(sizeof(Batch) == 24, "sizeof(Batch)");
 }

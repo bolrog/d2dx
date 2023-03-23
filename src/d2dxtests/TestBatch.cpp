@@ -54,7 +54,7 @@ namespace d2dxtests
 			Assert::AreEqual(0U, batch.GetTextureAtlas());
 			Assert::AreEqual(0U, batch.GetTextureIndex());
 			Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-			Assert::AreEqual(0U, batch.GetHash());
+			Assert::AreEqual(0ULL, batch.GetHash());
 			Assert::AreEqual(2, batch.GetTextureHeight());
 			Assert::AreEqual(0, batch.GetPaletteIndex());
 			Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -77,7 +77,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -101,7 +101,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -126,7 +126,7 @@ namespace d2dxtests
 				Assert::AreEqual(i / 512, batch.GetTextureAtlas());
 				Assert::AreEqual(i & 511, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -150,7 +150,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual((GameAddress)i, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -174,7 +174,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual((uint32_t)i, batch.GetHash());
+				Assert::AreEqual((uint64_t)i, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -200,7 +200,7 @@ namespace d2dxtests
 					Assert::AreEqual(0U, batch.GetTextureAtlas());
 					Assert::AreEqual(0U, batch.GetTextureIndex());
 					Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-					Assert::AreEqual(0U, batch.GetHash());
+					Assert::AreEqual(0ULL, batch.GetHash());
 					Assert::AreEqual(1 << h, batch.GetTextureHeight());
 					Assert::AreEqual(0, batch.GetPaletteIndex());
 					Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -225,7 +225,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(i, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -249,7 +249,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual((RgbCombine)i, batch.GetRgbCombine());
@@ -273,7 +273,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -297,7 +297,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -321,7 +321,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());
@@ -345,7 +345,7 @@ namespace d2dxtests
 				Assert::AreEqual(0U, batch.GetTextureAtlas());
 				Assert::AreEqual(0U, batch.GetTextureIndex());
 				Assert::AreEqual(GameAddress::Unknown, batch.GetGameAddress());
-				Assert::AreEqual(0U, batch.GetHash());
+				Assert::AreEqual(0ULL, batch.GetHash());
 				Assert::AreEqual(2, batch.GetTextureHeight());
 				Assert::AreEqual(0, batch.GetPaletteIndex());
 				Assert::AreEqual(RgbCombine::ColorMultipliedByTexture, batch.GetRgbCombine());

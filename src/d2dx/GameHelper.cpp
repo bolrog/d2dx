@@ -235,48 +235,75 @@ GameAddress GameHelper::IdentifyGameAddress(
 	return GameAddress::Unknown;
 }
 
-static const uint32_t titleScreenHashes[] = {
-	0x0836bff0,	0x0d609152,	0x1df19dd6,	0x2c779942,	0x3a174cb2,	0x3d35f3c5,	0x3d4c8c14,	0x605f521f,	0x6b69636d,
-	0x73059f7c,	0x8766b77a,	0x8af2178a,	0x90bdd994,	0x94e77d2d,	0xa66ac09c,	0xbe1a20c3,	0xc158e602,	0xc2625261,
-	0xccf7cc94,	0xcee4c170,	0xd38a63df,	0xd4579523,	0xda6e064e,	0xe22a8bc4,	0xe2e6b0c7,	0xe9263199, 0xe1e211f9,
-	0x2ac72136, 0x2f15f9de, 0x2dba4381, 0x5bbe76ab, 0x5fa60772, 0x7bb42e90, 0x08b64561, 0x8a09de96, 0x8b255624,
-	0x8bceb8c5, 0x8be41271, 0x8c93dc24, 0x38ac989c, 0x42f99404, 0x49d1f478, 0x49f4099d, 0x57ff0b65, 0x87c0b98d,
-	0x89aaf047, 0x128bd717, 0x169c4b8e, 0x234cae2e, 0x264fc41c, 0x282fe954, 0x467c7521, 0x614d3948, 0x874fb06e,
-	0x968db1ce, 0x969ed6e4, 0x3034acfa, 0x18793782, 0x32561192, 0x23206047, 0xa6a88d0e, 0xa8b86316, 0xa8ba2a4f,
-	0xa13c32b5, 0xafaa7b74, 0xb1450cb1, 0xbc7f5ddb, 0xbcf633e8, 0xbe9c50d5, 0xbec03b1c, 0xc0821e4c, 0xc5638e07,
-	0xcae3f8e8, 0xd113d34d, 0xd4032a7f, 0xd5206c21, 0xd1149259, 0xe15c8e53, 0xe9174a70, 0xedf6f578, 0xf13dd4fb,
-	0xf045cd36, 0xf169106c, 0xc9d4e158
+static const uint64_t titleScreenHashes[] = {
+	0xfc8f2eed371285b5, 0x96907cc971b21ee3, 0x7d849f6aa1447d31, 0x5e9c709869b8316d,
+	0xbd45ae397020fc67, 0x23a390772b0222ea, 0x865f8346abb2b0d9, 0xe31c4cb3055e3a8d,
+	0xdb4cd90a53248698, 0x2a3cc9a9d20d4db3, 0xca3be3239284f32f, 0x80c099eecf2a6942,
+	0xec7012136b17117e, 0x74699d85f6187279, 0x9379d39d021ac250, 0x7de0e4c0daba8542,
+	0xe9aa4bb40736c8de, 0x7a24842f873ff168, 0x50bba78dd3f32584, 0xd77c9406226f6956,
+	0x87a494bf4e93e74f, 0xf4f499036d979cb7, 0x8acdbc41c219a6df, 0xb57b2cd6041b68f4,
+	0x5066159e442bc227, 0x681a52b2951c2c38, 0xe7b54cf2f378880c, 0xf100a1df6dc613a8,
+	0x56ce19ae67641c36, 0xd8e13b24338643f2, 0xdd57aa7b10b67404, 0x33cf71dece646746,
+	0xcd5c413221984a2e, 0xea7566c3e002bd8e, 0x8e77520ff40ee4c2, 0x8fdc4a2a0fd631bd,
+	0x238bea9815c3f973, 0xf2907136c3125d2c, 0x7230ff3dbca44fbb, 0xcb209eca11be4d14,
+	0xb2563bf765d557bf, 0x8bcb0357fa8a9b08, 0xa5bda937a5bd2209, 0x2aa76ba776154b4e,
+	0x89c68a8be4b140af, 0x6edaa930b0c0660f, 0x7b74f7fcd5545638, 0x03d26b3ad461f39f,
+	0xaf3746a91374320c, 0x0f4cadccb1f3404d, 0xbfc810cec696cd2e, 0x432b20b9e1a2046b,
+	0x18d721d91120d3e4, 0x93e7bc560692d279, 0xb630b0a252c9bca2, 0x3e702bc6db567e65,
+	0x91bde8087ee8006d, 0x7acd30b6b4511bb7, 0x6f47fc2dcd50a97a, 0x4418e2e797b7ce52,
+	0x4090bb2e5e6a693c, 0x6d570442d10faca9, 0xbfcc7a58c2ee639e, 0x82e4d812f0f3aed6,
+	0xfad69328f46f1738, 0x20422f1052e2bd4c, 0x450937139a448ffa, 0x4c7fb11fdfb0f873,
+	0xc19528c54185bc4a, 0x10e91abd767b6fa3, 0x862f282e4ddcd5b1, 0x637c08360f67a901,
+	0x54da45b8d5abad3e, 0x61ca773cb62d80a2, 0xf3d8ca94a0bafdd9, 0x6871b887d9f0146a,
+	0x345bc9f91667504e, 0xeda9fc46b3df5107, 0x32e7488d3b13ba6c, 0x5253d2a17f52de8f,
+	0xb0224c8217b62785, 0xba48c447dd8658f3, 0x925eae01a2dd92da, 0x8b71533a1a83ffeb
 };
 
-static const uint32_t loadingScreenHashes[] = {
-	0x0aa1834d, 0x1a7964a9, 0x2f5b86a7, 0x70a8cb14, 0x32965ce1, 0x897794ce, 0x3136b0ee, 0x32965ce1, 0xc2cc7e28,
-	0x2a683b29, 0x01c37ff8
+static const uint64_t loadingScreenHashes[] = {
+	0x58270212c5a4768d, 0x4477bbee1ea4b8a2, 0xd4e3c6a3bfd4ce1b, 0x8ca6ced7c6c0d734,
+	0x606c7a4a496e2b2c, 0x7dcf019cb6c74404, 0x6e253c1ae8ea21cc, 0x2066d0bcb096d2b3,
+	0xdb8e862ccd712f80, 0xde3f10dcf01955e5
 };
 
-static const uint32_t mousePointerHashes[] = {
-	0xfe34f8b7,	0x5cac0e94,	0x4b661cd1,	3432412206,	2611936918,	2932294163,	1166565234,	77145516, 1264983249,
-	4264884407
+static const uint64_t mousePointerHashes[] = {
+	0x0bdc9347694341cb, 0xd1fee6ed16a5783e, 0x341060b68b792690, 0x62deb2c42b814e7a,
+	0xcc18928425ed76a4, 0xadf4c562e863e034, 0x849ed13b1099f3d2, 0xb7ec5a798379c98a,
+	0x341060b68b792690, 0x0bdc9347694341cb
 };
 
-static const uint32_t uiHashes[] = {
-	0x2ff1fd61, 0x54cc8b72,	0xfc253c88, 0xabe12614, 0xa22f5459, 0xa0d8fb2a, 0x20526487, 0x8a3b7d58, 0x2ff1fd61,
-	0x54cc8b72, 0x76aa9aac, 0xef8d8978, 0x45e0af79, 0x9a008b35, 0x2a53bd89, 0x13d2c082, 0xab6ab811, 0xee7d31ba,
-	0x6d1e37cf, 0xa4e86125, 0xa769824b, 0xb4119f58, 0xc2da4379, 0xdfbf045f, 0x88021112, 0x726eeaa0, 0x49e4e24e,
-	0x3b50f3b6, 0x1e623206, 0xae502740, 0xd16d7f9a, 0xf6ec6116, 0x56acd7e4, 0x7656c190, 0xb0d15023, 0xb2c6e5fb,
-	0x27d5991a, 0x21d8d615, 0x2bbf74be, 0x9ab19e53, 0x9ba9eeb2, 0x109348c9, 0x0f37086a, 0x10ac28d0, 0x5c121175,
-	0x5c4d1125, 0xa1990293, 0xae25bff7, 0xb5855728, 0xc8f9d3f1, 0x2172d939, 0x0bd8d550, 0x62cfb0b8, 0x93e92b00,
-	0x815a6925, 0x135190af, 0x3408446d, 0xaa265b2e, 0x316149fe, 0x63556155, 0xa9ba1eb0, 0xa9e34142, 0xa0564010,
-	0xb0a058c2, 0xb037844a, 0xbbfee318, 0xc95d3136, 0xceadb1cd, 0xcef62ab8, 0xcfd7f4dd, 0xd8a1f81b, 0xd8df8f4b,
-	0xd9dc1bdd, 0xdfe365f3, 0xee4f10d9, 0x4c389b09, 0x4c049e57, 0x4c8bda35, 0x4d234ffb, 0x4b2e9d5b, 0x1ffb1615,
-	0x0a90d031, 0x5ed2fc41, 0x6b7e62ef, 0x6d05de67, 0x7acfc435, 0x7a742b36, 0x8d3366ec, 0x9ab19e5e, 0x933ba45c,
-	0x977c13be, 0x7820ea79, 0x9643d531, 0x7111312a, 0x25534537, 0xc723c18e, 0xfa170b3f, 0x97c7e7f4, 0x8ce7ef63,
-	0x45c78147, 0x5ca62551, 0xf8d429fb, 0xfee40e62,
+static const uint64_t uiHashes[] = {
+	0x61ea9339e47727cf, 0xebc436a1c9e7bd5c, 0x4776be200f252bfd, 0x6c97577b3427100e,
+	0x909c3af232ec9862, 0x3072fd4554e3046d, 0xae67f6a51d8fbff9, 0xb8739a28c42f00cb,
+	0x61ea9339e47727cf, 0xebc436a1c9e7bd5c, 0xe81f8a7753876b95, 0x90d5cb92d6728d54,
+	0x1f86a45f0bf54ea2, 0x310577a9b9a828b1, 0x7c413f4fba0b21c7, 0x1a95d1819c2b43c8,
+	0xddce4937693d1332, 0xe4b169b7349434cd, 0xdfab97e82d455355, 0xd805ab4831c51074,
+	0x9982d719155a044a, 0x204f62cb2d1c285f, 0x5b6024bd14cd9e01, 0xf842fc082ed6fe4e,
+	0x1c18a27092003174, 0xcfacaed2230190bd, 0xbf48185cb63fd3d2, 0xb4f126d671a639ce,
+	0x125689dde109287a, 0x7aa2beb25068cc89, 0x4425e14b4ae3cf24, 0x822cc1078c13d492,
+	0x0f46d52959d1d13e, 0xf4e536daddd19b51, 0x965859ed83ba43a4, 0xfada6a55fc3c9cb5,
+	0x995d86044fa94a6d, 0xd35e53cb229a0821, 0x6fa425b25d2b7431, // 0x9ab19e53,
+	0x02d9cfc298985f66, 0x20bec7e59ea72486, 0x53889e76e90425cc, 0xb8020e6fdaf3fa4e,
+	0x26f48ea9913e3960, 0xc6b7c2662c89e69b, 0x8570a07d3bfdd552, 0xb9c4a5dab253cd24,
+	0x9ba6fe4da4e4da3a, 0x41338dad07d0eff5, 0x87da5ecdaa7bf227, 0xfb9bb96fb37c6e72,
+	0x5bd09cf9c2bf6d0b, 0x70599592f44ddd8e, 0xa9d86f028892e7d4, 0x9fe6f5585dcc5912,
+	0xaae9844524173ccd, 0x38773f495a68cd78, 0xddff89f6293bed91, 0xffc644d63a52de50,
+	0x1ec082485c3bcec1, 0x1acc82ab691aad80, 0x13b4e6089de39b2f, 0xc10c6faaf6a5c8c1,
+	0xd8ac60e0c232ff3f, 0x3181169544173cca, 0xd7b6d6b3c17e47d5, 0xd9e803bbe66a9af6,
+	0x079b6dd4f8b130d1, 0xabf81493ab8ed123, 0x5d1bbdafbf9273db, 0x0d58079c62d8ae0f,
+	0x4a8564a6a61ac5ba, 0x1bdde15b74038ead, 0x14b5477a1081758a, 0xb67b235ef048ce77,
+	0x93bd201ea9d54ae8, 0xb540c7813054a2d0, 0x2cf8b1237fe8964f, 0x5f61548466cbe18f,
+	0xd61d211d4ae4ff17, 0x1cb148c09def586c, 0x935474ab2dde5c52, 0x9a765f736f8d4e4b,
+	0x18d6348b2985509b, 0xceb1daaeb9d11407, 0x749673a482d9448d, 0xd7c6a5f92297b42a,
+	0xcfa21d1b7b6c9ee4, 0x28662b3ccc58adab, 0x5c55461a7c3d3882, 0xf5cb72ad42436d6d,
+	0xbaeb21121d9d78d5, 0x0de17ace2b416aaa, 0x1c4b042d87da3a51, 0x178e89564991fd9d,
+	0xe50890802978d7a5, 0x50586fe7613c60fb, 0x19b236606b253645, 0xb52e1ec8b4d081c6,
+	0x777d28620ac31160, 0x24f0d5312460cded, 0x44c1f0be0d8c71f5
 };
 
 struct Hashes
 {
 	int32_t count;
-	const uint32_t* hashes;
+	const uint64_t* hashes;
 };
 
 static const Hashes hashesPerCategory[(int)TextureCategory::Count] =
@@ -292,7 +319,7 @@ static const Hashes hashesPerCategory[(int)TextureCategory::Count] =
 };
 
 static bool isInitialized = false;
-static Buffer<uint32_t> prefixTable[256];
+static Buffer<uint64_t> prefixTable[256];
 static Buffer<uint32_t> prefixCounts(256, true);
 
 void GameHelper::InitializeTextureHashPrefixTable()
@@ -303,7 +330,7 @@ void GameHelper::InitializeTextureHashPrefixTable()
 
 		for (int32_t hashIndex = 0; hashIndex < hashes.count; ++hashIndex)
 		{
-			++prefixCounts.items[(hashes.hashes[hashIndex] >> 24) & 0xFF];
+			++prefixCounts.items[(uint32_t)(hashes.hashes[hashIndex] >> 56) & 0xFF];
 		}
 	}
 
@@ -313,11 +340,11 @@ void GameHelper::InitializeTextureHashPrefixTable()
 
 		if (count > 0)
 		{
-			prefixTable[prefix] = Buffer<uint32_t>(count, true);
+			prefixTable[prefix] = Buffer<uint64_t>(count, true);
 		}
 		else
 		{
-			prefixTable[prefix] = Buffer<uint32_t>();
+			prefixTable[prefix] = Buffer<uint64_t>();
 		}
 	}
 
@@ -326,19 +353,19 @@ void GameHelper::InitializeTextureHashPrefixTable()
 		const Hashes& hashes = hashesPerCategory[category];
 		for (int32_t j = 0; j < hashes.count; ++j)
 		{
-			const uint32_t hash = hashes.hashes[j];
-			const uint32_t prefix = hash >> 24;
+			const uint64_t hash = hashes.hashes[j];
+			const uint32_t prefix = static_cast<uint32_t>(hash >> 56);
 			const uint32_t position = --prefixCounts.items[prefix];
-			prefixTable[prefix].items[position] = (((uint32_t)category & 0xFF) << 24) | (hash & 0x00FFFFFF);
+			prefixTable[prefix].items[position] = (((uint64_t)category & 0xFF) << 56) | (hash & 0x00FFFFFF'FFFFFFFFULL);
 		}
 	}
 }
 
 _Use_decl_annotations_
 TextureCategory GameHelper::GetTextureCategoryFromHash(
-	uint32_t textureHash) const
+	uint64_t textureHash) const
 {
-	Buffer<uint32_t>& table = prefixTable[textureHash >> 24];
+	Buffer<uint64_t>& table = prefixTable[static_cast<uint32_t>(textureHash >> 56)];
 
 	if (table.capacity == 0)
 	{
@@ -347,10 +374,10 @@ TextureCategory GameHelper::GetTextureCategoryFromHash(
 
 	for (int32_t i = 0; i < (int32_t)table.capacity; ++i)
 	{
-		uint32_t entry = table.items[i];
+		uint64_t entry = table.items[i];
 
-		if ((entry & 0x00FFFFFF) == (textureHash & 0x00FFFFFF))
-			return (TextureCategory)(entry >> 24);
+		if ((entry & 0x00FFFFFF'FFFFFFFFULL) == (textureHash & 0x00FFFFFF'FFFFFFFFULL))
+			return (TextureCategory)(entry >> 56);
 	}
 
 	return TextureCategory::Unknown;

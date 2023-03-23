@@ -39,7 +39,7 @@ TextureCachePolicyBitPmru::TextureCachePolicyBitPmru(
 
 _Use_decl_annotations_
 int32_t TextureCachePolicyBitPmru::Find(
-	uint32_t contentKey,
+	uint64_t contentKey,
 	int32_t lastIndex)
 {
 	assert(contentKey != 0);
@@ -57,7 +57,7 @@ int32_t TextureCachePolicyBitPmru::Find(
 		return lastIndex;
 	}
 
-	int32_t findIndex = _simd->IndexOfUInt32(_contentKeys.items, _capacity, contentKey);
+	int32_t findIndex = _simd->IndexOfUInt64(_contentKeys.items, _capacity, contentKey);
 
 	if (findIndex >= 0)
 	{
@@ -71,7 +71,7 @@ int32_t TextureCachePolicyBitPmru::Find(
 
 _Use_decl_annotations_
 int32_t TextureCachePolicyBitPmru::Insert(
-	uint32_t contentKey,
+	uint64_t contentKey,
 	bool& evicted)
 {
 	if (_capacity == 0)

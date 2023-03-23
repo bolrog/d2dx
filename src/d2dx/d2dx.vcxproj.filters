@@ -62,6 +62,9 @@
     <ClCompile Include="WeatherMotionPredictor.cpp" />
     <ClCompile Include="TextureHasher.cpp" />
     <ClCompile Include="TextMotionPredictor.cpp" />
+    <ClCompile Include="..\..\thirdparty\xxhash\xxhash.c">
+      <Filter>thirdparty\xxhash</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
@@ -150,6 +153,9 @@
       <Filter>thirdparty\pocketlzma</Filter>
     </ClInclude>
     <ClInclude Include="ErrorHandling.h" />
+    <ClInclude Include="..\..\thirdparty\xxhash\xxhash.h">
+      <Filter>thirdparty\xxhash</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="d2dx.rc" />
@@ -181,6 +187,9 @@
     </Filter>
     <Filter Include="thirdparty\pocketlzma">
       <UniqueIdentifier>{23de30e8-2931-41c8-9f15-02f244de52be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thirdparty\xxhash">
+      <UniqueIdentifier>{1928b819-176e-4c24-8b71-08169280e2d2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

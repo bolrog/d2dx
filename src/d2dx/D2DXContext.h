@@ -79,8 +79,10 @@ namespace d2dx
 			_In_ uint32_t tmu,
 			_In_ uint32_t startAddress,
 			_In_ int32_t width,
-			_In_ int32_t height);
-		
+			_In_ int32_t height,
+			_In_ uint32_t largeLog2,
+			_In_ uint32_t ratioLog2);
+
 		virtual void OnConstantColorValue(
 			_In_ uint32_t color);
 		
@@ -262,7 +264,7 @@ namespace d2dx
 
 		MajorGameState _majorGameState;
 
-		Buffer<uint32_t> _paletteKeys;
+		Buffer<uint64_t> _paletteKeys;
 
 		uint32_t _batchCount;
 		Buffer<Batch> _batches;

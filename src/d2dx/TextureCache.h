@@ -33,26 +33,26 @@ namespace d2dx
 			_In_ uint32_t texturesPerAtlas,
 			_In_ ID3D11Device* device,
 			_In_ const std::shared_ptr<ISimd>& simd);
-		
+
 		virtual ~TextureCache() noexcept {}
 
 		virtual void OnNewFrame() override;
 
 		virtual TextureCacheLocation FindTexture(
-			_In_ uint32_t contentKey,
+			_In_ uint64_t contentKey,
 			_In_ int32_t lastIndex) override;
 
 		virtual TextureCacheLocation InsertTexture(
-			_In_ uint32_t contentKey,
+			_In_ uint64_t contentKey,
 			_In_ const Batch& batch,
 			_In_reads_(tmuDataSize) const uint8_t* tmuData,
 			_In_ uint32_t tmuDataSize) override;
-		
+
 		virtual ID3D11ShaderResourceView* GetSrv(
 			_In_ uint32_t atlasIndex) const override;
-		
+
 		virtual uint32_t GetMemoryFootprint() const override;
-		
+
 		virtual uint32_t GetUsedCount() const override;
 
 	private:

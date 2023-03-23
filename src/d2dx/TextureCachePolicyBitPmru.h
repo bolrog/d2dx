@@ -35,11 +35,11 @@ namespace d2dx
 		~TextureCachePolicyBitPmru() noexcept {}
 
 		int32_t Find(
-			_In_ uint32_t contentKey,
+			_In_ uint64_t contentKey,
 			_In_ int32_t lastIndex);
 		
 		int32_t Insert(
-			_In_ uint32_t contentKey,
+			_In_ uint64_t contentKey,
 			_Out_ bool& evicted);
 		
 		void OnNewFrame();
@@ -49,7 +49,7 @@ namespace d2dx
 	private:
 		uint32_t _capacity = 0;
 		std::shared_ptr<ISimd> _simd;
-		Buffer<uint32_t> _contentKeys;
+		Buffer<uint64_t> _contentKeys;
 		Buffer<uint32_t> _usedInFrameBits;
 		Buffer<uint32_t> _mruBits;
 		uint32_t _usedCount = 0;

@@ -616,7 +616,7 @@ TextureCacheLocation RenderContext::UpdateTexture(
 		return { -1, -1 };
 	}
 
-	const uint32_t contentKey = batch.GetHash();
+	const uint64_t contentKey = batch.GetHash();
 
 	ITextureCache* atlas = GetTextureCache(batch);
 

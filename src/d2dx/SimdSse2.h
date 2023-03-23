@@ -31,5 +31,10 @@ namespace d2dx
 			_In_reads_(itemsCount) const uint32_t* __restrict items,
 			_In_ uint32_t itemsCount,
 			_In_ uint32_t item) override;
+		
+		virtual int32_t IndexOfUInt64(
+			_In_reads_(itemsCount) const uint64_t* __restrict items,
+			_In_ uint32_t itemsCount,
+			_In_ uint64_t item) override;
 	};
 }

@@ -35,21 +35,21 @@ namespace d2dxtests
 			auto simd = std::make_shared<SimdSse2>();
 		}
 
-		TEST_METHOD(FindUInt32)
+		TEST_METHOD(FindUInt64)
 		{
 			auto simd = std::make_shared<SimdSse2>();
 
-			alignas(64) std::array<uint32_t, 1024> items;
+			alignas(64) std::array<uint64_t, 1024> items;
 
-			for (int32_t i = 0; i < 1024; ++i)
+			for (uint64_t i = 0; i < 1024; ++i)
 			{
-				items[i] = 1023 - i;
+				items[i] = 1023ull - i;
 			}
 
-			Assert::AreEqual(0, simd->IndexOfUInt32(items.data(), items.size(), 1023));
-			Assert::AreEqual(1023, simd->IndexOfUInt32(items.data(), items.size(), 0));
-			Assert::AreEqual(1009, simd->IndexOfUInt32(items.data(), items.size(), 14));
-			Assert::AreEqual(114, simd->IndexOfUInt32(items.data(), items.size(), 909));
+			Assert::AreEqual(0, simd->IndexOfUInt64(items.data(), items.size(), 1023));
+			Assert::AreEqual(1023, simd->IndexOfUInt64(items.data(), items.size(), 0));
+			Assert::AreEqual(1009, simd->IndexOfUInt64(items.data(), items.size(), 14));
+			Assert::AreEqual(114, simd->IndexOfUInt64(items.data(), items.size(), 909));
 		}
 	};
 }
