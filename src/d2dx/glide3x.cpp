@@ -398,7 +398,7 @@ FX_ENTRY void FX_CALL
 
 	try
 	{
-		D2DXContextFactory::GetInstance()->OnTexSource(tmu, startAddress, w, h);
+		D2DXContextFactory::GetInstance()->OnTexSource(tmu, startAddress, w, h, info->largeLodLog2, info->aspectRatioLog2);
 	}
 	catch (...)
 	{

@@ -38,14 +38,16 @@ void TextureHasher::Invalidate(
 }
 
 _Use_decl_annotations_
-uint32_t TextureHasher::GetHash(
+XXH64_hash_t TextureHasher::GetHash(
 	uint32_t startAddress,
 	const uint8_t* pixels,
-	uint32_t pixelsSize)
+	uint32_t pixelsSize,
+	uint32_t largeLog2,
+	uint32_t ratioLog2)
 {
 	assert((startAddress & 255) == 0);
 
-	uint32_t hash = _cache.items[startAddress >> 8];
+	XXH64_hash_t hash = _cache.items[startAddress >> 8];
 
 	if (hash)
 	{
@@ -54,7 +56,9 @@ uint32_t TextureHasher::GetHash(
 	else
 	{
 		++_cacheMisses;
-		hash = fnv_32a_buf((void*)pixels, pixelsSize, FNV1_32A_INIT);
+		hash = XXH3_64bits((void *)pixels, pixelsSize);
+		hash ^= static_cast<XXH64_hash_t>(largeLog2 * 0x01000193u);
+		hash ^= static_cast<XXH64_hash_t>(ratioLog2 * 0x01000193u) << 32;
 		_cache.items[startAddress >> 8] = hash;
 	}
 

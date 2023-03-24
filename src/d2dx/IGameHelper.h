@@ -65,7 +65,7 @@ namespace d2dx
 			_In_ uint32_t returnAddress) const = 0;
 
 		virtual TextureCategory GetTextureCategoryFromHash(
-			_In_ uint32_t textureHash) const = 0;
+			_In_ uint64_t textureHash) const = 0;
 
 		virtual TextureCategory RefineTextureCategoryFromGameAddress(
 			_In_ TextureCategory previousCategory,

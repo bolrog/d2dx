@@ -22,6 +22,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define __MSC__
 
+#define XXH_VECTOR XXH_SSE2
+#define XXH_NO_STREAM 1
+
 #include <array>
 #include <stdexcept>
 #include <cstdio>
@@ -44,6 +47,7 @@
 
 #include "../../thirdparty/fnv/fnv.h"
 #include "../../thirdparty/detours/detours.h"
+#include "../../thirdparty/xxhash/xxhash.h"
 #include <glide.h>
 
 #include <d3d11.h>

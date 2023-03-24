@@ -65,7 +65,7 @@ namespace d2dx
 		_In_z_ const char* filename);
 
 	void DumpTexture(
-		_In_ uint32_t hash,
+		_In_ uint64_t hash,
 		_In_ int32_t w,
 		_In_ int32_t h,
 		_In_reads_(pixelsSize) const uint8_t* pixels,

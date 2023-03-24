@@ -277,7 +277,9 @@ void D2DXContext::OnTexSource(
 	uint32_t tmu,
 	uint32_t startAddress,
 	int32_t width,
-	int32_t height)
+	int32_t height,
+	uint32_t largeLog2,
+	uint32_t ratioLog2)
 {
 	assert(tmu == 0 && (startAddress & 255) == 0);
 	if (!(tmu == 0 && (startAddress & 255) == 0))
@@ -294,10 +296,10 @@ void D2DXContext::OnTexSource(
 	_BitScanReverse((DWORD*)&stShift, max(width, height));
 	_glideState.stShift = 8 - stShift;
 
-	uint32_t hash = _textureHasher.GetHash(startAddress, pixels, pixelsSize);
+	uint64_t hash = _textureHasher.GetHash(startAddress, pixels, pixelsSize, largeLog2, ratioLog2);
 
 	/* Patch the '5' to not look like '6'. */
-	if (hash == 0x8a12f6bb)
+	if (hash == 0xbeed610acac387d3)
 	{
 		pixels[1 + 10 * 16] = 181;
 		pixels[2 + 10 * 16] = 181;
@@ -342,7 +344,7 @@ void D2DXContext::CheckMajorGameState()
 			const Batch& batch = _batches.items[i];
 			const int32_t y0 = _vertices.items[batch.GetStartVertex()].GetY();
 
-			if (batch.GetHash() == 0x4bea7b80 && y0 >= 550)
+			if (batch.GetHash() == 0x84ab94c374c42d9a && y0 >= 550)
 			{
 				_majorGameState = MajorGameState::TitleScreen;
 				break;
@@ -946,7 +948,7 @@ void D2DXContext::OnTexDownloadTable(
 
 	_readVertexState.isDirty = true;
 
-	uint32_t hash = fnv_32a_buf(data, 1024, FNV1_32A_INIT);
+	uint64_t hash = XXH3_64bits(data, 1024);
 	assert(hash != 0);
 
 	for (uint32_t i = 0; i < D2DX_MAX_GAME_PALETTES; ++i)
@@ -1065,7 +1067,7 @@ void D2DXContext::PrepareLogoTextureBatch()
 
 	_renderContext->SetPalette(D2DX_LOGO_PALETTE_INDEX, palette.items);
 
-	uint32_t hash = fnv_32a_buf((void*)srcPixels, sizeof(uint8_t) * 81 * 40, FNV1_32A_INIT);
+	uint64_t hash = XXH3_64bits((void*)srcPixels, sizeof(uint8_t) * 81 * 40);
 
 	uint8_t* data = _glideState.sideTmuMemory.items;
 
@@ -1298,7 +1300,7 @@ Offset D2DXContext::BeginDrawText(
 	{
 		auto hash = fnv_32a_buf((void*)str, wcslen(str), FNV1_32A_INIT);
 
-		const uint64_t textId = 
+		const uint64_t textId =
 			(((uint64_t)(returnAddress & 0xFFFFFF) << 40ULL) |
 			((uint64_t)((uintptr_t)str & 0xFFFFFF) << 16ULL)) ^
 			(uint64_t)hash;
@@ -1311,7 +1313,7 @@ Offset D2DXContext::BeginDrawText(
 		// In 1.14d, some color codes are black. Remap them.
 
 		// Bright white -> white
-		while (wchar_t* subStr = wcsstr(str, L"ÿc/"))
+		while (wchar_t* subStr = wcsstr(str, L"ï¿½c/"))
 		{
 			subStr[2] = L'0';
 		}

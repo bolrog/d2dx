@@ -76,7 +76,7 @@ uint32_t TextureCache::GetMemoryFootprint() const
 
 _Use_decl_annotations_
 TextureCacheLocation TextureCache::FindTexture(
-	uint32_t contentKey,
+	uint64_t contentKey,
 	int32_t lastIndex)
 {
 	const int32_t index = _policy.Find(contentKey, lastIndex);
@@ -91,7 +91,7 @@ TextureCacheLocation TextureCache::FindTexture(
 
 _Use_decl_annotations_
 TextureCacheLocation TextureCache::InsertTexture(
-	uint32_t contentKey,
+	uint64_t contentKey,
 	const Batch& batch,
 	const uint8_t* tmuData,
 	uint32_t tmuDataSize)

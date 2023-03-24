@@ -138,6 +138,7 @@
     <ClInclude Include="..\..\thirdparty\pocketlzma\pocketlzma.hpp" />
     <ClInclude Include="..\..\thirdparty\stb_image\stb_image_write.h" />
     <ClInclude Include="..\..\thirdparty\toml\toml.h" />
+    <ClInclude Include="..\..\thirdparty\xxhash\xxhash.h" />
     <ClInclude Include="BuiltinResMod.h" />
     <ClInclude Include="CompatibilityModeDisabler.h" />
     <ClInclude Include="D2DXContextFactory.h" />
@@ -181,8 +182,14 @@
     <ClCompile Include="..\..\thirdparty\fnv\hash_32a.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\thirdparty\toml\toml.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\thirdparty\xxhash\xxhash.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>

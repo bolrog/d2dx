@@ -40,11 +40,11 @@ namespace d2dx
 		virtual void OnNewFrame() = 0;
 
 		virtual TextureCacheLocation FindTexture(
-			_In_ uint32_t contentKey,
+			_In_ uint64_t contentKey,
 			_In_ int32_t lastIndex) = 0;
 
 		virtual TextureCacheLocation InsertTexture(
-			_In_ uint32_t contentKey,
+			_In_ uint64_t contentKey,
 			_In_ const Batch& batch,
 			_In_reads_(tmuDataSize) const uint8_t* tmuData,
 			_In_ uint32_t tmuDataSize) = 0;

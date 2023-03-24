@@ -247,7 +247,7 @@ void d2dx::detail::FatalError(
 
 _Use_decl_annotations_
 void d2dx::DumpTexture(
-    uint32_t hash,
+    uint64_t hash,
     int32_t w,
     int32_t h,
     const uint8_t* pixels,
@@ -269,7 +269,7 @@ void d2dx::DumpTexture(
         std::filesystem::create_directory(s);
     }
 
-    sprintf_s(s, "dump/%u/%08x.bmp", textureCategory, hash);
+    sprintf_s(s, "dump/%u/%016llx.bmp", textureCategory, hash);
 
     if (std::filesystem::exists(s))
     {

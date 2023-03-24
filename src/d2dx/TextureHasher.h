@@ -31,16 +31,18 @@ namespace d2dx
 		void Invalidate(
 			_In_ uint32_t startAddress);
 
-		uint32_t GetHash(
+		XXH64_hash_t GetHash(
 			_In_ uint32_t startAddress,
 			_In_reads_(pixelsSize) const uint8_t* pixels,
-			_In_ uint32_t pixelsSize);
+			_In_ uint32_t pixelsSize,
+			_In_ uint32_t largeLog2,
+			_In_ uint32_t ratioLog2);
 
 		void PrintStats();
 
 	private:
-		Buffer<uint32_t> _cache;
-		uint32_t _cacheHits;
+		Buffer<XXH64_hash_t> _cache;
+        uint32_t _cacheHits;
 		uint32_t _cacheMisses;
 	};
 }
