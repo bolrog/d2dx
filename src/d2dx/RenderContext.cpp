@@ -85,6 +85,7 @@ RenderContext::RenderContext(
 	GetClientRect(hWnd, &clientRect);
 
 	SetWindowSubclass((HWND)hWnd, d2dxSubclassWndProc, 1234, (DWORD_PTR)this);
+	_isActiveWindow = GetForegroundWindow() == hWnd;
 
 	const int32_t widthFromClientRect = clientRect.right - clientRect.left;
 	const int32_t heightFromClientRect = clientRect.bottom - clientRect.top;
@@ -685,16 +686,19 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 {
 	RenderContext* renderContext = (RenderContext*)dwRefData;
 
-	if (uMsg == WM_ACTIVATEAPP)
+	if (uMsg == WM_ACTIVATE)
 	{
 		if (wParam)
 		{
-			renderContext->ClipCursor();
+			renderContext->SetActiveWindow(true);
 		}
 		else
 		{
-			renderContext->UnclipCursor();
+			renderContext->SetActiveWindow(false);
 		}
+	}
+	else if (uMsg == WM_MOVING) {
+		renderContext->UnclipCursor();
 	}
 	else if (uMsg == WM_SYSKEYDOWN || uMsg == WM_KEYDOWN)
 	{
@@ -719,6 +723,11 @@ static LRESULT CALLBACK d2dxSubclassWndProc(
 #ifdef NDEBUG
 		ShowCursor_Real(FALSE);
 #endif
+		if (uMsg != WM_MOUSEMOVE)
+		{
+			renderContext->ClipCursor(false);
+		}
+
 		Offset mousePos = { LOWORD(lParam), HIWORD(lParam) };
 
 		Size gameSize;
@@ -921,7 +930,7 @@ void RenderContext::SetSizes(
 		SetWindowPos_Real(_hWnd, HWND_TOP, 0, 0, _desktopSize.width, _desktopSize.height, SWP_SHOWWINDOW | SWP_NOSENDCHANGING | SWP_FRAMECHANGED);
 	}
 
-	ClipCursor();
+	ClipCursor(true);
 
 	if (!_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoTitleChange))
 	{
@@ -1019,9 +1028,9 @@ void RenderContext::GetCurrentMetrics(
 	}
 }
 
-void RenderContext::ClipCursor()
+void RenderContext::ClipCursor(bool resizing)
 {
-	if (_d2dxContext->GetOptions().GetFlag(OptionsFlag::NoClipCursor))
+	if (!_isActiveWindow || (resizing != _isCursorClipped) || _d2dxContext->GetOptions().GetFlag(OptionsFlag::NoClipCursor))
 	{
 		return;
 	}
@@ -1035,11 +1044,13 @@ void RenderContext::ClipCursor()
 	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.left);
     ::ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
     ::ClipCursor(&clipRect);
+    _isCursorClipped = true;
 }
 
 void RenderContext::UnclipCursor()
 {
 	::ClipCursor(NULL);
+	_isCursorClipped = false;
 }
 
 float RenderContext::GetFrameTime() const

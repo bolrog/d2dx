@@ -113,7 +113,15 @@ namespace d2dx
 
 		virtual ScreenMode GetScreenMode() const override;
 
-		void ClipCursor();
+		void SetActiveWindow(bool active) {
+			if (!active)
+			{
+				UnclipCursor();
+			}
+			_isActiveWindow = active;
+		}
+
+		void ClipCursor(bool resizing);
 		void UnclipCursor();
 
 	private:
@@ -210,6 +218,8 @@ namespace d2dx
 		EventHandle _frameLatencyWaitableObject;
 		int64_t _timeStart;
 		bool _hasAdjustedWindowPlacement = false;
+		bool _isActiveWindow = false;
+		bool _isCursorClipped = false;
 
 		double _prevTime;
 		double _frameTimeMs;
