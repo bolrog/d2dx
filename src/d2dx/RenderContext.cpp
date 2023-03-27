@@ -400,7 +400,7 @@ void RenderContext::Present()
 	UpdateViewport(_renderRect);
 
 	RenderContextPixelShader pixelShader;
-	
+
 	switch (_d2dxContext->GetOptions().GetFiltering())
 	{
 	default:
@@ -1026,11 +1026,15 @@ void RenderContext::ClipCursor()
 		return;
 	}
 
-	RECT clipRect;
-	::GetClientRect(_hWnd, &clipRect);
+	RECT clipRect = {
+		_renderRect.offset.x,
+		_renderRect.offset.y,
+		_renderRect.offset.x + _renderRect.size.width,
+		_renderRect.offset.y + _renderRect.size.height
+	};
 	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.left);
-	::ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
-	::ClipCursor(&clipRect);
+    ::ClientToScreen(_hWnd, (LPPOINT)&clipRect.right);
+    ::ClipCursor(&clipRect);
 }
 
 void RenderContext::UnclipCursor()
