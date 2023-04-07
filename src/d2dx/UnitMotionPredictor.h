@@ -47,8 +47,8 @@ namespace d2dx
 	private:
 		struct UnitIdAndType final
 		{
-			uint16_t unitType = 0;
-			uint16_t unitId = 0;
+			uint32_t unitType = 0;
+			uint32_t unitId = 0;
 		};
 
 		struct UnitMotion final

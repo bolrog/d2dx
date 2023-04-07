@@ -29,7 +29,8 @@ namespace d2dx
 	}
 
 	int64_t TimeStart();
-	float TimeEndMs(int64_t start);
+	int64_t TimeEnd(int64_t start);
+	double TimeToMs(int64_t time);
 
 
 #ifdef NDEBUG

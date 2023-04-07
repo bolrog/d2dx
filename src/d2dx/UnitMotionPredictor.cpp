@@ -168,8 +168,8 @@ Offset UnitMotionPredictor::GetOffset(
 
 	for (int32_t i = 0; i < _unitsCount; ++i)
 	{
-		if (_unitIdAndTypes.items[i].unitId == (uint16_t)unitId &&
-			_unitIdAndTypes.items[i].unitType == (uint16_t)unitType)
+		if (_unitIdAndTypes.items[i].unitId == unitId &&
+			_unitIdAndTypes.items[i].unitType == (uint32_t)unitType)
 		{
 			_unitMotions.items[i].lastUsedFrame = _frame;
 			unitIndex = i;
@@ -182,8 +182,8 @@ Offset UnitMotionPredictor::GetOffset(
 		if (_unitsCount < (int32_t)_unitIdAndTypes.capacity)
 		{
 			unitIndex = _unitsCount++;
-			_unitIdAndTypes.items[unitIndex].unitId = (uint16_t)unitId;
-			_unitIdAndTypes.items[unitIndex].unitType = (uint16_t)unitType;
+			_unitIdAndTypes.items[unitIndex].unitId = unitId;
+			_unitIdAndTypes.items[unitIndex].unitType = (uint32_t)unitType;
 			_unitMotions.items[unitIndex] = { };
 			_unitMotions.items[unitIndex].lastUsedFrame = _frame;
 		}
@@ -212,8 +212,8 @@ void UnitMotionPredictor::SetUnitScreenPos(
 
 	for (int32_t unitIndex = 0; unitIndex < _unitsCount; ++unitIndex)
 	{
-		if (_unitIdAndTypes.items[unitIndex].unitId == (uint16_t)unitId &&
-			_unitIdAndTypes.items[unitIndex].unitType == (uint16_t)unitType)
+		if (_unitIdAndTypes.items[unitIndex].unitId == unitId &&
+			_unitIdAndTypes.items[unitIndex].unitType == (uint32_t)unitType)
 		{
 			_unitScreenPositions.items[unitIndex] = { x, y };
 			break;
